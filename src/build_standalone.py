@@ -39,6 +39,5 @@ head = ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8D%8B%3C/text%3E%3C/svg%3E">'
         '<style>[hidden]{display:none!important}body{margin:0}</style></head><body>')
 out = head + f'<script>window.LL_FIREBASE={cfg};</script><script>{shim}</script>' + src + '</body></html>'
-os.makedirs(os.path.join(D, 'standalone'), exist_ok=True)
-open(os.path.join(D, 'standalone', 'index.html'), 'w').write(out)
+open(os.path.join(D, '..', 'index.html'), 'w').write(out)  # writes the site's index.html
 print('ok', len(out)//1024, 'KB', 'config' if cfg != 'null' else 'NO CONFIG (test backend only)')
