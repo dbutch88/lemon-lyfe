@@ -758,9 +758,9 @@ const CHARS=[
   {id:'zuri',iris:'#3b2314',name:'Zuri',nick:'Zest',color:'#e4572e',skin:'#6b4226',hair:'#1c1310',bio:'Science-fair champ. Swears her recipe is chemically perfect.'},
   {id:'mateo',iris:'#4a2a14',name:'Mateo',nick:'Pips',color:'#2a9d8f',skin:'#b97a50',hair:'#2a1a12',bio:'Keeps the books, knows every price on the street and never forgets a debt.'},
   {id:'priya',iris:'#3a1d10',name:'Priya',nick:'Turbo',color:'#d29a06',skin:'#9a6038',hair:'#1b1110',bio:'Fastest bike in the neighborhood. Gets lemonade anywhere in under a minute.'},
-  {id:'kenji',iris:'#2b1d12',name:'Kenji',nick:'Big Squeeze',color:'#7b5ea7',skin:'#f0c8a0',hair:'#151515',bio:'Runs the loudest stand on the block and never takes the first offer.'},
+  {id:'kenji',iris:'#2b1d12',name:'Kenji',nick:'Sunshine',color:'#7b5ea7',skin:'#f0c8a0',hair:'#151515',bio:'Hasn’t smiled since kindergarten. Has never lost a staring contest.'},
   {id:'amira',iris:'#4a2f1c',name:'Amira',nick:'Fizz',color:'#d6457f',skin:'#d5a070',hair:'#2f5f7a',brow:'#3a2416',bio:'Calm, sharp and three moves ahead. Brings snacks to every standoff.'},
-  {id:'liam',iris:'#2f6aa8',name:'Liam',nick:'Pucker',color:'#3a86c8',skin:'#f7d6c0',hair:'#c4552a',bio:'All freckles and big plans. Has never lost a staring contest.'}];
+  {id:'liam',iris:'#2f6aa8',name:'Liam',nick:'Big Squeeze',color:'#3a86c8',skin:'#f7d6c0',hair:'#c4552a',bio:'Biggest kid on the block, all freckles and big plans. Never takes the first offer.'}];
 const CHAR_BY=Object.fromEntries(CHARS.map(c=>[c.id,c]));
 function charMapFor(players){const m={},used=new Set();if(!players)return m;const ids=Object.keys(players).sort((a,b)=>(players[a].seat||0)-(players[b].seat||0));
   ids.forEach(u=>{const c=players[u].char;if(c&&CHAR_BY[c]&&!used.has(c)){m[u]=c;used.add(c)}});
@@ -778,7 +778,7 @@ const LOOKS={
   priya:{pose:'punch',top:'racer',bottom:'shorts',pants:'#b49a6a',shoes:'#d9412b',shoeTrim:'#ffffff',mouth:'gritted',lids:[7,7],brows:['M64 62 L95 76','M105 76 L136 62']},
   kenji:{pose:'cross',top:'hoodie',bottom:'jeans',pants:'#41639c',shoes:'#ffffff',shoeTrim:'#7b5ea7',mouth:'frown',lids:[7,5],brows:['M64 64 L94 74','M106 72 L136 66']},
   amira:{pose:'cup',top:'jacket',bottom:'pants',pants:'#2f3b5c',shoes:'#ffffff',shoeTrim:'#d6457f',mouth:'sip',lids:[8,8],brows:['M65 66 L94 72','M106 72 L135 66']},
-  liam:{pose:'sling',top:'stripes',bottom:'shorts',pants:'#6f8a4a',shoes:'#f2f2f2',shoeTrim:'#3a86c8',mouth:'gum',lids:[3,8],brows:['M64 62 L95 75','M105 72 Q120 62 136 66']}};
+  liam:{big:1.16,pose:'sling',top:'stripes',bottom:'shorts',pants:'#6f8a4a',shoes:'#f2f2f2',shoeTrim:'#3a86c8',mouth:'gum',lids:[3,8],brows:['M64 62 L95 75','M105 72 Q120 62 136 66']}};
 function charLayers(cid,color,uid){
   const c=CHAR_BY[cid],lk=LOOKS[cid];if(!c||!lk)return '';
   const S=c.skin,SH=shadeHex(S,-.2),H=c.hair,HL=shadeHex(H,.4),col=color||c.color,colD=shadeHex(col,-.22),colL=shadeHex(col,.45);
@@ -870,7 +870,8 @@ function charLayers(cid,color,uid){
       <circle cx="88" cy="152" r="7" fill="#f7d538" ${W} stroke-width="2"/><path d="M88 146 L88 158M82 152 L94 152" stroke="#e8c21f" stroke-width="1.6"/>`+gloss('M92 156 L91 184',2.6)+arm([[76,136],[66,168],[89,182]])+arm([[124,136],[134,168],[111,182]]);break;
     case 'wave':{const hx=160,hy=86;arms=arm([[76,136],[64,166],[72,194]])+arm([[124,136],[150,124],[hx,hy+8]],`<g>${[[-9,-10],[-3,-14],[3,-14],[9,-10]].map(([dx,dy])=>limb(`M${hx+dx*.4} ${hy} L${hx+dx} ${hy+dy}`,S,5)).join('')}<circle cx="${hx}" cy="${hy+2}" r="9.5" fill="${S}" ${W}/>${limb(`M${hx-7} ${hy+4} L${hx-14} ${hy-2}`,S,5)}</g>`)+`<path d="M174 74 q6 6 0 14M180 70 q9 10 0 22" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;break}}
   const tilt={zuri:5,mateo:-4,priya:5,kenji:-6,amira:-4,liam:6}[cid]||0,T=`transform="rotate(${tilt} 100 128)"`;
-  return shadow+`<g ${T}>${back}</g>`+legs+torso+`<g ${T}>${afterTorso}</g>`+neck+`<g ${T}>${noEars?'':ears}${head}${hairF}${brows}${eyes}${nose}${blush}${MO[lk.mouth]}${faceX}</g>`+arms}
+  const BG=lk.big?`<g transform="translate(100 210) scale(${lk.big} ${1+(lk.big-1)/3}) translate(-100 -210)">`:'<g>';
+  return shadow+`<g ${T}>${back}</g>`+BG+legs+torso+`<g ${T}>${afterTorso}</g>`+neck+'</g>'+(lk.big?`<g transform="translate(100 150) scale(1.06) translate(-100 -150)">`:'<g>')+`<g ${T}>${noEars?'':ears}${head}${hairF}${brows}${eyes}${nose}${blush}${MO[lk.mouth]}${faceX}</g></g>`+(lk.big?`<g transform="translate(92 210) scale(1.07) translate(-100 -210)">`:'<g>')+arms+'</g>'}
 function toonBg(color,uid,full){
   const panel=shadeHex(color,.72),edge=shadeHex(color,.45),R=rngFrom(hash(color));
   const sk=Array.from({length:7},(_,k)=>{const x=k<4?24+R()*8:168+R()*8,y1=8+R()*30,y2=250+R()*40;return `<path d="M${x} ${y1} L${x+R()*4-2} ${y2}" stroke="${edge}" stroke-width="${2+R()*2}" stroke-linecap="round" opacity=".8"/>`}).join('')+
