@@ -889,10 +889,10 @@ function attack(s,u,a,rng,L,E){
 }
 /* ---------- characters ---------- */
 const CHARS=[
-  {id:'zuri',iris:'#3b2314',name:'Zuri',nick:'Big Squeeze',color:'#e4572e',skin:'#6b4226',hair:'#1c1310',bio:'Runs the loudest stand on the block and never takes the first offer.'},
-  {id:'mateo',iris:'#4a2a14',name:'Mateo',nick:'Turbo',color:'#2a9d8f',skin:'#b97a50',hair:'#2a1a12',bio:'Fastest bike in the neighborhood. Gets lemonade anywhere in under a minute.'},
-  {id:'priya',iris:'#3a1d10',name:'Priya',nick:'Sour Patch',color:'#d29a06',skin:'#9a6038',hair:'#1b1110',bio:'Keeps the books, knows every price on the street and never forgets a debt.'},
-  {id:'kenji',iris:'#2b1d12',name:'Kenji',nick:'Zest',color:'#7b5ea7',skin:'#f0c8a0',hair:'#151515',bio:'Science-fair champ. Swears his recipe is chemically perfect.'},
+  {id:'zuri',iris:'#3b2314',name:'Zuri',nick:'Zest',color:'#e4572e',skin:'#6b4226',hair:'#1c1310',bio:'Science-fair champ. Swears her recipe is chemically perfect.'},
+  {id:'mateo',iris:'#4a2a14',name:'Mateo',nick:'Tart',color:'#2a9d8f',skin:'#b97a50',hair:'#2a1a12',bio:'Keeps the books, knows every price on the street and never forgets a debt.'},
+  {id:'priya',iris:'#3a1d10',name:'Priya',nick:'Turbo',color:'#d29a06',skin:'#9a6038',hair:'#1b1110',bio:'Fastest bike in the neighborhood. Gets lemonade anywhere in under a minute.'},
+  {id:'kenji',iris:'#2b1d12',name:'Kenji',nick:'Big Squeeze',color:'#7b5ea7',skin:'#f0c8a0',hair:'#151515',bio:'Runs the loudest stand on the block and never takes the first offer.'},
   {id:'amira',iris:'#4a2f1c',name:'Amira',nick:'Fizz',color:'#d6457f',skin:'#d5a070',hair:'#2f5f7a',brow:'#3a2416',bio:'Calm, sharp and three moves ahead. Brings snacks to every standoff.'},
   {id:'liam',iris:'#2f6aa8',name:'Liam',nick:'Pucker',color:'#3a86c8',skin:'#f7d6c0',hair:'#c4552a',bio:'All freckles and big plans. Has never lost a staring contest.'}];
 const CHAR_BY=Object.fromEntries(CHARS.map(c=>[c.id,c]));
@@ -907,10 +907,10 @@ let svgUid=0;
 function shadeHex(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;
   const m=v=>Math.max(0,Math.min(255,Math.round(f<0?v*(1+f):v+(255-v)*f)));return '#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
 const LOOKS={
-  zuri:{pose:'cross',top:'hoodie',bottom:'jeans',pants:'#41639c',shoes:'#ffffff',shoeTrim:'#e4572e',mouth:'frown',lids:[7,5],brows:['M64 64 L94 74','M106 72 L136 66']},
-  mateo:{pose:'punch',top:'racer',bottom:'shorts',pants:'#b49a6a',shoes:'#d9412b',shoeTrim:'#ffffff',mouth:'gritted',lids:[7,7],brows:['M64 62 L95 76','M105 76 L136 62']},
-  priya:{pose:'notepad',top:'cardigan',bottom:'skirt',pants:'#4b6aa0',legs:'#3a3350',shoes:'#8a2b3b',shoeTrim:'#5e1d28',mouth:'smirk',lids:[6,2],brows:['M65 68 L94 72','M106 64 Q120 54 136 62']},
-  kenji:{pose:'flask',top:'labcoat',bottom:'pants',pants:'#3b3f58',shoes:'#f2f2f2',shoeTrim:'#7b5ea7',mouth:'evil',lids:[6,6],brows:['M64 60 L95 74','M105 74 L136 60']},
+  zuri:{pose:'flask',top:'labcoat',bottom:'pants',pants:'#3b3f58',shoes:'#f2f2f2',shoeTrim:'#e4572e',mouth:'evil',lids:[6,6],brows:['M64 60 L95 74','M105 74 L136 60']},
+  mateo:{pose:'notepad',top:'cardigan',bottom:'pants',pants:'#4b6aa0',shoes:'#8a2b3b',shoeTrim:'#5e1d28',mouth:'smirk',lids:[6,2],brows:['M65 68 L94 72','M106 64 Q120 54 136 62']},
+  priya:{pose:'punch',top:'racer',bottom:'shorts',pants:'#b49a6a',shoes:'#d9412b',shoeTrim:'#ffffff',mouth:'gritted',lids:[7,7],brows:['M64 62 L95 76','M105 76 L136 62']},
+  kenji:{pose:'cross',top:'hoodie',bottom:'jeans',pants:'#41639c',shoes:'#ffffff',shoeTrim:'#7b5ea7',mouth:'frown',lids:[7,5],brows:['M64 64 L94 74','M106 72 L136 66']},
   amira:{pose:'cup',top:'jacket',bottom:'pants',pants:'#2f3b5c',shoes:'#ffffff',shoeTrim:'#d6457f',mouth:'sip',lids:[8,8],brows:['M65 66 L94 72','M106 72 L135 66']},
   liam:{pose:'sling',top:'stripes',bottom:'shorts',pants:'#6f8a4a',shoes:'#f2f2f2',shoeTrim:'#3a86c8',mouth:'gum',lids:[3,8],brows:['M64 62 L95 75','M105 72 Q120 62 136 66']}};
 function charLayers(cid,color,uid){
@@ -975,12 +975,12 @@ function charLayers(cid,color,uid){
   switch(cid){
     case 'zuri':back=`<circle cx="58" cy="28" r="25" fill="${H}" ${W}/><circle cx="142" cy="28" r="25" fill="${H}" ${W}/>`+gloss('M42 22 Q50 10 64 12')+gloss('M126 12 Q140 8 152 18');
       hairF=`<path d="M56 78 C52 38 76 22 100 22 C124 22 148 38 144 78 C136 55 120 46 100 46 C80 46 64 55 56 78Z" fill="${H}" ${W}/><rect x="64" y="36" width="18" height="9" rx="4" fill="#f7d538" ${W} stroke-width="2.2" transform="rotate(-40 73 40)"/><rect x="118" y="36" width="18" height="9" rx="4" fill="#f7d538" ${W} stroke-width="2.2" transform="rotate(40 127 40)"/>`+gloss('M80 30 Q100 24 120 30');break;
-    case 'mateo':hairF=`<path d="M56 80 C52 40 78 22 100 22 C122 22 148 40 144 80 C136 58 120 50 100 50 C80 50 64 58 56 80Z" fill="${H}" ${W}/>`+[[57,58],[63,38],[79,24],[100,17],[121,24],[137,38],[143,58]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="12.5" fill="${H}" ${W}/>`+gloss(`M${x-6} ${y-4} q5 -5 10 -2`,2.4)).join('')+
-      `<path d="M52 54 Q100 38 148 54 L148 64 Q100 48 52 64Z" fill="#2b2b2b" ${W} stroke-width="2.2"/><ellipse cx="80" cy="54" rx="14" ry="11" fill="#7fd0ef" ${W} stroke-width="3.4"/><ellipse cx="120" cy="54" rx="14" ry="11" fill="#7fd0ef" ${W} stroke-width="3.4"/>`+gloss('M72 50 q5 -5 11 -3',3)+gloss('M112 50 q5 -5 11 -3',3);
-      faceX=`<g transform="rotate(-22 66 108)"><rect x="54" y="103" width="24" height="10" rx="5" fill="#f3d2a7" ${W} stroke-width="2"/><rect x="62" y="103" width="8" height="10" fill="#e9c08e"/></g>`;break;
+    case 'mateo':hairF=`<path d="M56 80 C52 40 78 22 100 22 C122 22 148 40 144 80 C136 58 120 50 100 50 C80 50 64 58 56 80Z" fill="${H}" ${W}/>`+[[57,58],[63,38],[79,24],[100,17],[121,24],[137,38],[143,58]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="12.5" fill="${H}" ${W}/>`+gloss(`M${x-6} ${y-4} q5 -5 10 -2`,2.4)).join('');
+      hairF+=`<g transform="rotate(-58 50 70)"><rect x="28" y="66" width="38" height="8" fill="#f7c33a" ${W} stroke-width="2"/><path d="M66 66 L76 70 L66 74Z" fill="#f3d2a7" ${W} stroke-width="2"/><rect x="23" y="66" width="6" height="8" fill="#ef8f9a" ${W} stroke-width="2"/></g>`;break;
     case 'priya':back=`<path d="M54 80 C50 34 76 16 100 16 C124 16 150 34 146 80 L152 178 C134 186 66 186 48 178Z" fill="${H}" ${W}/>`+gloss('M54 110 Q52 140 56 168')+gloss('M146 110 Q148 140 144 168');
-      hairF=`<path d="M56 82 C50 42 80 22 104 24 C128 26 148 46 144 80 C138 60 124 50 108 48 C94 54 76 68 56 82Z" fill="${H}" ${W}/><path d="M57 62 C68 30 132 30 143 62" stroke="${INK}" stroke-width="10.5" fill="none" stroke-linecap="round"/><path d="M57 62 C68 30 132 30 143 62" stroke="#f7d538" stroke-width="6" fill="none" stroke-linecap="round"/>`+gloss('M84 32 Q104 24 124 34')+
-        `<g transform="rotate(-58 50 70)"><rect x="28" y="66" width="38" height="8" fill="#f7c33a" ${W} stroke-width="2"/><path d="M66 66 L76 70 L66 74Z" fill="#f3d2a7" ${W} stroke-width="2"/><rect x="23" y="66" width="6" height="8" fill="#ef8f9a" ${W} stroke-width="2"/></g>`;
+      hairF=`<path d="M56 82 C50 42 80 22 104 24 C128 26 148 46 144 80 C138 60 124 50 108 48 C94 54 76 68 56 82Z" fill="${H}" ${W}/>`+gloss('M84 32 Q104 24 124 34');
+      hairF+=`<path d="M52 54 Q100 38 148 54 L148 64 Q100 48 52 64Z" fill="#2b2b2b" ${W} stroke-width="2.2"/><ellipse cx="80" cy="54" rx="14" ry="11" fill="#7fd0ef" ${W} stroke-width="3.4"/><ellipse cx="120" cy="54" rx="14" ry="11" fill="#7fd0ef" ${W} stroke-width="3.4"/>`+gloss('M72 50 q5 -5 11 -3',3)+gloss('M112 50 q5 -5 11 -3',3);
+      faceX=`<g transform="translate(-2 -6) rotate(-22 66 108)"><rect x="54" y="103" width="24" height="10" rx="5" fill="#f3d2a7" ${W} stroke-width="2"/><rect x="62" y="103" width="8" height="10" fill="#e9c08e"/></g>`;
       afterTorso=[[136,128],[139,144],[141,160],[142,176]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="9" ry="10" fill="${H}" ${W}/>`+gloss(`M${x-4} ${y-4} q4 -3 8 0`,2.2)).join('')+`<rect x="135" y="185" width="14" height="8" rx="3" fill="#f7d538" ${W} stroke-width="2"/>`;break;
     case 'kenji':hairF=`<polygon points="54,82 44,50 60,56 54,26 76,40 80,8 98,30 112,6 120,32 140,22 138,50 156,46 146,82 134,56 100,46 66,56" fill="${H}" ${W}/>`+gloss('M70 46 L64 34',3)+gloss('M92 36 L86 20',3)+gloss('M116 38 L120 22',3);
       faceX=`<circle cx="80" cy="84" r="18" fill="rgba(210,235,255,.18)" stroke="${INK}" stroke-width="4"/><circle cx="120" cy="84" r="18" fill="rgba(210,235,255,.18)" stroke="${INK}" stroke-width="4"/><path d="M98 82 Q100 78 102 82" stroke="${INK}" stroke-width="4" fill="none"/><path d="M62 82 L50 78M138 82 L150 78" stroke="${INK}" stroke-width="3.4" stroke-linecap="round"/>`+gloss('M70 78 l9 -8',3)+gloss('M110 78 l9 -8',3);break;
@@ -1003,7 +1003,7 @@ function charLayers(cid,color,uid){
     case 'cup':arms=`<path d="M104 152 L102 116" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M104 152 L102 116" stroke="#e4572e" stroke-width="3.4" stroke-linecap="round"/><path d="M86 150 L114 150 L110 190 L90 190Z" fill="rgba(255,255,255,.75)" ${W}/><path d="M87.6 160 L112.4 160 L110 190 L90 190Z" fill="#f7d538"/><path d="M86 150 L114 150 L110 190 L90 190Z" fill="none" ${W}/>
       <circle cx="88" cy="152" r="7" fill="#f7d538" ${W} stroke-width="2"/><path d="M88 146 L88 158M82 152 L94 152" stroke="#e8c21f" stroke-width="1.6"/>`+gloss('M92 156 L91 184',2.6)+arm([[76,136],[66,168],[89,182]])+arm([[124,136],[134,168],[111,182]]);break;
     case 'wave':{const hx=160,hy=86;arms=arm([[76,136],[64,166],[72,194]])+arm([[124,136],[150,124],[hx,hy+8]],`<g>${[[-9,-10],[-3,-14],[3,-14],[9,-10]].map(([dx,dy])=>limb(`M${hx+dx*.4} ${hy} L${hx+dx} ${hy+dy}`,S,5)).join('')}<circle cx="${hx}" cy="${hy+2}" r="9.5" fill="${S}" ${W}/>${limb(`M${hx-7} ${hy+4} L${hx-14} ${hy-2}`,S,5)}</g>`)+`<path d="M174 74 q6 6 0 14M180 70 q9 10 0 22" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;break}}
-  const tilt={zuri:-6,mateo:5,priya:-4,kenji:5,amira:-4,liam:6}[cid]||0,T=`transform="rotate(${tilt} 100 128)"`;
+  const tilt={zuri:5,mateo:-4,priya:5,kenji:-6,amira:-4,liam:6}[cid]||0,T=`transform="rotate(${tilt} 100 128)"`;
   return shadow+`<g ${T}>${back}</g>`+legs+torso+`<g ${T}>${afterTorso}</g>`+neck+`<g ${T}>${noEars?'':ears}${head}${hairF}${brows}${eyes}${nose}${blush}${MO[lk.mouth]}${faceX}</g>`+arms}
 function toonBg(color,uid,full){
   const panel=shadeHex(color,.72),edge=shadeHex(color,.45),R=rngFrom(hash(color));
