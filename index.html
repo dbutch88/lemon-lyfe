@@ -1105,12 +1105,16 @@ function botOrders(s,u){
     if(urgent||p.loan.bars>=m/2||cash>320){const r=Math.min(p.loan.owe,spare);if(r>0){o.repay=r;cash-=r}}}
   // shop
   const reserve=P.hoard&&late?0:P.reserve;
-  for(const cat of P.prio){const t=TIERS[cat][p[cat]+o.buy[cat]+1];if(t&&cash-upCost(s,t)>=reserve&&!(cat==='rep'&&s.day<4&&p.rep>=0)){cash-=upCost(s,t);o.buy[cat]++}}
+  // adapt: a stack bigger than the vehicle carries is wasted, and a leader with better gear can't be beaten without catching up
+  const myMax=Math.max(0,...mine.map(i=>s.corners[i].s)),LP=s.players[leader]||p,outgun=leader!==u&&(LP.weapon>p.weapon||LP.rep>p.rep);
+  let prio=P.prio;if(myMax>TIERS.whip[p.whip].cap+3)prio=['whip',...prio.filter(c=>c!=='whip')];if(outgun&&(chase||late))prio=['weapon',...prio.filter(c=>c!=='weapon')];
+  for(const cat of prio){const t=TIERS[cat][p[cat]+o.buy[cat]+1];if(t&&cash-upCost(s,t)>=reserve&&!(cat==='rep'&&s.day<4&&p.rep>=0)){cash-=upCost(s,t);o.buy[cat]++}}
   if(p.rep<0&&cash>=60){o.buy.rep=Math.max(o.buy.rep,1);cash-=upCost(s,TIERS.rep[p.rep+1])}
   const saving=P.prio.some(cat=>TIERS[cat][p[cat]+o.buy[cat]+1]&&!(cat==='rep'&&s.day<4)),rc=recruitCost(s);
   o.buy.soldiers=recAfford(s,u,Math.floor(cash*(P.hoard?(late?1:P.save):saving&&!o.loan?(late?.6:P.save):1)));
   const byS=mine.slice().sort((a,b)=>s.corners[b].s-s.corners[a].s);
-  o.recruitsTo=style==='turtle'&&s.day%2?byS[byS.length-1]:byS[0];
+  const useCap=TIERS.whip[p.whip+o.buy.whip].cap,useful=byS.find(i=>s.corners[i].s<useCap+4);
+  o.recruitsTo=style==='turtle'&&s.day%2?byS[byS.length-1]:useful!=null?useful:byS[byS.length-1];
   const avail={};mine.forEach(i=>avail[i]=s.corners[i].s);avail[o.recruitsTo]+=o.buy.soldiers;
   // dirty tricks when flush
   if(lvl!=='easy'&&cash>120&&rng()<(lvl==='hard'?.5:.3)){const its=[...Array(s.rows*s.cols).keys()],own=it=>[0,1,2,3].filter(q=>s.corners[it*4+q].o===u).length,lead=it=>[0,1,2,3].filter(q=>s.corners[it*4+q].o===focus).length;
@@ -1137,11 +1141,17 @@ function botOrders(s,u){
     if(sleepy||pr<(lvl==='easy'?.35:.12))continue;const loss=c.s*(1-pr)/pr,need=Math.ceil((loss+1.5+.7*Math.sqrt(c.s/pr))*(lvl==='easy'?1.25:1));
     cands.push({i,empty:false,need,loss,score:value*aggr*2-loss*.3})}
   cands.sort((a,b)=>b.score-a.score);
-  for(const t of cands){if(o.attacks.length>=maxAtk)break;if(t.score<=0)break;
-    const src=mine.slice().sort((a,b)=>avail[b]-avail[a])[0],can=Math.min(cap,avail[src]-1);if(can<1)break;
-    if(t.empty){const n=Math.min(can,2);o.attacks.push({from:src,to:t.i,n,retreatAt:0});avail[src]-=n;continue}
-    if(t.need>can)continue;const n=Math.min(can,Math.ceil(t.need*1.15));
-    o.attacks.push({from:src,to:t.i,n,retreatAt:style==='brawler'?0:style==='turtle'?Math.max(1,Math.floor(n/3)):Math.max(1,Math.floor(n/4))});avail[src]-=n}
+  const rAt=n=>style==='brawler'?0:style==='turtle'?Math.max(1,Math.floor(n/3)):Math.max(1,Math.floor(n/4));let nT=0,combo=false;
+  for(const t of cands){if(nT>=maxAtk||o.attacks.length>=atkLimit(s))break;if(t.score<=0)break;
+    const srcs=mine.slice().sort((a,b)=>avail[b]-avail[a]),src=srcs[0],can=Math.min(cap,avail[src]-1);if(can<1)break;
+    if(t.empty){const n=Math.min(can,2);o.attacks.push({from:src,to:t.i,n,retreatAt:0});avail[src]-=n;nT++;continue}
+    if(t.need<=can){const n=Math.min(can,Math.ceil(t.need*1.15));o.attacks.push({from:src,to:t.i,n,retreatAt:rAt(n)});avail[src]-=n;nT++;continue}
+    // too big for one vehicle: late in the game, gang up on a runaway leader from several corners at once (once a turn, not on Easy)
+    if(lvl==='easy'||!late||!chase||combo||leader===u||s.corners[t.i].o!==focus)continue;combo=true;
+    let left=Math.ceil(t.need*1.15);const parts=[];
+    for(const si of srcs){if(left<=0||o.attacks.length+parts.length>=atkLimit(s))break;const k=Math.min(cap,avail[si]-1,left);if(k>=2){parts.push([si,k]);left-=k}}
+    if(left>0||parts.length>4)continue;
+    const tot=parts.reduce((a,x)=>a+x[1],0);parts.forEach(([si,k])=>{o.attacks.push({from:si,to:t.i,n:k,retreatAt:rAt(tot)});avail[si]-=k});nT++}
   const after=mine.slice().sort((a,b)=>avail[b]-avail[a]);
   if(after.length>1){const from=after[0],to=after[after.length-1];
     if(style==='turtle'&&!late&&!full){const n=Math.floor((avail[from]-avail[to])/2);if(n>0)o.move={from,to,n}}
