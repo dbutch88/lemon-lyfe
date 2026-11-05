@@ -493,7 +493,7 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 .danger-link{color:var(--bad)!important}
 .allyic{flex:none}
 .allywarn{margin:0;background:#f3e6fb;border:1.5px solid #7a2bb0;color:#4a1670;border-radius:10px;padding:8px 10px;font-size:13.5px}
-.sheet.allysheet{align-items:center;text-align:center}.sheet.allysheet .row{justify-content:center}.c-cpu{background:#4b5563}.c-quiet{background:#8a6d1c}.c-dad{background:#b8321d}
+.sheet.allysheet{align-items:center;text-align:center}.sheet.allysheet .row{justify-content:center}.c-cpu{background:#4b5563}.c-quiet{background:#8a6d1c}.c-dad{background:#b8321d}.dadline{display:flex;align-items:center;gap:6px;margin:6px 0 0;font-weight:700;color:var(--bad)}.dadline svg{flex:none}
 .bank{display:flex;flex-direction:column;gap:6px}.bank-h{display:flex;align-items:center;gap:10px}.bank-h>div{display:flex;flex-direction:column;line-height:1.2}
 .bank-t{margin:0;line-height:1.35}.dadface{flex:none;display:block}
 .dadmeter{display:flex;gap:4px}.dadmeter i{flex:1;height:10px;border-radius:4px;background:var(--line)}.dadmeter i.on{background:#e8b04a}.dadmeter i.warm{background:#f0883e}.dadmeter i.hot{background:#d9412b}
@@ -721,7 +721,7 @@ function dealCorners(ids,total,rng){let corners;
     let ok=true;for(let it=0;it<total/4&&ok;it++){const o=corners[it*4].o;if(o&&corners[it*4+1].o===o&&corners[it*4+2].o===o&&corners[it*4+3].o===o)ok=false}
     if(ok)return corners}
   return corners}
-function bankCfg(s){const N=s.maxDays||0,meter=N?Math.max(3,Math.min(8,Math.round(N/4))):8,open=N?Math.max(2,Math.round(N/4)):8;return{meter,open,close:N?N-meter:Infinity}}
+function bankCfg(s){const N=s.maxDays||0,meter=N?Math.max(2,Math.min(7,Math.round(N/4)-1)):7,open=N?Math.max(2,Math.round(N/4)):8;return{meter,open,close:N?N-meter-1:Infinity}}
 function lastPlace(s,u){const al=aliveUids(s);if(al.length<2)return false;const c=x=>cornersOf(s,x).length;return c(u)===Math.min(...al.map(c))}
 function canBorrow(s,u){const p=s.players[u];if(!p||p.alive===false||p.loan||p.loanUsed||s.status!=='active')return false;const b=bankCfg(s);return s.day>=b.open&&s.day<=b.close&&lastPlace(s,u)}
 function dadStage(ln,meter){if(!ln)return 0;const r=ln.bars/meter;return r>=.75?3:r>=.375?2:1}
@@ -932,8 +932,9 @@ const ICONS={brawl:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .5l1
   dad:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.5" r="6.5" fill="currentColor"/><path d="M4.5 6.5l2 1M11.5 6.5l-2 1M5.5 11.5q2.5-2 5 0" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>',
   out:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="currentColor" stroke-width="2"/></svg>'};
 const CATS={atk:{t:'Attack',pl:'Attacks',cls:'c-atk'},claim:{t:'Claim',pl:'Claims',cls:'c-claim'},skip:{t:'Called off',pl:'Called off',cls:'c-skip'},
-  rec:{t:'Recruit',pl:'Recruits',cls:'c-rec'},up:{t:'Upgrade',pl:'Upgrades',cls:'c-up'},mv:{t:'Move',pl:'Moves',cls:'c-mv'},out:{t:'Knocked out',pl:'Knocked out',cls:'c-out'},brawl:{t:'Brawl',pl:'Brawls',cls:'c-brawl'},go:{t:'Roll out',pl:'Roll out',cls:'c-go'},loan:{t:'Bank of Mom & Dad',pl:'Bank of Mom & Dad',cls:'c-loan'},news:{t:'Market day',pl:'Market days',cls:'c-news'},trick:{t:'Dirty trick',pl:'Dirty tricks',cls:'c-trick'},ally:{t:'Alliance',pl:'Alliances',cls:'c-ally'},betray:{t:'Betrayal',pl:'Betrayals',cls:'c-betray'},cpu:{t:'Computer takes over',pl:'Computer takes over',cls:'c-cpu'},quiet:{t:'Gone quiet',pl:'Gone quiet',cls:'c-quiet'},dad:{t:'Grounded',pl:'Grounded',cls:'c-dad'}};
-const catOf=ev=>ev.t==='ally'&&(ev.kind==='betray'||ev.kind==='broke')?'betray':ev.t==='brawl'?'brawl':ev.t==='go'?'go':ev.t==='atk'?(ev.res==='claim'?'claim':ev.res==='skip'?'skip':'atk'):(CATS[ev.t]?ev.t:'up');
+  rec:{t:'Recruit',pl:'Recruits',cls:'c-rec'},up:{t:'Upgrade',pl:'Upgrades',cls:'c-up'},mv:{t:'Move',pl:'Moves',cls:'c-mv'},out:{t:'Knocked out',pl:'Knocked out',cls:'c-out'},brawl:{t:'Brawl',pl:'Brawls',cls:'c-brawl'},go:{t:'Roll out',pl:'Roll out',cls:'c-go'},loan:{t:'Bank of Mom & Dad',pl:'Bank of Mom & Dad',cls:'c-loan'},news:{t:'Market day',pl:'Market days',cls:'c-news'},trick:{t:'Dirty trick',pl:'Dirty tricks',cls:'c-trick'},ally:{t:'Alliance',pl:'Alliances',cls:'c-ally'},betray:{t:'Betrayal',pl:'Betrayals',cls:'c-betray'},cpu:{t:'Computer takes over',pl:'Computer takes over',cls:'c-cpu'},quiet:{t:'Gone quiet',pl:'Gone quiet',cls:'c-quiet'},dad:{t:'Grounded',pl:'Grounded',cls:'c-dad'},door:{t:'Dad’s at the door',pl:'Dad’s at the door',cls:'c-dad'}};
+ICONS.door=ICONS.dad;
+const catOf=ev=>ev.t==='dad'&&ev.kind==='door'?'door':ev.t==='ally'&&(ev.kind==='betray'||ev.kind==='broke')?'betray':ev.t==='brawl'?'brawl':ev.t==='go'?'go':ev.t==='atk'?(ev.res==='claim'?'claim':ev.res==='skip'?'skip':'atk'):(CATS[ev.t]?ev.t:'up');
 
 /* ---------- computer crews ---------- */
 const BOT_NAMES=['Cul-de-Sac Kings','Juice Box Crew','Bike Rack Bandits','Recess Rebels','Sprinkler Squad','Pixie Stix Posse'];
@@ -1109,7 +1110,7 @@ function resolveDay(s0,ords){
       if(o.loan&&canBorrow(s,u)){p.cash+=LOAN_AMT;p.loan={owe:LOAN_OWE,bars:0,day:s.day};p.loanUsed=true;const tx=`${nm(u)} borrowed $${LOAN_AMT} from the Bank of Mom & Dad and owes $${LOAN_OWE}.`;L.push(tx);E.push({t:'loan',kind:'borrow',u,text:tx})}
       const rp=Math.floor((o.repay|0)/LOAN_STEP)*LOAN_STEP;
       if(rp>0&&p.loan){const amt=Math.min(rp,p.loan.owe,Math.floor(p.cash/LOAN_STEP)*LOAN_STEP);
-        if(amt>0){p.cash-=amt;p.loan.owe-=amt;p.loan.bars=Math.max(0,p.loan.bars-amt/LOAN_STEP);let tx,kind='repay';
+        if(amt>0){p.cash-=amt;p.loan.owe-=amt;p.loan.bars=Math.max(0,p.loan.bars-amt/LOAN_STEP);if(p.loan.bars<bankCfg(s).meter)p.loan.door=false;let tx,kind='repay';
           if(p.loan.owe<=0){p.loan=null;kind='free';tx=`${nm(u)} paid Mom & Dad back in full. Debt free!`}else tx=`${nm(u)} paid Mom & Dad $${amt} and still owes $${p.loan.owe}.`;
           L.push(tx);E.push({t:'loan',kind,u,text:tx})}}
       if(o.trick&&trickValid(s,u,o.trick)&&trickReady(s,u,o.trick.k)&&p.cash>=trickPrice(s,o.trick)){const t=o.trick,d=TRICKS[t.k];p.cash-=trickPrice(s,t);(p.tricksUsed||(p.tricksUsed={}))[t.k]=s.day;(s._tricks||(s._tricks=[])).push({k:t.k,u,it:t.it,v:t.v});if(t.k==='batch'&&s.players[t.v])s.players[t.v].salty=Math.max(s.players[t.v].salty||0,s.day+2);
@@ -1129,10 +1130,6 @@ function resolveDay(s0,ords){
       if(!f||!t||f.o!==u||t.o!==u||m.from===m.to)continue;const n=Math.min(m.n|0,f.s-1);
       if(n>0){f.s-=n;t.s+=n;const tx=`${nm(u)} moved ${n} from ${lab(m.from)} to ${lab(m.to)}.`;L.push(tx);E.push({t:'mv',u,from:m.from,to:m.to,text:tx,set:[[m.from,u,f.s],[m.to,u,t.s]]})}}
   }
-  // Dad collects before sales, so the sales roll counts the corners you actually still hold
-  if(s.status==='active'){const bc=bankCfg(s);
-    for(const u of order){const p=s.players[u];if(!p.loan||p.alive===false)continue;p.loan.bars++;if(p.loan.bars>=bc.meter)dadCollect(s,u,'GROUNDED! Dad boiled over.',L,E)}
-    if(s.maxDays&&s.day>=s.maxDays)for(const u of order){const p=s.players[u];if(p.loan&&p.alive!==false)dadCollect(s,u,'Game over, and the loan came due.',L,E)}}
   const income={};
   for(const u of order){const p=s.players[u],c=cornersOf(s,u).length;
     if(c===0){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx});continue}
@@ -1143,6 +1140,16 @@ function resolveDay(s0,ords){
     if(e&&e.k==='heat'){mult=2;fx.push('heat')}
     const rainN=e&&e.k==='rain',rainT=false;if(rainN||rainT){mult*=.5;fx.push(rainT?'batch':'rain')}
     const amt=Math.floor(r*Math.max(0,c+extra)*mult);p.cash+=amt;income[u]={d,r,c,amt};if(fx.length)Object.assign(income[u],{ev:fx[0],fx:[...new Set(fx)],mult,extra})}
+  // Bank of Mom & Dad, end of the night. A full meter means Dad is at the door for one turn; if nobody pays, he collects after that night's sales.
+  if(s.status==='active'){const bc=bankCfg(s),last=s.maxDays&&s.day>=s.maxDays;
+    for(const u of order){const p=s.players[u];if(!p.loan||p.alive===false)continue;
+      if(last){dadCollect(s,u,'Game over, and the loan came due.',L,E);continue}
+      if(p.loan.door){dadCollect(s,u,'GROUNDED! Dad was at the door and nobody paid.',L,E);continue}
+      p.loan.bars++;
+      if(p.loan.bars>=bc.meter){p.loan.bars=bc.meter;p.loan.door=true;const first=!p.loan.told;p.loan.told=true;
+        const tx=first?`Dad’s at the door at ${nm(u)}’s! ${nm(u)} owes $${p.loan.owe}.`:`Dad’s back at the door. You still owe $${p.loan.owe}.`;
+        if(first)L.push(tx);E.push(first?{t:'dad',kind:'door',u,text:tx}:{t:'dad',kind:'door',u,text:tx,priv:u})}}
+    for(const u of order){const p=s.players[u];if(p.alive!==false&&!cornersOf(s,u).length&&income[u]){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx})}}}
   s.log=[{day:s.day,lines:L,income,start,events:E},...(s.log||[])].slice(0,40);
   s.log.forEach((d,k)=>{if(k>=3){delete d.start;delete d.events}});
   s.lastResolvedDay=s.day;s.day++;
@@ -1174,7 +1181,7 @@ function tallyStats(s,s0,ords,E,income,day){const S=s.stats||(s.stats={});const 
       const tot=e.sides.reduce((t,x)=>t+(x.n0|0),0),bb=s.bigBrawl;if(!bb||e.sides.length>bb.n||(e.sides.length===bb.n&&tot>bb.tot))s.bigBrawl={n:e.sides.length,tot,day,to:e.to,winner:e.winner||null}}
     if(e.t==='rec')g(e.u).rec+=e.n|0;if(e.t==='up')g(e.u).up++;
     if(e.t==='loan'){if(e.kind==='borrow')g(e.u).loans++;if(e.kind==='free')g(e.u).repaid++}
-    if(e.t==='dad')g(e.u).grounded++;
+    if(e.t==='dad'&&e.kind!=='door')g(e.u).grounded++;
     {const gr=(v,a,n)=>{if(!v||!a||v===a||!s.players[v])return;const q=s.players[v];q.grudges=q.grudges||{};q.grudges[a]=(q.grudges[a]||0)+n};
       if(e.t==='atk'&&e.res!=='skip'&&e.res!=='claim')gr(e.d,e.u,1);if(e.t==='brawl'&&e.d)e.sides.forEach(x=>{if(!x.def)gr(e.d,x.u,1)});
       if(e.t==='ally'&&(e.kind==='betray'||e.kind==='broke'))gr(e.v,e.u,3);if(e.t==='trick'&&e.v)gr(e.v,e.u,1)}
@@ -1274,7 +1281,7 @@ function renderHeader(){
   t.innerHTML=info+(navOpen?meDrawer()+adminDrawer():'')+(navOpen?tipsBtn:'')+`<div class="tabrow">`+tabs.map(([k,v])=>`<button data-act="tab" data-tab="${k}" aria-current="${tab===k}">${v}${k==='board'&&(morningPending()||(iPlay()&&(!hasOrder(me)||dirty)))?' •':''}</button>`).join('')+`</div>`;
 }
 function crewColor(u){return st.players[u]?.color||'#888'}
-const STAMPS={def:'<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>DEFENDED!',took:'TAKEN!',loan:'LOAN APPROVED',news:'',trick:'',ally:'ALLIANCE!',betray:'BETRAYED!',free:'DEBT FREE!',dad:'GROUNDED!'};
+const STAMPS={def:'<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>DEFENDED!',took:'TAKEN!',loan:'LOAN APPROVED',news:'',trick:'',ally:'ALLIANCE!',betray:'BETRAYED!',free:'DEBT FREE!',dad:'GROUNDED!',door:'DAD’S AT THE DOOR!'};
 function boardSVG(){
   const {rows,cols}=st,cell=110,pad=66,rw=26,off=rw/2+10,W=(cols-1)*cell+pad*2,H=(rows-1)*cell+pad*2;
   const X=c=>pad+c*cell,Y=r=>pad+r*cell,R=rngFrom(hash('map'+rows+'x'+cols));
@@ -1520,12 +1527,12 @@ const VM_SHR='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"
 const vmBoardBtn=()=>vm==='board'?`<button class="vmbtn on" data-act="vm" data-v="split" aria-label="Show the action panel again">${VM_SHR}<span>Show actions</span></button>`:`<button class="vmbtn" data-act="vm" data-v="board" aria-label="Expand the board to full view">${VM_EXP}<span>Full board</span></button>`;
 const vmSheetBtn=()=>vm==='panel'?`<button class="vmsheet on" data-act="vm" data-v="split" aria-label="Show the board again">${VM_SHR}<span>Show board</span></button>`:`<button class="vmsheet" data-act="vm" data-v="panel" aria-label="Expand the action panel to full view">${VM_EXP}<span>Full panel</span></button>`;
 let mkPopAt=0,mkPopKey='',mkSoonAt=0,mkSoonKey='';
-function mkSoon(){const nx=nextMarket(st);if(!nx||nx.day-st.day!==3||!planningNow()||evToday(st))return'';const key=st.gameId+':'+nx.day;let seen=false;try{seen=localStorage.getItem('sc-mksoon-'+key)==='1'}catch(x){seen=mkSoonKey===key&&!mkSoonAt}
+function mkSoon(){const nx=nextMarket(st);if(!nx||nx.day-st.day!==3||!planningNow()||evToday(st))return'';{const mp=myP();if(mp&&mp.loan&&!dadSeen())return''}const key=st.gameId+':'+nx.day;let seen=false;try{seen=localStorage.getItem('sc-mksoon-'+key)==='1'}catch(x){seen=mkSoonKey===key&&!mkSoonAt}
   if(seen&&!(mkSoonKey===key&&mkSoonAt))return'';
   if(mkSoonKey!==key){mkSoonKey=key;mkSoonAt=Date.now();try{localStorage.setItem('sc-mksoon-'+key,'1')}catch(x){}setTimeout(()=>sfx('stamp'),60);setTimeout(()=>{mkSoonAt=0;render()},2900)}
   const el=Date.now()-mkSoonAt;if(!mkSoonAt||el>2800)return'';
   return `<div class="bigstamp market soon" style="animation-delay:-${el}ms" role="status"><span class="mk-ic">🛒</span><span class="mk-t">MARKET DAY IN 3 TURNS!<small>${DW()} ${nx.day} · Nobody knows what’s coming. Plan ahead.</small></span></div>`}
-function mkStamp(){const e=evToday(st);if(!e||!planningNow())return'';const key=st.gameId+':'+st.day;let seen=false;try{seen=localStorage.getItem('sc-mkpop-'+key)==='1'}catch(x){seen=mkPopKey===key&&!mkPopAt}
+function mkStamp(){const e=evToday(st);if(!e||!planningNow())return'';{const mp=myP();if(mp&&mp.loan&&!dadSeen())return''}const key=st.gameId+':'+st.day;let seen=false;try{seen=localStorage.getItem('sc-mkpop-'+key)==='1'}catch(x){seen=mkPopKey===key&&!mkPopAt}
   if(seen&&!(mkPopKey===key&&mkPopAt))return'';
   if(mkPopKey!==key){mkPopKey=key;mkPopAt=Date.now();try{localStorage.setItem('sc-mkpop-'+key,'1')}catch(x){}setTimeout(()=>sfx('stamp'),60);setTimeout(()=>{mkPopAt=0;render()},2700)}
   const el=Date.now()-mkPopAt;if(!mkPopAt||el>2600)return'';
@@ -1616,8 +1623,8 @@ function markDadSeen(){try{localStorage.setItem(dadKey(),String(st.day))}catch(e
 let dadSfxDay=null;
 function dadSheet(){const p=myP();if(!p||!p.loan||!iPlay()||st.status!=='active'||morningPending()||replay||salesShowing()||dadSeen())return'';if(dadSfxDay!==st.gameId+st.day){dadSfxDay=st.gameId+st.day;setTimeout(()=>sfx('dad'),50)}
   const bc=bankCfg(st),ln=p.loan,stg=dadStage(ln,bc.meter),left=bc.meter-ln.bars,corners=Math.ceil(ln.owe/DAD_PER_CORNER);
-  const head=stg>=3?'Dad is furious!':stg===2?'Dad is grumbling':'Dad wants his money';
-  const when=left<=1?'<strong>Dad boils over at the end of this turn</strong> unless you pay some back.':`Dad boils over in <strong>${left} turns</strong>.`;
+  const head=ln.door?'Dad’s at the door!':stg>=3?'Dad is furious!':stg===2?'Dad is grumbling':'Dad wants his money';
+  const when=ln.door?`Pay back at least <strong>$${LOAN_STEP} this turn</strong> to send him away, or he collects after tonight’s sales.`:left<=1?'Your meter fills tonight. Then Dad’s at the door for one turn.':`Your meter fills in <strong>${left} turns</strong>. Then Dad’s at the door for one turn.`;
   return `<div class="scrim"></div><div class="sheet dadpop s${stg}" role="alertdialog" aria-modal="true" aria-labelledby="dad-t">${dadFace(stg,84)}<h2 id="dad-t">${head}</h2>
     ${dadMeter(ln.bars,bc.meter)}<p>You owe <strong>$${ln.owe}</strong>. ${when} If he does, he takes your cash first, then a corner for every $${DAD_PER_CORNER} still owed (up to <strong>${corners}</strong>).</p><p class="small muted">Every $${LOAN_STEP} you repay knocks a bar off.</p>
     <div class="row"><button class="btn primary" data-act="dad-pay">Pay Dad back</button><button class="btn" data-act="dad-later">Not now</button></div></div>`}
@@ -1818,7 +1825,7 @@ function salesPending(){if(!st||st.status!=='active')return false;const x=lastSa
 const morningPending=()=>st&&st.status==='active'&&(nightPending()||salesPending());
 function clearT(){if(replay&&replay.timer){clearTimeout(replay.timer);replay.timer=null}}
 function later(fn,ms){clearT();replay.timer=setTimeout(()=>{replay.timer=null;fn()},ms)}
-function startReplay(entry,live){replay={day:entry.day,live,start:entry.start,events:entry.events,board:entry.start.map(([o,s])=>({o,s})),i:-1,phase:'intro',att:0,def:0,roll:null,applied:true,playing:false,timer:null}}
+function startReplay(entry,live){replay={day:entry.day,live,start:entry.start,events:(entry.events||[]).filter(e=>!e.priv||e.priv===me),board:entry.start.map(([o,s])=>({o,s})),i:-1,phase:'intro',att:0,def:0,roll:null,applied:true,playing:false,timer:null}}
 function applyCur(){const ev=replay.events[replay.i];if(ev&&!replay.applied){(ev.set||[]).forEach(([i,o,s])=>{replay.board[i]={o,s}});replay.applied=true}}
 const DRIVE_MS=1400;
 let sndOn=(()=>{try{return localStorage.getItem('sc-sound')!=='0'}catch(e){return true}})(),actx=null;
@@ -1847,8 +1854,8 @@ const rpShown=i=>!rpMine||mineEv(replay.events[i]);
 function rpRel(){const idx=[];replay.events.forEach((e,i)=>{if(rpShown(i))idx.push(i)});return idx}
 function settle(){if(!replay||!rpAuto)return;const rel=rpRel(),pos=rel.indexOf(replay.i);if(pos<0||pos>=rel.length-1)return;later(nextEvent,(replay.boomAt?2300:1500)/rpSpeed)}
 const reduceMotion=()=>!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-function boomKind(ev){if(ev.t==='news')return 'news';if(ev.t==='trick')return 'trick';if(ev.t==='ally')return ev.kind==='formed'?'ally':(ev.kind==='betray'||ev.kind==='broke')?'betray':null;if(ev.t==='loan')return ev.kind==='borrow'?'loan':ev.kind==='free'?'free':null;if(ev.t==='dad')return 'dad';if(ev.t==='brawl')return ev.took?'took':ev.winner?'def':null;if(ev.t!=='atk')return null;return ev.res==='took'?'took':ev.res==='claim'?'claim':(ev.res==='retreat'||ev.res==='wiped')?'def':null}
-function setBoom(ev){const k=boomKind(ev);if(k){replay.boomAt=Date.now();replay.boomKind=k;sfx(k==='took'||k==='claim'?'took':k==='def'?'def':k==='dad'?'dad':k==='free'||k==='loan'?'cash':'stamp')}}
+function boomKind(ev){if(ev.t==='news')return 'news';if(ev.t==='trick')return 'trick';if(ev.t==='ally')return ev.kind==='formed'?'ally':(ev.kind==='betray'||ev.kind==='broke')?'betray':null;if(ev.t==='loan')return ev.kind==='borrow'?'loan':ev.kind==='free'?'free':null;if(ev.t==='dad')return ev.kind==='door'?'door':'dad';if(ev.t==='brawl')return ev.took?'took':ev.winner?'def':null;if(ev.t!=='atk')return null;return ev.res==='took'?'took':ev.res==='claim'?'claim':(ev.res==='retreat'||ev.res==='wiped')?'def':null}
+function setBoom(ev){const k=boomKind(ev);if(k){replay.boomAt=Date.now();replay.boomKind=k;sfx(k==='took'||k==='claim'?'took':k==='def'?'def':k==='dad'||k==='door'?'dad':k==='free'||k==='loan'?'cash':'stamp')}}
 function nextEvent(){if(!replay)return;clearT();applyCur();replay.i++;replay.roll=null;replay.boomAt=0;replay.driveAt=0;replay.tagAt=Date.now();
   while(replay.i<replay.events.length&&!rpShown(replay.i)){(replay.events[replay.i].set||[]).forEach(([i,o,s])=>{replay.board[i]={o,s}});replay.i++}
   if(replay.i>=replay.events.length){return finishReplay()}
@@ -1879,7 +1886,7 @@ function evHead(ev){const k=catOf(ev),c=CATS[k],p=(ev.u&&st.players[ev.u])||{},c
   if(!ev.u||ev.t==='brawl')return `<div class="evhead"><div class="evmeta"><span class="evtag ${c.cls} ${anim}" ${anim?`style="animation-delay:-${el}ms"`:''}>${ICONS[k]}${c.t}</span><span class="evwho">${ev.t==='brawl'?`${ev.sides.length} crews at ${esc(label(st,ev.to))}`:'Every crew at once'}</span></div></div>`;
   return `<div class="evhead">${avatar(charOf(ev.u),p.color,42,anim,anim?el:0)}<div class="evmeta"><span class="evtag ${c.cls} ${anim}" ${anim?`style="animation-delay:-${el}ms"`:''}>${ICONS[k]}${c.t}</span><span class="evwho">${esc(p.name||'?')}${ch?` · “${ch.nick}”`:''}</span></div></div>`}
 function catSummary(){const cnt={};replay.events.forEach((e,i)=>{if(!rpShown(i))return;const k=catOf(e);cnt[k]=(cnt[k]||0)+1});
-  return `<div class="catsum">${['news','trick','brawl','atk','claim','rec','mv','up','ally','betray','loan','dad','quiet','cpu','skip','out'].filter(k=>cnt[k]).map(k=>`<span class="evtag ${CATS[k].cls}">${ICONS[k]}${cnt[k]} ${cnt[k]>1?CATS[k].pl:CATS[k].t}</span>`).join('')}</div>`}
+  return `<div class="catsum">${['news','trick','brawl','atk','claim','rec','mv','up','ally','betray','loan','door','dad','quiet','cpu','skip','out'].filter(k=>cnt[k]).map(k=>`<span class="evtag ${CATS[k].cls}">${ICONS[k]}${cnt[k]} ${cnt[k]>1?CATS[k].pl:CATS[k].t}</span>`).join('')}</div>`}
 function fighterBox(title,u,raw,bonus,bk,sides,count,state){
   return `<div class="fside ${state}" style="--crew:${esc(crewColor(u))}"><span class="eyebrow">${title}</span><div class="fwho">${avatar(charOf(u),crewColor(u),26)}<strong class="fname">${esc(st.players[u]?.name||'?')}</strong></div>
   <div class="frow"><div class="die sm"><span class="face">${raw==null?'?':raw}</span><span class="sides">d${sides}</span></div>${bonus?`<span class="op">${fmtB(bonus)}</span>`:''}<span class="op">=</span><span class="tot">${raw==null?'?':raw+bonus}</span></div>
@@ -1919,7 +1926,8 @@ function salesCard(){
     <div class="row phase-nav"><button class="btn primary" data-act="roll-sales">Roll for sales</button></div></div>`;
   return `<div class="panel"><span class="eyebrow">Sales · ${when}</span><div class="sales">
     <div class="die ${animating?'rolling':''}" id="sales-die" aria-hidden="true"><span class="face" id="sales-face">${animating?'?':x.r}</span><span class="sides">d${x.d}</span></div>
-    <div ${animating?'hidden':''} id="sales-result"><p class="take ${salesShowing()?'rise':''}" style="animation-delay:-${Math.max(0,Date.now()-salesLandAt)}ms">+$${x.amt}</p><p class="sales-math">rolled ${x.r} × ${x.c}${x.extra>0?`+${x.extra}`:x.extra<0?`−${-x.extra}`:''} corners${x.mult&&x.mult!==1?` × ${x.mult===2?'2':'½'}`:''}${(x.fx||(x.ev?[x.ev]:[])).map(k=>{const d=k==='raincloud'?{n:'Rain cloud'}:(STREET[k]||TRICKS[k]||{n:k});return ` <span class="evnote">${k==='raincloud'?'☂':STREET_ICON[k]||TRICK_ICON[k]||''} ${d.n}</span>`}).join('')}</p><p class="cashline">Cash <b data-countup data-from="${p.cash-x.amt}" data-to="${p.cash}">$${salesShowing()?p.cash-x.amt:p.cash}</b></p></div></div>${!animating&&salesShowing()?`<div class="row phase-nav"><button class="btn primary" data-act="sales-done">Start planning</button></div>`:''}</div>`}
+    <div ${animating?'hidden':''} id="sales-result"><p class="take ${salesShowing()?'rise':''}" style="animation-delay:-${Math.max(0,Date.now()-salesLandAt)}ms">+$${x.amt}</p><p class="sales-math">rolled ${x.r} × ${x.c}${x.extra>0?`+${x.extra}`:x.extra<0?`−${-x.extra}`:''} corners${x.mult&&x.mult!==1?` × ${x.mult===2?'2':'½'}`:''}${(x.fx||(x.ev?[x.ev]:[])).map(k=>{const d=k==='raincloud'?{n:'Rain cloud'}:(STREET[k]||TRICKS[k]||{n:k});return ` <span class="evnote">${k==='raincloud'?'☂':STREET_ICON[k]||TRICK_ICON[k]||''} ${d.n}</span>`}).join('')}</p>${(()=>{const dd=((st.log.find(d=>d.day===x.day)||{}).events||[]).find(e=>e.t==='dad'&&e.kind!=='door'&&e.u===me),dc=dd?dd.cash|0:0,base=p.cash+dc;
+      return `<p class="cashline">Cash <b data-countup data-from="${base-x.amt}" data-to="${base}">$${salesShowing()?base-x.amt:base}</b></p>`+(dd?`<p class="dadline">${dadFace(3,22)} Then Mom &amp; Dad came to collect: ${[dc?'−$'+dc:'',dd.lost&&dd.lost.length?dd.lost.length+' corner'+(dd.lost.length>1?'s':''):''].filter(Boolean).join(' and ')||'nothing'}. Cash now <b>$${p.cash}</b>.</p>`:'')})()}</div></div>${!animating&&salesShowing()?`<div class="row phase-nav"><button class="btn primary" data-act="sales-done">Start planning</button></div>`:''}</div>`}
 function rollSales(){
   const x=lastSales();if(!x)return;const key=seenKey()+x.day;rollAnim={key};render();
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;let n=0;const ticks=reduce?1:14;
@@ -1997,7 +2005,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
    b:`<p><strong>Concede</strong> any time from the Menu; the computer takes over your crew and plays it safe. <strong>Miss ${MISS_LIMIT} turns in a row</strong> and the computer runs your crew until you come back and take control.</p><p>Hold <strong>more than half the block</strong> with only computer crews left and they offer to surrender. Accept to win, or keep going for the sweep.</p>`},
   {t:'Bank of Mom & Dad',art:SV(dadFace(1,128,'x="14" y="30"')+`<g transform="translate(150,40)"><rect width="150" height="54" rx="12" fill="#fff" stroke="#141414" stroke-width="3"/><text x="75" y="24" class="rcap">borrow $${LOAN_AMT}</text><text x="75" y="44" class="rcap">pay back $${LOAN_OWE}</text></g>`
      +`<g transform="translate(150,116)">${Array.from({length:8},(_,i)=>`<rect x="${i*19}" width="15" height="16" rx="4" fill="${i<3?'#e8b04a':i<6?'#f0883e':'#ddd'}" stroke="#141414" stroke-width="1.5"/>`).join('')}</g><text x="225" y="160" class="rcap">Dad meter</text>`),
-   b:`<p>The <strong>last-place crew</strong> can borrow <strong>$${LOAN_AMT}</strong> and owes <strong>$${LOAN_OWE}</strong>. <strong>Once per game.</strong> Repay in $${LOAN_STEP} chunks whenever you like.</p><p>Each turn you owe fills a bar on <strong>Dad's meter</strong>; each $${LOAN_STEP} repaid empties one. If it fills, or the game ends while you owe, every $${DAD_PER_CORNER} still owed costs a corner.${st?(()=>{const b=bankCfg(st);return st.maxDays?` <strong>This game:</strong> open turns ${b.open}–${b.close}, ${b.meter}-bar meter.`:` <strong>This game:</strong> opens turn ${b.open}, ${b.meter}-bar meter.`})():''}</p>`}]}
+   b:`<p>The <strong>last-place crew</strong> can borrow <strong>$${LOAN_AMT}</strong> and owes <strong>$${LOAN_OWE}</strong>. <strong>Once per game.</strong> Repay in $${LOAN_STEP} chunks whenever you like.</p><p>Each turn you owe fills a bar on <strong>Dad's meter</strong>; each $${LOAN_STEP} repaid empties one. When it fills, <strong>Dad’s at the door</strong>: you get one more turn to pay. If you don’t, after that night’s fights and sales he takes your cash, then a corner for every $${DAD_PER_CORNER} still owed. The same happens if the game ends while you owe.${st?(()=>{const b=bankCfg(st);return st.maxDays?` <strong>This game:</strong> open turns ${b.open}–${b.close}, ${b.meter}-bar meter.`:` <strong>This game:</strong> opens turn ${b.open}, ${b.meter}-bar meter.`})():''}</p>`}]}
 let rMode='quick';
 const QUICK=['Run the block','Your turn, step by step','Making money','Fighting','Sending a crew'];
 function deckCards(){const all=ruleCards();return rMode==='quick'?QUICK.map(t=>all.find(c=>c.t===t)).filter(Boolean):all}
