@@ -466,6 +466,14 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .revgrid button{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:8px;cursor:pointer;min-width:0}
 .revgrid span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
 .revgrid b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vmbtn{position:absolute;right:8px;bottom:8px;z-index:5;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.vmbtn.on,.vmsheet.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.vmsheet{align-self:flex-end;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin:-2px 0 -4px;cursor:pointer}
+.vmbtn:focus-visible,.vmsheet:focus-visible{outline:3px solid var(--focus,#2f6fde);outline-offset:2px}
+.stage.vm-board .stage-sheet{display:none}
+.stage.vm-panel .rp-board{display:none}
+.stage.vm-panel .stage-sheet{flex:1 1 auto;min-height:0;overflow:auto}
+.rp-board:has(.coach) .vmbtn{display:none}
 .coach{position:absolute;left:8px;right:8px;bottom:8px;z-index:4;background:#fffdf6;color:#141414;border:3px solid #141414;border-radius:14px;box-shadow:4px 4px 0 #141414;padding:9px 11px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;line-height:1.35}
 .coach p{margin:0}.coach-h{display:flex;align-items:baseline;gap:8px}.coach-h strong{font-family:var(--display);font-weight:400;font-size:15px}
 .coach-n{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--lemon);color:var(--lemon-ink);border-radius:999px;padding:1px 7px;flex:none}
@@ -601,7 +609,8 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 .newspill.k-rain .ni{background:#5b6b7a}.newspill.k-garage .ni{background:#c2185b}.newspill.k-drive .ni{background:#2c8a4f}
 .pillx{flex:none;margin-left:auto;font:inherit;font-size:12px;border:0;background:none;color:inherit;opacity:.6;cursor:pointer;padding:2px 2px 2px 6px}.pillx:hover,.pillx:focus-visible{opacity:1}
 .mk .ni.k-mystery,.newspill.soon .ni{background:#8c968b}
-.bigstamp.market{flex-direction:row;gap:10px;background:#e07b12;top:38%;font-size:clamp(22px,7.5vw,32px);white-space:normal;max-width:88%}.bigstamp.market.k-rain{background:#5b6b7a}.bigstamp.market.k-garage{background:#c2185b}.bigstamp.market.k-drive{background:#2c8a4f}
+.bigstamp.market{flex-direction:row;gap:10px;background:#e07b12;top:38%;font-size:clamp(22px,7.5vw,32px);white-space:normal;max-width:88%}.bigstamp.market.soon{background:#2b2b2b;top:30%}
+.bigstamp.market.k-rain{background:#5b6b7a}.bigstamp.market.k-garage{background:#c2185b}.bigstamp.market.k-drive{background:#2c8a4f}
 .bigstamp.market .mk-ic{font-size:1.2em}.bigstamp.market .mk-t{display:flex;flex-direction:column;line-height:1.05}.bigstamp.market small{font-family:var(--body);font-size:13px;font-weight:700;text-shadow:none;margin-top:4px;opacity:.95}
 .newspill.soon{right:auto;background:color-mix(in srgb,var(--surface) 92%,transparent);border-width:1.5px;box-shadow:none;font-size:12px;padding:3px 9px 3px 4px}.newspill.soon .ni{width:20px;height:20px;font-size:11px}.newspill.k-stink .ni{background:#6b8e23}.newspill.k-truck .ni{background:#3a86c8}.newspill.k-drive .ni{background:#2c8a4f}.newspill.k-guard .ni{background:#7a2bb0}
 .evnote{display:inline-block;font-family:var(--body);font-size:11.5px;font-weight:700;background:#fff3d6;color:#8a4b00;border-radius:999px;padding:0 7px;margin-left:4px}.c-betray{background:#7a2bb0}
@@ -1518,14 +1527,14 @@ function boardSVG(){
   g+=over;
   let vb=`0 0 ${W} ${H}`,zoomAnim='';
   const staged=!replay&&iPlay()&&(st.status==='setup'||st.status==='active');
-  if(staged){const bx=document.querySelector('.stage .rp-board'),asp=bx&&bx.clientHeight>40?Math.min(2.2,Math.max(.6,(bx.clientWidth-8)/(bx.clientHeight-8))):1;
+  if(staged){const bx=document.querySelector('.stage .rp-board'),asp=bx&&bx.clientHeight>40?Math.min(2.2,Math.max(.35,(bx.clientWidth-8)/(bx.clientHeight-8))):1;
     if(!pv||pv.key!==st.gameId+me){const mine=cornersOf(st,me).sort((a,b)=>st.corners[b].s-st.corners[a].s);const c=mine.length?pos(mine[0]):[W/2,H/2];pv={key:st.gameId+me,cx:W/2,cy:H/2,vh:1e6}}
-    let vh=Math.max(170,Math.min(pv.vh,Math.max(H,W/asp)*1.04)),vw=vh*asp;
+    let vh=Math.max(170,Math.min(pv.vh,Math.max(H*1.04,W*1.06/asp))),vw=vh*asp;
     const fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c-size/2));
     vb=`${fit(pv.cx,vw,W).toFixed(1)} ${fit(pv.cy,vh,H).toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`;boardDims={W,H}}
   if(replay){const f=focusOf(ev),full=vb;
     if(f&&f.length){const ps=f.filter(i=>i!=null&&B[i]).map(pos);if(ev&&(ev.t==='atk'||ev.t==='brawl')&&B[ev.to]){const [tx,ty]=pos(ev.to);ps.push([tx,ty<90?ty+76:ty-76])}const xs=ps.map(q=>q[0]),ys=ps.map(q=>q[1]);
-      const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),bx=document.querySelector('.rp-board'),asp=bx&&bx.clientHeight>40?Math.min(2.2,Math.max(.6,(bx.clientWidth-8)/(bx.clientHeight-8))):1;
+      const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),bx=document.querySelector('.rp-board'),asp=bx&&bx.clientHeight>40?Math.min(2.2,Math.max(.35,(bx.clientWidth-8)/(bx.clientHeight-8))):1;
       let vh=Math.max(y1-y0+150,(x1-x0+150)/asp,240),vw=vh*asp;if(vw>W){vw=W;vh=vw/asp}if(vh>H&&vh*asp>W){vh=H;vw=vh*asp}
       const fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c-size/2));
       const vx=fit((x0+x1)/2,vw,W),vy=fit((y0+y1)/2,vh,H);
@@ -1549,7 +1558,7 @@ const GUIDE=[
   {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'The shop',b:'Upgrades last all game: <b>Weapon</b> is your fight die, <b>Sugar</b> your cash die, <b>Whip</b> how many ride per attack, <b>Rep</b> adds to every roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
   {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Tap your corners on the map to drop recruits there, one per tap. Switch to <b>Tap to remove</b> to take one back.'},
   {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>, and everyone sees who did it in the recap.'},
-  {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market day',b:'Every 5 turns the whole block gets a market day, like a heat wave or a garage sale. You know when, but not what, until it hits. Tap ✕ to hide the banner.'},
+  {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market day',b:'Every 5 turns the whole block gets a market day, like a heat wave or a garage sale. You get a heads-up 3 turns before, but nobody knows what it is until it hits.'},
   {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'You’re in last place, so Mom &amp; Dad will lend you $200, once. Check the <b>Bank</b> tab, and pay back $250 before Dad’s meter fills.'},
   {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Plan attacks',b:'Tap a corner to hit, then one of yours to attack from (either order). Dashed corners are empty and free to claim. Attacks are optional.'},
   {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'Tap any rival corner and hit <b>Ally?</b> to offer a 5-turn alliance. Allies share intersection and block bonuses. Breaking one costs rep.'},
@@ -1638,8 +1647,18 @@ const mkHidden=k=>{try{return localStorage.getItem(mkHideKey(k))==='1'}catch(e){
 const mkHide=k=>{mkMem[k]=1;try{localStorage.setItem(mkHideKey(k),'1')}catch(e){}};
 function newsPill(){const e=evToday(st);
   if(e)return mkHidden('day'+st.day)?'':`<div class="newspill k-${e.k}" role="status"><span class="ni" aria-hidden="true">${STREET_ICON[e.k]}</span><span><b>Market day: ${STREET[e.k].n}</b> · ${esc(STREET[e.k].b)}</span><button class="pillx" data-act="mk-hide" data-k="day${st.day}" aria-label="Hide market day banner">✕</button></div>`;
-  const nx=nextMarket(st);if(!nx||mkHidden('soon'))return'';const k=nx.day-st.day;return `<div class="newspill soon" role="status"><span class="ni" aria-hidden="true">?</span><span>Market day in <b>${k} turn${k>1?'s':''}</b></span><button class="pillx" data-act="mk-hide" data-k="soon" aria-label="Hide market day countdown">✕</button></div>`}
-let mkPopAt=0,mkPopKey='';
+  return''}
+let vm=(()=>{try{const v=localStorage.getItem('sc-vm');return v==='board'||v==='panel'?v:'split'}catch(e){return 'split'}})();
+const VM_EXP='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const VM_SHR='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M8 3v5H3M12 3v5h5M8 17v-5H3M12 17v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const vmBoardBtn=()=>vm==='board'?`<button class="vmbtn on" data-act="vm" data-v="split" aria-label="Show the action panel again">${VM_SHR}<span>Show actions</span></button>`:`<button class="vmbtn" data-act="vm" data-v="board" aria-label="Expand the board to full view">${VM_EXP}<span>Full board</span></button>`;
+const vmSheetBtn=()=>vm==='panel'?`<button class="vmsheet on" data-act="vm" data-v="split" aria-label="Show the board again">${VM_SHR}<span>Show board</span></button>`:`<button class="vmsheet" data-act="vm" data-v="panel" aria-label="Expand the action panel to full view">${VM_EXP}<span>Full panel</span></button>`;
+let mkPopAt=0,mkPopKey='',mkSoonAt=0,mkSoonKey='';
+function mkSoon(){const nx=nextMarket(st);if(!nx||nx.day-st.day!==3||!planningNow()||evToday(st))return'';const key=st.gameId+':'+nx.day;let seen=false;try{seen=localStorage.getItem('sc-mksoon-'+key)==='1'}catch(x){seen=mkSoonKey===key&&!mkSoonAt}
+  if(seen&&!(mkSoonKey===key&&mkSoonAt))return'';
+  if(mkSoonKey!==key){mkSoonKey=key;mkSoonAt=Date.now();try{localStorage.setItem('sc-mksoon-'+key,'1')}catch(x){}setTimeout(()=>sfx('stamp'),60);setTimeout(()=>{mkSoonAt=0;render()},2900)}
+  const el=Date.now()-mkSoonAt;if(!mkSoonAt||el>2800)return'';
+  return `<div class="bigstamp market soon" style="animation-delay:-${el}ms" role="status"><span class="mk-ic">🛒</span><span class="mk-t">MARKET DAY IN 3 TURNS!<small>${DW()} ${nx.day} · Nobody knows what’s coming. Plan ahead.</small></span></div>`}
 function mkStamp(){const e=evToday(st);if(!e||!planningNow())return'';const key=st.gameId+':'+st.day;let seen=false;try{seen=localStorage.getItem('sc-mkpop-'+key)==='1'}catch(x){seen=mkPopKey===key&&!mkPopAt}
   if(seen&&!(mkPopKey===key&&mkPopAt))return'';
   if(mkPopKey!==key){mkPopKey=key;mkPopAt=Date.now();try{localStorage.setItem('sc-mkpop-'+key,'1')}catch(x){}setTimeout(()=>sfx('stamp'),60);setTimeout(()=>{mkPopAt=0;render()},2700)}
@@ -1656,7 +1675,7 @@ function boardView(){
     if(st.status==='setup')sh=placePanel();
     else{sh=`<div class="stage-steps">${phaseBar()}</div>`+((myP().missed|0)>=MISS_LIMIT-1&&!hasOrder(me)?`<p class="warnline">You missed ${myP().missed} turns. Miss one more and the computer takes over.</p>`:'');if(isPlanning()&&!salesShowing()){ensureDraft();sh+=phasePanel()}else sh+=salesCard()}
     const selc=sel!=null&&st.corners[sel]?`<div class="selchip">${selLine()}</div>`:newsPill();
-    return h+`<div class="stage"><div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()}</div><div class="stage-sheet">${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
+    return h+`<div class="stage vm-${vm}"><div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
   else{h+=awayPanel();
     if(isPlanning()){ensureDraft();if(dayPhase==='shop')h+=salesCard();h+=phasePanel()}
     else h+=salesCard()+(salesPending()?'':introCard(false))}
@@ -1693,7 +1712,7 @@ function lobbyView(){
     <li>Purchases happen first. Then every crew's attackers roll out at once and fight; crowded corners turn into brawls. Then moves. Each crew then rolls its sugar die times corners held for cash.</li>
     <li>Come back the next day to read what happened and plan again.</li></ol></div>`;
   if(!st){
-    const lm=lobbyMode,gm=lm!=='campaign',tsel=Math.min(lm==='lcs'?1440:720,+(formVals['f-turn']||5)),lmax=lm==='campaign'?CAMP_MAX:LEN_MAX,len=Math.min(lmax,Math.max(LEN_MIN,+(formVals['f-len']||30)));
+    const lm=lobbyMode,gm=lm!=='campaign',tsel=Math.min(lm==='lcs'?1440:720,+(formVals['f-turn']||5)),lmax=lm==='campaign'?CAMP_MAX:LEN_MAX,len=Math.min(lmax,Math.max(LEN_MIN,+(formVals['f-len']||20)));
     const mb=(m,t)=>`<button role="tab" data-act="lmode" data-m="${m}" aria-pressed="${lm===m}" aria-selected="${lm===m}">${t}</button>`;
     const slider=`<div class="field lenfield"><label for="f-len">${lm==='campaign'?'Days':'Turns'} <span class="small muted">${LEN_MIN}–${lmax}</span> <output id="f-len-out" class="lenout">${len}</output></label><input id="f-len" type="range" min="${LEN_MIN}" max="${lmax}" step="5" value="${len}" aria-valuetext="${len} ${lm==='campaign'?'days':'turns'}"></div>`;
     return `<div class="panel"><div class="seg modes" role="tablist" aria-label="Type">${mb('game','Game')}${mb('campaign','Campaign')}${mb('lcs','Last Crew Standing')}</div>
@@ -2102,7 +2121,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
   {t:'Dirty tricks',art:`<div class="rnews">${Object.keys(TRICKS).map(k=>`<div><span class="ni k-${k}">${TRICK_ICON[k]}</span><b>${TRICKS[k].n} · ${priceTag(k)}</b><small>${TRICKS[k].b}</small></div>`).join('')}</div>`,
    b:`<p>Buy one trick per turn in the <strong>Shop</strong>'s Tricks tab, then tap the map to aim it. It hits that same turn. <strong>Each trick once per game</strong> (in Last Crew Standing, it recharges ${TRICK_RECHARGE} turns after use).</p><p>Everyone sees who did it in the recap, so expect payback.</p>`},
   {t:'Market days',art:`<div class="rnews">${Object.keys(STREET).map(k=>`<div><span class="ni k-${k}">${STREET_ICON[k]}</span><b>${STREET[k].n}</b><small>${STREET[k].b}</small></div>`).join('')}</div>`,
-   b:`<p>Every ${MARKET_EVERY} turns is a <strong>market day</strong> that affects the whole block equally. Each of the four events comes up once before any repeats.</p><p>You know <strong>when</strong> a market day is coming (the banner counts down and the Crews tab lists the dates), but not <strong>what</strong> it is until it hits. Then a big stamp tells everyone. The host can switch market days off.</p>`},
+   b:`<p>Every ${MARKET_EVERY} turns is a <strong>market day</strong> that affects the whole block equally. Each of the four events comes up once before any repeats.</p><p>You know <strong>when</strong> a market day is coming (you get a heads-up 3 turns before, and the Crews tab lists the dates), but not <strong>what</strong> it is until it hits. Then a big stamp tells everyone. The host can switch market days off.</p>`},
   {t:'Alliances',art:SV(rDot(52,60,RCOL[0],'',24)+rDot(268,60,RCOL[1],'',24)+`<path d="M80 60 H240" stroke="#141414" stroke-width="3" stroke-dasharray="5 5"/>`
      +`<g transform="translate(122,20) scale(3.2)">${ALLY_SVG.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g><text x="160" y="118" class="rcap">5 turns · up to 3 a game</text>`
      +`<g transform="translate(108,136)"><rect width="104" height="36" rx="10" fill="#7a2bb0" stroke="#141414" stroke-width="3"/><text x="52" y="19" class="rtag w" style="font-size:13px">Snitch −1</text></g>`),
@@ -2231,7 +2250,7 @@ function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corner
 const ptrs=new Map();let pan=null,suppressClick=false;
 function vbOf(svg){const v=svg.viewBox.baseVal;return{x:v.x,y:v.y,w:v.width,h:v.height}}
 function setVB(svg,v){pvBefore=null;const {W,H}=boardDims,fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c));v.x=fit(v.x,v.w,W);v.y=fit(v.y,v.h,H);svg.setAttribute('viewBox',`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`);if(pv){pv.cx=v.x+v.w/2;pv.cy=v.y+v.h/2;pv.vh=v.h}}
-function maxVH(svg){const {W,H}=boardDims,a=svg.clientWidth&&svg.clientHeight?svg.clientHeight/svg.clientWidth:1;return Math.max(H,W*a)*1.04}
+function maxVH(svg){const {W,H}=boardDims,a=svg.clientWidth&&svg.clientHeight?svg.clientHeight/svg.clientWidth:1;return Math.max(H*1.04,W*a*1.06)}
 function upp(svg,v){return Math.max(v.w/svg.clientWidth,v.h/svg.clientHeight)}
 function chartHover(e){const box=e.target.closest&&e.target.closest('.chartbox');if(!box||!st||!st.hist)return;const svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),H=st.hist,n=H.length,W=320,L=26,R=40;
   const sx=(e.clientX-r.left)*W/r.width,i=Math.max(0,Math.min(n-1,Math.round((sx-L)/((W-L-R)/(n-1))))),cx=L+(W-L-R)*i/(n-1),cr=box.querySelector('.cross'),tip=box.querySelector('.ctip');
@@ -2318,7 +2337,7 @@ document.addEventListener('click',async e=>{
   if(act==='pl-clear'){ensureDraft();draft.place={};dirty=true;return render()}
   if(act==='create'){const name=CHAR_BY[pickChar].name+"'s Crew";
     const gm=lobbyMode!=='campaign',turnMin=gm?Math.max(1,Math.min(lobbyMode==='lcs'?1440:720,parseInt((document.getElementById('f-turn')||{}).value,10)||5)):0;const tv=(document.getElementById('f-time')||{}).value||'20:00',[hh,mm]=tv.split(':').map(Number),min=hh*60+mm;
-    const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||30)/5)*5));
+    const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||20)/5)*5));
     const lab=new Date(2000,0,1,hh,mm).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='join'){const name=CHAR_BY[pickChar].name+"'s Crew";
@@ -2371,6 +2390,7 @@ document.addEventListener('click',async e=>{
   if(act==='trick-clear'||act==='del-trick'){draft.trick=null;trickPick=null;dirty=true;return render()}
   if(act==='concede'){confirmConcede=true;return render()}
   if(act==='bot-lvl'){const l=el.dataset.l;return save(()=>stateRef.update({botLevel:l}))}
+  if(act==='vm'){vm=el.dataset.v;try{localStorage.setItem('sc-vm',vm)}catch(e){}if(pv){const {W,H}=boardDims;pv.vh=1e6;pv.cx=W/2;pv.cy=H/2}return render()}
   if(act==='mk-hide'){mkHide(el.dataset.k);return render()}
   if(act==='ally-propose'){const u=el.dataset.u;if(!canAlly(st,me,u))return render();notice=`Alliance offer sent to ${st.players[u].name}. They answer on their turn.`;return save(()=>stateRef.update({players:{[u]:{offers:{[me]:st.day}}}}))}
   if(act==='ally-cancel'){const u=el.dataset.u;return save(()=>stateRef.update({players:{[u]:{offers:{[me]:0}}}}))}
