@@ -466,6 +466,7 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .revgrid button{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:8px;cursor:pointer;min-width:0}
 .revgrid span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
 .revgrid b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pausebtn{font:inherit;cursor:pointer;min-width:32px;justify-content:center}.pausebtn.on{background:#e07b12;color:#fff;border-color:#e07b12}
 .vmbtn{position:absolute;right:8px;bottom:8px;z-index:5;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .vmbtn.on,.vmsheet.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .vmsheet{align-self:flex-end;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin:-2px 0 -4px;cursor:pointer}
@@ -1310,7 +1311,7 @@ function resolveDay(s0,ords){
   if(s.status==='active'){delete s.event;const m=marketAt(s,s.day);if(m){const tx=`Market day tomorrow (${s.mode==='game'?'Turn':'Day'} ${s.day})! Nobody knows what’s coming.`;L.push(tx);E.push({t:'news',k:null,text:tx})}}
   delete s._tricks;
   tallyStats(s,s0,ords,E,income,s.day-1);
-  s.nextResolveAt=s.mode==='game'?Date.now()+(s.turnMs||300000):nextDeadline(s.nextResolveAt);s.lastResolvedAt=Date.now();
+  s.nextResolveAt=s.mode==='game'?Date.now()+(s.turnMs||300000):nextDeadline(s.nextResolveAt);s.lastResolvedAt=Date.now();if(s.paused)s.pauseLeft=Math.max(0,s.nextResolveAt-Date.now());
   return s;
 }
 const STAT0=()=>({tricks:0,tricked:0,atk:0,sent:0,took:0,claim:0,held:0,lost:0,brawls:0,brawlWins:0,rec:0,up:0,loans:0,repaid:0,grounded:0,allies:0,kept:0,betrays:0,betrayed:0,retreats:0,missed:0,earned:0,peak:0});
@@ -1347,8 +1348,8 @@ function spend(){const p=myP();let t=0;for(const cat of ['weapon','sugar','whip'
 const cashIn=()=>myP().cash+(draft.loan&&canBorrow(st,me)?LOAN_AMT:0)-(draft.repay|0);
 const cashLeft=()=>cashIn()-spend();
 const capToday=()=>TIERS.whip[myP().whip+draft.buy.whip].cap;
-function clockText(){if(!st||!st.nextResolveAt)return'';const ms=Math.max(0,st.nextResolveAt-Date.now()),t=Math.ceil(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=t%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`}
-function countdown(){if(!st||!st.nextResolveAt)return'';const ms=st.nextResolveAt-Date.now();if(ms<=0)return'resolving now';if(st.mode==='game')return 'resolves in '+clockText();
+function clockText(){if(!st||!st.nextResolveAt)return'';const ms=Math.max(0,st.paused?(st.pauseLeft||0):st.nextResolveAt-Date.now()),t=Math.ceil(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=t%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`}
+function countdown(){if(!st||!st.nextResolveAt)return'';if(st.paused)return 'clock paused';const ms=st.nextResolveAt-Date.now();if(ms<=0)return'resolving now';if(st.mode==='game')return 'resolves in '+clockText();
   const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return `resolves in ${h?h+'h ':''}${m}m`}
 const fmtTime=t=>new Date(t).toLocaleString([], {weekday:'short',hour:'numeric',minute:'2-digit'});
 
@@ -1415,7 +1416,8 @@ function renderHeader(){
   if(!st||st.status==='lobby'){s.innerHTML=st?`<span class="chip">Lobby</span>`:'';t.hidden=true;return}
   const alive=humansAlive(st),inN=alive.filter(hasOrder).length,p=myP();
   let bits=`<span class="chip">${st.status==='setup'?(st.mode==='game'?'Setup':'Setup day'):st.status==='over'?'Final':DW()+' '+st.day+(st.maxDays?`<span class="of">/${st.maxDays}</span>`:'')}</span>`;
-  if(st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">⏱ ${clockText()}</span>`}
+  if(st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000&&!st.paused?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">${st.paused?'⏸':'⏱'} ${clockText()}</span>`}
+  if(st.hostId===realMe&&(st.status==='setup'||st.status==='active'))bits+=`<button class="chip pausebtn ${st.paused?'on':''}" data-act="pause" aria-label="${st.paused?'Resume the turn clock':'Pause the turn clock'}" title="Testing: ${st.paused?'resume':'pause'} the turn clock">${st.paused?'▶':'⏸'}</button>`;
   const info=st.status!=='over'?`<p class="navinfo">${inN}/${alive.length} orders in · ${esc(countdown())}</p>`:'';
   if(p)bits+=`${me!==realMe?`<span class="chip">${avatar(charOf(me),p.color,18)}${esc(p.name)}</span>`:st.status==='setup'?`<span class="chip mechip" style="border-color:${esc(p.color)}" title="You're ${esc(p.name)}">${avatar(charOf(me),p.color,18)}</span>`:''}<span class="chip cash">${salesPending()?'$ ?':salesShowing()?`<span data-countup data-from="${p.cash-(lastSales()?.amt||0)}" data-to="${p.cash}">$${p.cash-(lastSales()?.amt||0)}</span>`:'$'+p.cash}</span>${allyOf(st,me)?(()=>{const v=allyOf(st,me),act=activeAlly(st,me)===v,left=p.allyUntil-st.day+1;return `<button class="chip allychip" data-act="tab" data-tab="crews" title="Allied with ${esc(st.players[v].name)}" aria-label="Allied with ${esc(st.players[v].name)}, ${act?left+' turns left':'starts next turn'}">${ALLY_SVG}${avatar(charOf(v),crewColor(v),18)}<b>${act?left:'·'}</b></button>`})():''}${p.loan?(()=>{const m=bankCfg(st).meter,sg=dadStage(p.loan,m);return `<button class="chip dadchip s${sg}" data-act="dad-open" title="Dad meter ${p.loan.bars}/${m} · you owe $${p.loan.owe}" aria-label="Dad meter ${p.loan.bars} of ${m}, you owe $${p.loan.owe}">${dadFace(sg,20)}</button>`})():''}`;
   bits+=`<button class="menubtn" data-act="nav-t" aria-expanded="${navOpen}" aria-controls="tabs">${navOpen?'Close ✕':'Menu ☰'}</button>`;
@@ -1427,15 +1429,19 @@ function renderHeader(){
 function crewColor(u){return st.players[u]?.color||'#888'}
 const STAMPS={def:'<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>DEFENDED!',took:'TAKEN!',loan:'LOAN APPROVED',news:'',trick:'',ally:'ALLIANCE!',betray:'BETRAYED!',free:'DEBT FREE!',dad:'GROUNDED!',door:'DAD’S AT THE DOOR!'};
 function boardSVG(){
-  const {rows,cols}=st,cell=110,pad=66,rw=26,off=rw/2+10,W=(cols-1)*cell+pad*2,H=(rows-1)*cell+pad*2;
-  const X=c=>pad+c*cell,Y=r=>pad+r*cell,R=rngFrom(hash('map'+rows+'x'+cols));
+  const R0=st.rows,C0=st.cols,bx0=document.querySelector('.stage .rp-board');
+  // In full-board view on a tall screen, a wide neighbourhood is drawn turned on its side (streets keep their names) so it fills the screen.
+  const TR=vm==='board'&&!replay&&C0>R0&&!!bx0&&bx0.clientHeight>bx0.clientWidth*1.15;
+  const rows=TR?C0:R0,cols=TR?R0:C0,cell=110,pad=66,padX=TR?134:pad,rw=26,off=rw/2+10,W=(cols-1)*cell+padX*2,H=(rows-1)*cell+pad*2;
+  const X=c=>padX+c*cell,Y=r=>pad+r*cell,R=rngFrom(hash('map'+R0+'x'+C0));
+  const itXY=it=>{const r0=Math.floor(it/C0),c0=it%C0;return TR?[X(r0),Y(c0)]:[X(c0),Y(r0)]};
   const ROOFS=['#e98a7a','#7fa7d6','#e7b75f','#9c8fd0','#78b9a5','#d98fb3','#c9a27e'];
   const house=(x,y,flip)=>{const w=24,h=17,roof=ROOFS[Math.floor(R()*ROOFS.length)],x0=x-w/2,y0=y-h/2+3;
     return `<rect class="shadow" x="${x0+2}" y="${y0-3}" width="${w}" height="${h+3}" rx="2"/><rect class="wall" x="${x0}" y="${y0}" width="${w}" height="${h}" rx="1.5"/>`+
       `<polygon points="${x0-3},${y0+1} ${x},${y0-9} ${x0+w+3},${y0+1}" fill="${roof}"/>`+
       `<rect class="door" x="${flip?x0+4:x0+w-10}" y="${y0+h-9}" width="6" height="9" rx="1"/><rect class="win" x="${flip?x0+w-10:x0+4}" y="${y0+5}" width="6" height="5" rx="1"/>`};
   const tree=(x,y,r)=>`<circle class="shadow" cx="${x+1.5}" cy="${y+1.5}" r="${r}"/><circle class="tree-dk" cx="${x}" cy="${y}" r="${r}"/><circle class="tree" cx="${x-r*.25}" cy="${y-r*.25}" r="${r*.7}"/>`;
-  let g=`<rect class="lawn-edge" x="${-W*2}" y="${-H*2}" width="${W*5}" height="${H*5}"/><rect class="lawn-edge" x="0" y="0" width="${W}" height="${H}" rx="14"/><rect class="lawn" x="${pad-cell/2+6}" y="${pad-cell/2+6}" width="${W-2*(pad-cell/2+6)}" height="${H-2*(pad-cell/2+6)}" rx="10"/>`;
+  let g=`<rect class="lawn-edge" x="${-W*2}" y="${-H*2}" width="${W*5}" height="${H*5}"/><rect class="lawn-edge" x="0" y="0" width="${W}" height="${H}" rx="14"/><rect class="lawn" x="${padX-cell/2+6}" y="${pad-cell/2+6}" width="${W-2*(padX-cell/2+6)}" height="${H-2*(pad-cell/2+6)}" rx="10"/>`;
   // sidewalks then roads
   for(let r=0;r<rows;r++)g+=`<rect class="walk" x="0" y="${Y(r)-rw/2-5}" width="${W}" height="${rw+10}"/>`;
   for(let c=0;c<cols;c++)g+=`<rect class="walk" x="${X(c)-rw/2-5}" y="0" width="${rw+10}" height="${H}"/>`;
@@ -1465,22 +1471,27 @@ function boardSVG(){
   for(let r=0;r<rows-1;r++)g+=house(X(cols-1)+38,Y(r)+cell/2,R()<.5);
   g+=tree(X(cols-1)+pad/2,Y(0)-pad/2+4,8)+tree(X(cols-1)+pad/2,Y(rows-1)+pad/2,8);
   // street signs
-  for(let c=0;c<cols;c++){const t=AVE_SIGN[c];g+=`<rect class="signp" x="${X(c)-52}" y="5" width="104" height="20" rx="4"/><text class="signt sm" x="${X(c)}" y="15.5">${t}</text>`+
+  const numSt=r=>`${r+1}${['st','nd','rd','th'][r]} St`;
+  if(!TR){for(let c=0;c<cols;c++){const t=AVE_SIGN[c];g+=`<rect class="signp" x="${X(c)-52}" y="5" width="104" height="20" rx="4"/><text class="signt sm" x="${X(c)}" y="15.5">${t}</text>`+
     `<rect class="signp" x="${X(c)-52}" y="${H-25}" width="104" height="20" rx="4"/><text class="signt sm" x="${X(c)}" y="${H-14.5}">${t}</text>`}
-  for(let r=0;r<rows;r++){const t=`${r+1}${['st','nd','rd','th'][r]} St`;g+=`<rect class="signp" x="5" y="${Y(r)-10}" width="52" height="20" rx="4"/><text class="signt" x="31" y="${Y(r)+.5}">${t}</text>`+
-    `<rect class="signp" x="${W-57}" y="${Y(r)-10}" width="52" height="20" rx="4"/><text class="signt" x="${W-31}" y="${Y(r)+.5}">${t}</text>`}
+  for(let r=0;r<rows;r++){const t=numSt(r);g+=`<rect class="signp" x="5" y="${Y(r)-10}" width="52" height="20" rx="4"/><text class="signt" x="31" y="${Y(r)+.5}">${t}</text>`+
+    `<rect class="signp" x="${W-57}" y="${Y(r)-10}" width="52" height="20" rx="4"/><text class="signt" x="${W-31}" y="${Y(r)+.5}">${t}</text>`}}
+  else{for(let c=0;c<cols;c++){const t=numSt(c);g+=`<rect class="signp" x="${X(c)-26}" y="5" width="52" height="20" rx="4"/><text class="signt" x="${X(c)}" y="15.5">${t}</text>`+
+    `<rect class="signp" x="${X(c)-26}" y="${H-25}" width="52" height="20" rx="4"/><text class="signt" x="${X(c)}" y="${H-14.5}">${t}</text>`}
+  for(let r=0;r<rows;r++){const t=AVE_SIGN[r];g+=`<rect class="signp" x="4" y="${Y(r)-10}" width="114" height="20" rx="4"/><text class="signt sm" x="61" y="${Y(r)+.5}">${t}</text>`+
+    `<rect class="signp" x="${W-118}" y="${Y(r)-10}" width="114" height="20" rx="4"/><text class="signt sm" x="${W-61}" y="${Y(r)+.5}">${t}</text>`}}
   const placing=st.status==='setup'&&iPlay()&&!replay;if(placing)ensureDraft();
-  const pos=i=>{const it=i>>2,q=i&3,r=Math.floor(it/cols),c=it%cols;return[X(c)+(q&1?off:-off),Y(r)+(q&2?off:-off)]};
+  const pos=i=>{const it=i>>2,q=i&3,[x,y]=itXY(it),e=TR?q&2:q&1,so=TR?q&1:q&2;return[x+(e?off:-off),y+(so?off:-off)]};
   const B=replay?replay.board:st.corners,ev=replay&&replay.i>=0?replay.events[replay.i]:null;
   let over='',under='';
-  {const e=replay?(ev&&ev.t==='trick'&&ev.it!=null?ev:null):null;if(e&&e.it!=null&&(e.k==='party'||e.k==='truck'||e.k==='stink')){const r=Math.floor(e.it/cols),c=e.it%cols,x=X(c),y=Y(r),hs=off+24,col=e.k==='party'?'#e07b12':e.k==='stink'?'#6b8e23':'#3a86c8';
+  {const e=replay?(ev&&ev.t==='trick'&&ev.it!=null?ev:null):null;if(e&&e.it!=null&&(e.k==='party'||e.k==='truck'||e.k==='stink')){const [x,y]=itXY(e.it),hs=off+24,col=e.k==='party'?'#e07b12':e.k==='stink'?'#6b8e23':'#3a86c8';
     under+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="14" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-width="2.5" stroke-dasharray="6 4"/>`;
     over+=`<g class="blabel"><rect x="${x-34}" y="${y-hs-9}" width="68" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y-hs}">${e.k==='party'?'PARTY ×3':e.k==='stink'?'NO SALES':'NO ATTACKS'}</text></g>`}}
-  {const SB={corners:B,rows,cols};
-    for(let it=0;it<rows*cols;it++){const i0=it*4;if(B[i0].o&&interFull(SB,i0)){const col=esc(crewColor(B[i0].o)),x=X(it%cols),y=Y(Math.floor(it/cols)),hs=off+19;
+  {const SB={corners:B,rows:R0,cols:C0};
+    for(let it=0;it<rows*cols;it++){const i0=it*4;if(B[i0].o&&interFull(SB,i0)){const col=esc(crewColor(B[i0].o)),[x,y]=itXY(it),hs=off+19;
       under+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="12" fill="${col}" fill-opacity=".22" stroke="${col}" stroke-opacity=".8" stroke-width="2"/>`;
       over+=`<g class="ibadge"><circle cx="${x}" cy="${y}" r="9.5" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y}">+1</text></g>`}}
-    [...new Set(B.map(c=>c.o).filter(Boolean))].forEach(o=>blockList(SB,o).forEach(([r,c])=>{const col=esc(crewColor(o)),x1=X(c)-off-20,y1=Y(r)-off-20,x2=X(c+1)+off+20,y2=Y(r+1)+off+20,cx=(x1+x2)/2;
+    [...new Set(B.map(c=>c.o).filter(Boolean))].forEach(o=>blockList(SB,o).forEach(([r0,c0])=>{const r=TR?c0:r0,c=TR?r0:c0,col=esc(crewColor(o)),x1=X(c)-off-20,y1=Y(r)-off-20,x2=X(c+1)+off+20,y2=Y(r+1)+off+20,cx=(x1+x2)/2;
       under+=`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" rx="16" fill="${col}" fill-opacity=".08" stroke="${col}" stroke-width="3" stroke-dasharray="9 5"/>`;
       over+=`<g class="blabel"><rect x="${cx-31}" y="${y1-9}" width="62" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${cx}" y="${y1}">BLOCK +3</text></g>`}))}
   const planning=isPlanning();if(planning)ensureDraft();
@@ -1538,7 +1549,7 @@ function boardSVG(){
     const cls=['c',co.o?'':'empty',sel===i?'sel':'',co.o&&co.o===me?'mine':'',extra?'placed':''].join(' '),isAlly=!!(co.o&&me&&co.o===allyOf(st,me));
     g+=`<g class="${cls}" data-act="corner" data-i="${i}" role="button" tabindex="0" aria-label="${esc(label(st,i))}${isAlly?' (ally)':''}">${isAlly?`<circle class="allyring" cx="${cx}" cy="${cy}" r="18" stroke="${esc(crewColor(me))}"/>`:''}<circle cx="${cx}" cy="${cy}" r="13" ${co.o?`fill="${esc(crewColor(co.o))}"`:''}/><text x="${cx}" y="${cy}">${co.o?co.s+extra:''}</text></g>`});
   if(!replay&&st.status==='active'&&draft&&draft.trick&&iPlay()){const t=draft.trick,col='#7a2bb0';
-    if(t.it!=null){const r=Math.floor(t.it/cols),c=t.it%cols,x=X(c),y=Y(r),hs=off+27;const lx=Math.max(44,Math.min(W-44,x));over+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="15" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="3 5"/><g class="blabel"><rect x="${lx-42}" y="${y+hs-9}" width="84" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${lx}" y="${y+hs}">YOUR ${TRICKS[t.k].n.toUpperCase().replace('ICE-CREAM ','')}</text></g>`}
+    if(t.it!=null){const [x,y]=itXY(t.it),hs=off+27;const lx=Math.max(44,Math.min(W-44,x));over+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="15" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="3 5"/><g class="blabel"><rect x="${lx-42}" y="${y+hs-9}" width="84" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${lx}" y="${y+hs}">YOUR ${TRICKS[t.k].n.toUpperCase().replace('ICE-CREAM ','')}</text></g>`}
     else if(t.v)cornersOf(st,t.v).forEach(i=>{const [x,y]=pos(i);over+=`<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="${col}" stroke-width="2.5" stroke-dasharray="3 3"/>`})}
   if(st.status==='setup'&&iPlay()&&!replay)cornersOf(st,me).forEach(i=>{const [x,y]=pos(i);over+=`<circle class="mering" cx="${x}" cy="${y}" r="18.5" stroke="${esc(crewColor(me))}"/>`});
   g+=over;
@@ -2408,6 +2419,7 @@ document.addEventListener('click',async e=>{
   if(act==='trick-clear'||act==='del-trick'){draft.trick=null;trickPick=null;dirty=true;return render()}
   if(act==='concede'){confirmConcede=true;return render()}
   if(act==='bot-lvl'){const l=el.dataset.l;return save(()=>stateRef.update({botLevel:l}))}
+  if(act==='pause'){if(!st||st.hostId!==realMe)return;return save(()=>st.paused?stateRef.update({paused:false,pauseLeft:null,nextResolveAt:Date.now()+Math.max(5000,st.pauseLeft||st.turnMs||300000)}):stateRef.update({paused:true,pauseLeft:Math.max(0,st.nextResolveAt-Date.now())}))}
   if(act==='vm'){vm=el.dataset.v;try{localStorage.setItem('sc-vm',vm)}catch(e){}if(pv){const {W,H}=boardDims;pv.vh=1e6;pv.cx=W/2;pv.cy=H/2}return render()}
   if(act==='mk-hide'){mkHide(el.dataset.k);return render()}
   if(act==='ally-propose'){const u=el.dataset.u;if(!canAlly(st,me,u))return render();notice=`Alliance offer sent to ${st.players[u].name}. They answer on their turn.`;return save(()=>stateRef.update({players:{[u]:{offers:{[me]:st.day}}}}))}
@@ -2475,13 +2487,13 @@ async function doResolve(force){
   const om={};q.docs.forEach(d=>{const x=d.data();if(x&&x.uid===d.id)om[d.id]=x});
   const humans=humansAlive(cur),all=humans.length>0&&humans.every(u=>om[u]);
   aliveUids(cur).filter(u=>isCpu(cur.players[u])).forEach(u=>{const o=botOrders(cur,u);if(o)om[u]=o});
-  if(!force&&!(Date.now()>=cur.nextResolveAt||all))return;
+  if(!force&&!((!cur.paused&&Date.now()>=cur.nextResolveAt)||all))return;
   const ns=resolveDay(cur,om);await db.doc('game/prev').set({state:cur});await stateRef.set(ns);
 }
 async function maybeResolve(){
   if(!st||!db||resolving||!canWrite||!me)return;if(st.status!=='setup'&&st.status!=='active')return;
   const humans=humansAlive(st),all=humans.length>0&&humans.every(hasOrder);
-  if(!(Date.now()>=st.nextResolveAt||all))return;
+  if(!((!st.paused&&Date.now()>=st.nextResolveAt)||all))return;
   if(Date.now()-lastAttempt<5000)return;lastAttempt=Date.now();
   resolving=true;try{await doResolve(false)}catch(e){console.warn('resolve',e)}finally{resolving=false}
 }
@@ -2497,7 +2509,7 @@ window.addEventListener('resize',()=>{lastAsp=null;render()});
   db.doc('game/prev').onSnapshot(s=>{hasPrev=!!(s.exists&&s.data().state);render()},e=>{});
   db.collection('orders').onSnapshot(q=>{const o={};q.docs.forEach(d=>o[d.id]=d.data());orders=o;if(!dirty)draftKey='';render();maybeResolve()},e=>console.warn(e));
   setInterval(()=>{renderHeader();maybeResolve()},30000);
-  setInterval(()=>{if(!st||st.mode!=='game'||(st.status!=='setup'&&st.status!=='active'))return;const c=document.getElementById('turnclock');if(c){c.textContent='⏱ '+clockText();c.classList.toggle('urgent',st.nextResolveAt-Date.now()<30000)}if(Date.now()>=st.nextResolveAt)maybeResolve()},1000);
+  setInterval(()=>{if(!st||st.mode!=='game'||(st.status!=='setup'&&st.status!=='active'))return;const c=document.getElementById('turnclock');if(c){c.textContent=(st.paused?'⏸ ':'⏱ ')+clockText();c.classList.toggle('urgent',!st.paused&&st.nextResolveAt-Date.now()<30000)}if(!st.paused&&Date.now()>=st.nextResolveAt)maybeResolve()},1000);
 })();
 </script>
 </body></html>
