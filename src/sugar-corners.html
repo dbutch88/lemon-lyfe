@@ -333,13 +333,18 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .revgrid span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
 .revgrid b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pausebtn{font:inherit;cursor:pointer;min-width:32px;justify-content:center}.pausebtn.on{background:#e07b12;color:#fff;border-color:#e07b12}
+.ltree .lt-sway{transform-box:fill-box;transform-origin:50% 100%}
+.ltree.shake .lt-sway{animation:ltShake .9s ease-in-out}
+.ltree .lt-drop{transform-box:fill-box}
+.ltree.shake .lt-drop{animation:ltDrop 1.9s .3s cubic-bezier(.55,0,1,.45) forwards}
+@keyframes ltShake{0%,100%{transform:rotate(0)}18%{transform:rotate(-6deg)}38%{transform:rotate(5deg)}58%{transform:rotate(-3deg)}78%{transform:rotate(2deg)}}
+@keyframes ltDrop{0%{transform:translateY(0)}38%{transform:translateY(25px)}48%{transform:translateY(19px)}58%{transform:translateY(25px)}64%{transform:translate(3px,23px)}70%{transform:translate(5px,25px)}85%{opacity:1;transform:translate(5px,25px)}100%{opacity:0;transform:translate(5px,25px)}}
+@media (prefers-reduced-motion:reduce){.ltree.shake .lt-sway,.ltree.shake .lt-drop{animation:none}}
 .vmbtn{position:absolute;right:8px;bottom:8px;z-index:5;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .vmbtn.on,.vmsheet.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .vmsheet{align-self:flex-end;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin:-2px 0 -4px;cursor:pointer}
 .vmbtn:focus-visible,.vmsheet:focus-visible{outline:3px solid var(--focus,#2f6fde);outline-offset:2px}
 .stage.vm-board .stage-sheet{display:none}
-.stage.vm-board .rp-board[style*=aspect-ratio]{flex:0 0 auto;width:100%;height:auto;max-height:100%;margin:auto 0}
-.stage.vm-board .rp-board[style*=aspect-ratio]{overflow:visible}.stage.vm-board .rp-board[style*=aspect-ratio] .vmbtn{top:calc(100% + 12px);bottom:auto;right:50%;transform:translateX(50%)}
 .stage.vm-panel .rp-board{display:none}
 .stage.vm-panel .stage-sheet{flex:1 1 auto;min-height:0;overflow:auto}
 .rp-board:has(.coach) .vmbtn{display:none}
@@ -1311,6 +1316,13 @@ function boardSVG(){
       `<rect class="door" x="${flip?x0+4:x0+w-10}" y="${y0+h-9}" width="6" height="9" rx="1"/><rect class="win" x="${flip?x0+w-10:x0+4}" y="${y0+5}" width="6" height="5" rx="1"/>`};
   const tree=(x,y,r)=>`<circle class="shadow" cx="${x+1.5}" cy="${y+1.5}" r="${r}"/><circle class="tree-dk" cx="${x}" cy="${y}" r="${r}"/><circle class="tree" cx="${x-r*.25}" cy="${y-r*.25}" r="${r*.7}"/>`;
   let g=`<rect class="lawn-edge" x="${-W*2}" y="${-H*2}" width="${W*5}" height="${H*5}"/><rect class="lawn-edge" x="0" y="0" width="${W}" height="${H}" rx="14"/><rect class="lawn" x="${padX-cell/2+6}" y="${pad-cell/2+6}" width="${W-2*(padX-cell/2+6)}" height="${H-2*(pad-cell/2+6)}" rx="10"/>`;
+  // lemon trees on the lawn outside the neighbourhood (only where the screen shows lawn); now and then one shakes and drops a lemon
+  {const bx=document.querySelector('.stage .rp-board'),live=!replay&&iPlay()&&(st.status==='setup'||st.status==='active');
+    if(live&&bx&&bx.clientHeight>40){const asp=Math.min(2.2,Math.max(.35,(bx.clientWidth-8)/(bx.clientHeight-8))),vh=maxView(W,H,asp),vw=vh*asp,x0=W/2-vw/2,y0=H/2-vh/2,TRR=rngFrom(hash('lemons'+R0+'x'+C0)),sp=60,M=14;
+      const trees=[];for(let y=y0-sp;y<y0+vh+sp;y+=sp*.8)for(let x=x0-sp;x<x0+vw+sp;x+=sp){const jx=x+(TRR()-.5)*26+((Math.round((y-y0)/(sp*.8))%2)?sp/2:0),jy=y+(TRR()-.5)*18,sc=.85+TRR()*.3,seed=TRR(),gap=TRR()<.22;if(gap)continue;
+        if(jx>-M-14&&jx<W+M+14&&jy>-M-6&&jy<H+M+28)continue;if(jx<x0-20||jx>x0+vw+20||jy<y0-10||jy>y0+vh+40)continue;trees.push([jx,jy,sc,seed])}
+      trees.sort((a,b)=>a[1]-b[1]).forEach(([x,y,sc,sd],k)=>{const L=[[-9,-15],[7,-19],[11,-7],[-4,-5],[-13,-6],[3,-12]].filter((_,j)=>((sd*977+j*31)|0)%3);
+        g+=`<g class="ltree" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(2)})"><ellipse cx="2" cy="15" rx="14" ry="4" fill="rgba(31,42,34,.16)"/><g class="lt-sway"><rect x="-2.6" y="0" width="5.2" height="15" rx="2" fill="#8a5a33"/><circle cx="0" cy="-11" r="15" fill="#3d8b3d"/><circle cx="-10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="-3" cy="-15" r="9" fill="#55a84a"/>${L.map(([lx,ly])=>`<ellipse cx="${lx}" cy="${ly}" rx="3.4" ry="2.7" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/>`).join('')}<ellipse class="lt-drop" cx="5" cy="-4" rx="3.6" ry="2.9" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/></g></g>`})}}
   // sidewalks then roads
   for(let r=0;r<rows;r++)g+=`<rect class="walk" x="0" y="${Y(r)-rw/2-5}" width="${W}" height="${rw+10}"/>`;
   for(let c=0;c<cols;c++)g+=`<rect class="walk" x="${X(c)-rw/2-5}" y="0" width="${rw+10}" height="${H}"/>`;
@@ -1572,7 +1584,7 @@ function boardView(){
     if(st.status==='setup')sh=placePanel();
     else{sh=`<div class="stage-steps">${phaseBar()}</div>`+((myP().missed|0)>=MISS_LIMIT-1&&!hasOrder(me)?`<p class="warnline">You missed ${myP().missed} turns. Miss one more and the computer takes over.</p>`:'');if(isPlanning()&&!salesShowing()){ensureDraft();sh+=phasePanel()}else sh+=salesCard()}
     const selc=sel!=null&&st.corners[sel]?`<div class="selchip">${selLine()}</div>`:newsPill();
-    return h+`<div class="stage vm-${vm}"><div class="rp-board"${tallFull()?(g=>` style="aspect-ratio:${g.W}/${g.H}"`)(boardGeom()):''}>${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
+    return h+`<div class="stage vm-${vm}"><div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
   else{h+=awayPanel();
     if(isPlanning()){ensureDraft();if(dayPhase==='shop')h+=salesCard();h+=phasePanel()}
     else h+=salesCard()+(salesPending()?'':introCard(false))}
@@ -2149,7 +2161,11 @@ const ptrs=new Map();let pan=null,suppressClick=false;
 function vbOf(svg){const v=svg.viewBox.baseVal;return{x:v.x,y:v.y,w:v.width,h:v.height}}
 function setVB(svg,v){pvBefore=null;const {W,H}=boardDims,fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c));v.x=fit(v.x,v.w,W);v.y=fit(v.y,v.h,H);svg.setAttribute('viewBox',`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`);if(pv){pv.cx=v.x+v.w/2;pv.cy=v.y+v.h/2;pv.vh=v.h}}
 // How far out the board can zoom. Full-board view stops where the neighbourhood fills the screen (sides crop; drag to see them).
-function maxView(W,H,asp){return tallFull()?Math.max(H,W/asp):Math.max(H*1.04,W*1.06/asp)}
+// Every few seconds one lemon tree on screen shakes and drops a lemon.
+function shakeTree(){if(document.hidden||reduceMotion())return;const svg=document.querySelector('.stage svg.board');if(!svg)return;const vb=svg.viewBox.baseVal,ts=[...svg.querySelectorAll('.ltree:not(.shake)')].filter(t=>{const m=t.transform.baseVal.consolidate();if(!m)return false;const x=m.matrix.e,y=m.matrix.f;return x>vb.x+6&&x<vb.x+vb.width-6&&y>vb.y+10&&y<vb.y+vb.height-10});
+  if(!ts.length||Math.random()<.35)return;const t=ts[Math.floor(Math.random()*ts.length)];t.classList.add('shake');setTimeout(()=>t.classList.remove('shake'),2400)}
+setInterval(shakeTree,3200);
+function maxView(W,H,asp){return Math.max(H*1.04,W*1.06/asp)}
 function maxVH(svg){const {W,H}=boardDims,a=svg.clientWidth&&svg.clientHeight?svg.clientHeight/svg.clientWidth:1;return maxView(W,H,1/a)}
 function upp(svg,v){return Math.max(v.w/svg.clientWidth,v.h/svg.clientHeight)}
 function chartHover(e){const box=e.target.closest&&e.target.closest('.chartbox');if(!box||!st||!st.hist)return;const svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),H=st.hist,n=H.length,W=320,L=26,R=40;
