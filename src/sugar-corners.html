@@ -1318,34 +1318,57 @@ function boardSVG(){
   let g=`<rect class="lawn-edge" x="${-W*2}" y="${-H*2}" width="${W*5}" height="${H*5}"/><rect class="lawn-edge" x="0" y="0" width="${W}" height="${H}" rx="14"/><rect class="lawn" x="${padX-cell/2+6}" y="${pad-cell/2+6}" width="${W-2*(padX-cell/2+6)}" height="${H-2*(pad-cell/2+6)}" rx="10"/>`;
   // lemon trees on the lawn outside the neighbourhood (only where the screen shows lawn); now and then one shakes and drops a lemon
   const bxE=document.querySelector('.stage .rp-board'),liveE=!replay&&iPlay()&&(st.status==='setup'||st.status==='active')&&!!bxE&&bxE.clientHeight>40;
-  const EX=(()=>{if(!liveE)return{x0:0,y0:0,vw:W,vh:H};const asp=Math.min(2.2,Math.max(.35,(bxE.clientWidth-8)/(bxE.clientHeight-8))),vh=maxView(W,H,asp),vw=vh*asp;return{x0:Math.min(0,W/2-vw/2)-30,y0:Math.min(0,H/2-vh/2)-30,vw:Math.max(W,vw)+60,vh:Math.max(H,vh)+60}})();
-  const ex1=EX.x0,ex2=EX.x0+EX.vw,ey1=EX.y0,ey2=EX.y0+EX.vh,topOut=false,sideOut=false,onRoad=(x,y,m)=>{for(let r=0;r<rows;r++)if(Math.abs(y-Y(r))<rw/2+m)return true;for(let c=0;c<cols;c++)if(Math.abs(x-X(c))<rw/2+m)return true;return false};
-  {const live=liveE;
-    if(live){const {x0,y0,vw,vh}={x0:EX.x0+30,y0:EX.y0+30,vw:EX.vw-60,vh:EX.vh-60},TRR=rngFrom(hash('lemons'+R0+'x'+C0)),sp=60,M=14;
-      // houses of other styles line the streets as they leave the neighbourhood
-      const WALLS=['#f6ead2','#f1dfe8','#dfeaf3','#efe5cf','#e5efe0'],lots=[];
+  const EX=(()=>{if(!liveE)return null;const asp=Math.min(2.2,Math.max(.35,(bxE.clientWidth-8)/(bxE.clientHeight-8))),vh=maxView(W,H,asp),vw=vh*asp;return{x0:Math.min(0,W/2-vw/2)-30,y0:Math.min(0,H/2-vh/2)-30,vw:Math.max(W,vw)+60,vh:Math.max(H,vh)+60}})();
+  const topOut=false,sideOut=false;
+  // Streets leave the neighbourhood and end in short cul-de-sacs; the land around is filled with houses, lemon trees, ponds and flower beds.
+  const STUB=62,BR=23,BW=BR+6,stubs=[];
+  if(EX){for(let c=0;c<cols;c++){stubs.push({x:X(c)-rw/2,y:-STUB,w:rw,h:STUB,cx:X(c),cy:-STUB,dx:0,dy:-1});stubs.push({x:X(c)-rw/2,y:H,w:rw,h:STUB,cx:X(c),cy:H+STUB,dx:0,dy:1})}
+    for(let r=0;r<rows;r++){stubs.push({x:-STUB,y:Y(r)-rw/2,w:STUB,h:rw,cx:-STUB,cy:Y(r),dx:-1,dy:0});stubs.push({x:W,y:Y(r)-rw/2,w:STUB,h:rw,cx:W+STUB,cy:Y(r),dx:1,dy:0})}}
+  const lemonTree=(x,y,sc,sd)=>{let g='';const L=[[-9,-15],[7,-19],[11,-7],[-4,-5],[-13,-6],[3,-12]].filter((_,j)=>((sd*977+j*31)|0)%3);
+        g+=`<g class="ltree" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(2)})"><ellipse cx="2" cy="15" rx="14" ry="4" fill="rgba(31,42,34,.16)"/><g class="lt-sway"><rect x="-2.6" y="0" width="5.2" height="15" rx="2" fill="#8a5a33"/><circle cx="0" cy="-11" r="15" fill="#3d8b3d"/><circle cx="-10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="-3" cy="-15" r="9" fill="#55a84a"/>${L.map(([lx,ly])=>`<ellipse cx="${lx}" cy="${ly}" rx="3.4" ry="2.7" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/>`).join('')}<ellipse class="lt-drop" cx="5" cy="-4" rx="3.6" ry="2.9" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/></g></g>`;return g};
+  if(EX){const x0=EX.x0,y0=EX.y0,vw=EX.vw,vh=EX.vh,TRR=rngFrom(hash('town'+R0+'x'+C0)),pick=a=>a[Math.floor(TRR()*a.length)];
+      const WALLS=['#f6ead2','#f1dfe8','#dfeaf3','#efe5cf','#e5efe0'];
       const town=(x,y,k,fl,wc,rc)=>{const d=fl?1:-1;
         if(k===0)return `<rect class="shadow" x="${x-11+2}" y="${y-22}" width="22" height="27" rx="2"/><rect x="${x-11}" y="${y-19}" width="22" height="24" rx="1.5" fill="${wc}" stroke="#d8ccb4" stroke-width=".8"/><polygon points="${x-14},${y-18} ${x},${y-30} ${x+14},${y-18}" fill="${rc}"/><rect x="${x-7}" y="${y-14}" width="5" height="5" rx="1" fill="#9cc8e6"/><rect x="${x+2}" y="${y-14}" width="5" height="5" rx="1" fill="#9cc8e6"/><rect x="${x+(fl?2:-7)}" y="${y-4}" width="5" height="9" rx="1" fill="#8a5a33"/><rect x="${x+(fl?-7:2)}" y="${y-4}" width="5" height="5" rx="1" fill="#9cc8e6"/>`;
         if(k===1)return `<rect class="shadow" x="${x-16+2}" y="${y-11}" width="32" height="16" rx="2"/><rect x="${x-16}" y="${y-9}" width="32" height="14" rx="1.5" fill="${wc}" stroke="#d8ccb4" stroke-width=".8"/><polygon points="${x-18},${y-8} ${x-8},${y-17} ${x+8},${y-17} ${x+18},${y-8}" fill="${rc}"/><rect x="${x+d*4-6}" y="${y-5}" width="12" height="10" rx="1" fill="#e8e2d6" stroke="#b9ae9a" stroke-width=".7"/><line x1="${x+d*4-6}" y1="${y-1.5}" x2="${x+d*4+6}" y2="${y-1.5}" stroke="#b9ae9a" stroke-width=".7"/><line x1="${x+d*4-6}" y1="${y+1.5}" x2="${x+d*4+6}" y2="${y+1.5}" stroke="#b9ae9a" stroke-width=".7"/><rect x="${x-d*9-2.5}" y="${y-5}" width="5" height="5" rx="1" fill="#9cc8e6"/>`;
         if(k===2)return `<rect class="shadow" x="${x-10+2}" y="${y-12}" width="20" height="17" rx="2"/><rect x="${x+(fl?-7:3)}" y="${y-24}" width="4" height="9" fill="#9a5b45"/><rect x="${x-10}" y="${y-10}" width="20" height="15" rx="1.5" fill="${wc}" stroke="#d8ccb4" stroke-width=".8"/><polygon points="${x-13},${y-9} ${x},${y-22} ${x+13},${y-9}" fill="${rc}"/><circle cx="${x}" cy="${y-14}" r="2.3" fill="#9cc8e6"/><rect x="${x-3}" y="${y-3}" width="6" height="8" rx="3" fill="#8a5a33"/>`;
         return `<rect class="shadow" x="${x-13+2}" y="${y-14}" width="26" height="19" rx="2"/><rect x="${x-13}" y="${y-12}" width="26" height="17" rx="1" fill="${wc}" stroke="#d8ccb4" stroke-width=".8"/><rect x="${x-14}" y="${y-15}" width="28" height="4" rx="1" fill="${rc}"/>${[0,1,2,3,4,5,6].map(j=>`<rect x="${x-13+j*4}" y="${y-11}" width="2" height="4" fill="${j%2?'#fff':rc}"/>`).join('')}<rect x="${x-10}" y="${y-5}" width="7" height="6" rx="1" fill="#9cc8e6"/><rect x="${x+3}" y="${y-5}" width="5" height="10" rx="1" fill="#8a5a33"/>`};
-      const lot=(x,y)=>{if(TRR()<.3||onRoad(x,y,6))return;if(x<x0-24||x>x0+vw+24||y<y0-10||y>y0+vh+34)return;lots.push([x,y,Math.floor(TRR()*4),TRR()<.5,WALLS[Math.floor(TRR()*WALLS.length)],ROOFS[Math.floor(TRR()*ROOFS.length)]])};
-      for(let c=0;c<cols;c++)for(const sd of [-1,1]){const lx=X(c)+sd*(rw/2+5+19);for(let y=-52;y>y0-30;y-=56)lot(lx,y);for(let y=H+62;y<y0+vh+30;y+=56)lot(lx,y)}
-      for(let r=0;r<rows;r++)for(const sd of [-1,1]){const ly=Y(r)+sd*(rw/2+5+14)+(sd<0?0:14);for(let x=-46;x>x0-30;x-=58)lot(x,ly);for(let x=W+46;x<x0+vw+30;x+=58)lot(x,ly)}
-      const nearLot=(x,y)=>lots.some(([lx,ly])=>Math.abs(lx-x)<30&&Math.abs(ly-y)<30);
-      const trees=[];for(let y=y0-sp;y<y0+vh+sp;y+=sp*.8)for(let x=x0-sp;x<x0+vw+sp;x+=sp){const jx=x+(TRR()-.5)*26+((Math.round((y-y0)/(sp*.8))%2)?sp/2:0),jy=y+(TRR()-.5)*18,sc=.85+TRR()*.3,seed=TRR(),gap=TRR()<.22;if(gap)continue;
-        if(jx>-(sideOut?(TR?132:72):M+14)&&jx<W+(sideOut?(TR?132:72):M+14)&&jy>-(topOut?44:M+6)&&jy<H+(topOut?56:M+28))continue;if(onRoad(jx,jy-4,20)||nearLot(jx,jy))continue;if(jx<x0-20||jx>x0+vw+20||jy<y0-10||jy>y0+vh+40)continue;trees.push([jx,jy,sc,seed])}
-      lots.forEach(l=>{g+=town(l[0],l[1],l[2],l[3],l[4],l[5])});
-      trees.sort((a,b)=>a[1]-b[1]).forEach(([x,y,sc,sd],k)=>{const L=[[-9,-15],[7,-19],[11,-7],[-4,-5],[-13,-6],[3,-12]].filter((_,j)=>((sd*977+j*31)|0)%3);
-        g+=`<g class="ltree" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(2)})"><ellipse cx="2" cy="15" rx="14" ry="4" fill="rgba(31,42,34,.16)"/><g class="lt-sway"><rect x="-2.6" y="0" width="5.2" height="15" rx="2" fill="#8a5a33"/><circle cx="0" cy="-11" r="15" fill="#3d8b3d"/><circle cx="-10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="-3" cy="-15" r="9" fill="#55a84a"/>${L.map(([lx,ly])=>`<ellipse cx="${lx}" cy="${ly}" rx="3.4" ry="2.7" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/>`).join('')}<ellipse class="lt-drop" cx="5" cy="-4" rx="3.6" ry="2.9" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/></g></g>`})}}
-  // sidewalks then roads
-  for(let r=0;r<rows;r++)g+=`<rect class="walk" x="${ex1}" y="${Y(r)-rw/2-5}" width="${ex2-ex1}" height="${rw+10}"/>`;
-  for(let c=0;c<cols;c++)g+=`<rect class="walk" x="${X(c)-rw/2-5}" y="${ey1}" width="${rw+10}" height="${ey2-ey1}"/>`;
-  for(let r=0;r<rows;r++)g+=`<rect class="road" x="${ex1}" y="${Y(r)-rw/2}" width="${ex2-ex1}" height="${rw}"/>`;
-  for(let c=0;c<cols;c++)g+=`<rect class="road" x="${X(c)-rw/2}" y="${ey1}" width="${rw}" height="${ey2-ey1}"/>`;
-  // lane lines, broken at intersections
-  for(let r=0;r<rows;r++)for(let c=-1;c<cols;c++){const x1=c<0?ex1:X(c)+rw/2+8,x2=c+1>=cols?ex2:X(c+1)-rw/2-8;g+=`<line class="lane" x1="${x1}" y1="${Y(r)}" x2="${x2}" y2="${Y(r)}"/>`}
-  for(let c=0;c<cols;c++)for(let r=-1;r<rows;r++){const y1=r<0?ey1:Y(r)+rw/2+8,y2=r+1>=rows?ey2:Y(r+1)-rw/2-8;g+=`<line class="lane" x1="${X(c)}" y1="${y1}" x2="${X(c)}" y2="${y2}"/>`}
+      const taken=[],items=[],ponds=[];
+      const inBoard=(x,y,m)=>x>-14-m&&x<W+14+m&&y>-8-m&&y<H+30+m;
+      const onStub=(x,y,m)=>stubs.some(t=>x>t.x-5-m&&x<t.x+t.w+5+m&&y>t.y-5-m&&y<t.y+t.h+5+m)||stubs.some(t=>Math.hypot(x-t.cx,y-t.cy)<BW+m);
+      const inView=(x,y)=>x>x0-10&&x<x0+vw+10&&y>y0-10&&y<y0+vh+30;
+      const free=(x,y,r)=>inView(x,y)&&!inBoard(x,y,r*.6)&&!onStub(x,y,r)&&taken.every(([a,b,q])=>Math.hypot(a-x,b-y)>q+r);
+      const house=(x,y)=>{if(!free(x,y,15))return;taken.push([x,y,16]);items.push([y,town(x,y,Math.floor(TRR()*4),TRR()<.5,pick(WALLS),pick(ROOFS))])};
+      // houses around each cul-de-sac and along its short street
+      stubs.forEach(t=>{const px=-t.dy,py=t.dx;
+        [-62,0,62].forEach(a=>{if(TRR()<.85){const ang=Math.atan2(t.dy,t.dx)+a*Math.PI/180,rr=BW+21;house(t.cx+Math.cos(ang)*rr,t.cy+Math.sin(ang)*rr+6)}});
+        [-1,1].forEach(sd=>{if(TRR()<.7)house(t.cx-t.dx*STUB*.45+px*sd*(rw/2+5+19),t.cy-t.dy*STUB*.45+py*sd*(rw/2+5+19)+6)})});
+      // ponds
+      const nP=Math.max(1,Math.round(vw*vh/160000));for(let k=0,tries=0;k<nP&&tries<60;tries++){const x=x0+TRR()*vw,y=y0+TRR()*vh,rx=30+TRR()*14,ry=18+TRR()*7;
+        if(!free(x,y,rx+8))continue;taken.push([x,y,rx+6]);ponds.push([x,y,rx,ry,TRR()<.6,TRR()]);k++}
+      // more houses scattered on the land
+      for(let y=y0;y<y0+vh+40;y+=58)for(let x=x0;x<x0+vw+40;x+=64)if(TRR()<.42)house(x+(TRR()-.5)*30,y+(TRR()-.5)*24);
+      // flower beds
+      for(let y=y0;y<y0+vh;y+=46)for(let x=x0;x<x0+vw;x+=50)if(TRR()<.16){const fx=x+TRR()*30,fy=y+TRR()*30;if(free(fx,fy,9)){taken.push([fx,fy,10]);const cs=pick([['#e2557a','#f28ab0'],['#f2a93b','#f7d538'],['#8e6bd8','#c3a8f0'],['#ffffff','#f7d538']]);
+        items.push([fy,`<ellipse cx="${fx}" cy="${fy+3}" rx="10" ry="5" fill="#4e9a45"/>`+[[-6,0],[-2,-3],[3,-1],[6,2],[0,2]].map(([a,b],q)=>`<circle cx="${fx+a}" cy="${fy+b}" r="2.4" fill="${cs[q%2]}"/>`).join('')])}}
+      // lemon trees everywhere else
+      for(let y=y0;y<y0+vh+40;y+=48)for(let x=x0;x<x0+vw+40;x+=52){const jx=x+(TRR()-.5)*26,jy=y+(TRR()-.5)*20,sc=.85+TRR()*.3,sd=TRR();if(TRR()<.2||!free(jx,jy-6,13))continue;taken.push([jx,jy-6,13]);items.push([jy+8,lemonTree(jx,jy,sc,sd)])}
+      ponds.forEach(([x,y,rx,ry,duck,q])=>{g+=`<ellipse cx="${x+2}" cy="${y+3}" rx="${rx+4}" ry="${ry+4}" fill="#8cc07a"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#7cc4e8" stroke="#5aa6cf" stroke-width="2"/><ellipse cx="${x-rx*.3}" cy="${y-ry*.35}" rx="${rx*.35}" ry="${ry*.18}" fill="#bfe4f5" opacity=".8"/>`+
+        `<circle cx="${x+rx*.45}" cy="${y+ry*.25}" r="4" fill="#5fae55"/><circle cx="${x+rx*.3}" cy="${y+ry*.45}" r="3" fill="#5fae55"/>`+
+        [[-.85,.2],[-.8,-.1],[.82,-.25]].map(([a,b])=>`<line x1="${x+rx*a}" y1="${y+ry*b+4}" x2="${x+rx*a+(a<0?-2:2)}" y2="${y+ry*b-8}" stroke="#4e8a3e" stroke-width="2" stroke-linecap="round"/><ellipse cx="${x+rx*a+(a<0?-2:2)}" cy="${y+ry*b-9}" rx="1.6" ry="3.2" fill="#8a5a33"/>`).join('')+
+        (duck?`<g transform="translate(${x-rx*.15+q*10} ${y+2})"><ellipse cx="0" cy="0" rx="5.5" ry="3.6" fill="#fff" stroke="#ddd" stroke-width=".6"/><circle cx="4.4" cy="-3" r="2.6" fill="#fff" stroke="#ddd" stroke-width=".6"/><path d="M6.6 -3 l2.6 .8 -2.6 .8z" fill="#f2a93b"/></g>`:'')});
+      items.sort((a,b)=>a[0]-b[0]).forEach(([,svg])=>{g+=svg})}
+  // sidewalks then roads (inside the neighbourhood, plus the cul-de-sacs)
+  for(let r=0;r<rows;r++)g+=`<rect class="walk" x="0" y="${Y(r)-rw/2-5}" width="${W}" height="${rw+10}"/>`;
+  for(let c=0;c<cols;c++)g+=`<rect class="walk" x="${X(c)-rw/2-5}" y="0" width="${rw+10}" height="${H}"/>`;
+  stubs.forEach(t=>{g+=`<rect class="walk" x="${t.x-(t.dx?0:5)}" y="${t.y-(t.dy?0:5)}" width="${t.w+(t.dx?0:10)}" height="${t.h+(t.dy?0:10)}"/><circle class="walk" cx="${t.cx}" cy="${t.cy}" r="${BW}"/>`});
+  for(let r=0;r<rows;r++)g+=`<rect class="road" x="0" y="${Y(r)-rw/2}" width="${W}" height="${rw}"/>`;
+  for(let c=0;c<cols;c++)g+=`<rect class="road" x="${X(c)-rw/2}" y="0" width="${rw}" height="${H}"/>`;
+  stubs.forEach(t=>{g+=`<rect class="road" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/><circle class="road" cx="${t.cx}" cy="${t.cy}" r="${BR}"/><circle cx="${t.cx}" cy="${t.cy}" r="8" fill="var(--lawn)"/><circle cx="${t.cx}" cy="${t.cy-1}" r="4.5" fill="#4e9a45"/>`});
+  // lane lines, broken at intersections (and running out to each cul-de-sac)
+  const sx1=stubs.length?-STUB+BR+4:0,sx2=stubs.length?W+STUB-BR-4:W,sy1=stubs.length?-STUB+BR+4:0,sy2=stubs.length?H+STUB-BR-4:H;
+  for(let r=0;r<rows;r++)for(let c=-1;c<cols;c++){const x1=c<0?sx1:X(c)+rw/2+8,x2=c+1>=cols?sx2:X(c+1)-rw/2-8;g+=`<line class="lane" x1="${x1}" y1="${Y(r)}" x2="${x2}" y2="${Y(r)}"/>`}
+  for(let c=0;c<cols;c++)for(let r=-1;r<rows;r++){const y1=r<0?sy1:Y(r)+rw/2+8,y2=r+1>=rows?sy2:Y(r+1)-rw/2-8;g+=`<line class="lane" x1="${X(c)}" y1="${y1}" x2="${X(c)}" y2="${y2}"/>`}
   // crosswalks
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const x=X(c),y=Y(r);
     for(let k=0;k<5;k++){const o=-rw/2+2+k*5;
