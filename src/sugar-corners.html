@@ -1317,20 +1317,23 @@ function boardSVG(){
   const tree=(x,y,r)=>`<circle class="shadow" cx="${x+1.5}" cy="${y+1.5}" r="${r}"/><circle class="tree-dk" cx="${x}" cy="${y}" r="${r}"/><circle class="tree" cx="${x-r*.25}" cy="${y-r*.25}" r="${r*.7}"/>`;
   let g=`<rect class="lawn-edge" x="${-W*2}" y="${-H*2}" width="${W*5}" height="${H*5}"/><rect class="lawn-edge" x="0" y="0" width="${W}" height="${H}" rx="14"/><rect class="lawn" x="${padX-cell/2+6}" y="${pad-cell/2+6}" width="${W-2*(padX-cell/2+6)}" height="${H-2*(pad-cell/2+6)}" rx="10"/>`;
   // lemon trees on the lawn outside the neighbourhood (only where the screen shows lawn); now and then one shakes and drops a lemon
-  {const bx=document.querySelector('.stage .rp-board'),live=!replay&&iPlay()&&(st.status==='setup'||st.status==='active');
-    if(live&&bx&&bx.clientHeight>40){const asp=Math.min(2.2,Math.max(.35,(bx.clientWidth-8)/(bx.clientHeight-8))),vh=maxView(W,H,asp),vw=vh*asp,x0=W/2-vw/2,y0=H/2-vh/2,TRR=rngFrom(hash('lemons'+R0+'x'+C0)),sp=60,M=14;
+  const bxE=document.querySelector('.stage .rp-board'),liveE=!replay&&iPlay()&&(st.status==='setup'||st.status==='active')&&!!bxE&&bxE.clientHeight>40;
+  const EX=(()=>{if(!liveE)return{x0:0,y0:0,vw:W,vh:H};const asp=Math.min(2.2,Math.max(.35,(bxE.clientWidth-8)/(bxE.clientHeight-8))),vh=maxView(W,H,asp),vw=vh*asp;return{x0:Math.min(0,W/2-vw/2)-30,y0:Math.min(0,H/2-vh/2)-30,vw:Math.max(W,vw)+60,vh:Math.max(H,vh)+60}})();
+  const ex1=EX.x0,ex2=EX.x0+EX.vw,ey1=EX.y0,ey2=EX.y0+EX.vh,topOut=false,sideOut=false,onRoad=(x,y,m)=>{for(let r=0;r<rows;r++)if(Math.abs(y-Y(r))<rw/2+m)return true;for(let c=0;c<cols;c++)if(Math.abs(x-X(c))<rw/2+m)return true;return false};
+  {const live=liveE;
+    if(live){const {x0,y0,vw,vh}={x0:EX.x0+30,y0:EX.y0+30,vw:EX.vw-60,vh:EX.vh-60},TRR=rngFrom(hash('lemons'+R0+'x'+C0)),sp=60,M=14;
       const trees=[];for(let y=y0-sp;y<y0+vh+sp;y+=sp*.8)for(let x=x0-sp;x<x0+vw+sp;x+=sp){const jx=x+(TRR()-.5)*26+((Math.round((y-y0)/(sp*.8))%2)?sp/2:0),jy=y+(TRR()-.5)*18,sc=.85+TRR()*.3,seed=TRR(),gap=TRR()<.22;if(gap)continue;
-        if(jx>-M-14&&jx<W+M+14&&jy>-M-6&&jy<H+M+28)continue;if(jx<x0-20||jx>x0+vw+20||jy<y0-10||jy>y0+vh+40)continue;trees.push([jx,jy,sc,seed])}
+        if(jx>-(sideOut?(TR?132:72):M+14)&&jx<W+(sideOut?(TR?132:72):M+14)&&jy>-(topOut?44:M+6)&&jy<H+(topOut?56:M+28))continue;if(onRoad(jx,jy-4,20))continue;if(jx<x0-20||jx>x0+vw+20||jy<y0-10||jy>y0+vh+40)continue;trees.push([jx,jy,sc,seed])}
       trees.sort((a,b)=>a[1]-b[1]).forEach(([x,y,sc,sd],k)=>{const L=[[-9,-15],[7,-19],[11,-7],[-4,-5],[-13,-6],[3,-12]].filter((_,j)=>((sd*977+j*31)|0)%3);
         g+=`<g class="ltree" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(2)})"><ellipse cx="2" cy="15" rx="14" ry="4" fill="rgba(31,42,34,.16)"/><g class="lt-sway"><rect x="-2.6" y="0" width="5.2" height="15" rx="2" fill="#8a5a33"/><circle cx="0" cy="-11" r="15" fill="#3d8b3d"/><circle cx="-10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="10" cy="-5" r="10" fill="#3d8b3d"/><circle cx="-3" cy="-15" r="9" fill="#55a84a"/>${L.map(([lx,ly])=>`<ellipse cx="${lx}" cy="${ly}" rx="3.4" ry="2.7" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/>`).join('')}<ellipse class="lt-drop" cx="5" cy="-4" rx="3.6" ry="2.9" fill="#f7d538" stroke="#c9a10a" stroke-width=".8"/></g></g>`})}}
   // sidewalks then roads
-  for(let r=0;r<rows;r++)g+=`<rect class="walk" x="0" y="${Y(r)-rw/2-5}" width="${W}" height="${rw+10}"/>`;
-  for(let c=0;c<cols;c++)g+=`<rect class="walk" x="${X(c)-rw/2-5}" y="0" width="${rw+10}" height="${H}"/>`;
-  for(let r=0;r<rows;r++)g+=`<rect class="road" x="0" y="${Y(r)-rw/2}" width="${W}" height="${rw}"/>`;
-  for(let c=0;c<cols;c++)g+=`<rect class="road" x="${X(c)-rw/2}" y="0" width="${rw}" height="${H}"/>`;
+  for(let r=0;r<rows;r++)g+=`<rect class="walk" x="${ex1}" y="${Y(r)-rw/2-5}" width="${ex2-ex1}" height="${rw+10}"/>`;
+  for(let c=0;c<cols;c++)g+=`<rect class="walk" x="${X(c)-rw/2-5}" y="${ey1}" width="${rw+10}" height="${ey2-ey1}"/>`;
+  for(let r=0;r<rows;r++)g+=`<rect class="road" x="${ex1}" y="${Y(r)-rw/2}" width="${ex2-ex1}" height="${rw}"/>`;
+  for(let c=0;c<cols;c++)g+=`<rect class="road" x="${X(c)-rw/2}" y="${ey1}" width="${rw}" height="${ey2-ey1}"/>`;
   // lane lines, broken at intersections
-  for(let r=0;r<rows;r++)for(let c=-1;c<cols;c++){const x1=c<0?0:X(c)+rw/2+8,x2=c+1>=cols?W:X(c+1)-rw/2-8;g+=`<line class="lane" x1="${x1}" y1="${Y(r)}" x2="${x2}" y2="${Y(r)}"/>`}
-  for(let c=0;c<cols;c++)for(let r=-1;r<rows;r++){const y1=r<0?0:Y(r)+rw/2+8,y2=r+1>=rows?H:Y(r+1)-rw/2-8;g+=`<line class="lane" x1="${X(c)}" y1="${y1}" x2="${X(c)}" y2="${y2}"/>`}
+  for(let r=0;r<rows;r++)for(let c=-1;c<cols;c++){const x1=c<0?ex1:X(c)+rw/2+8,x2=c+1>=cols?ex2:X(c+1)-rw/2-8;g+=`<line class="lane" x1="${x1}" y1="${Y(r)}" x2="${x2}" y2="${Y(r)}"/>`}
+  for(let c=0;c<cols;c++)for(let r=-1;r<rows;r++){const y1=r<0?ey1:Y(r)+rw/2+8,y2=r+1>=rows?ey2:Y(r+1)-rw/2-8;g+=`<line class="lane" x1="${X(c)}" y1="${y1}" x2="${X(c)}" y2="${y2}"/>`}
   // crosswalks
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const x=X(c),y=Y(r);
     for(let k=0;k<5;k++){const o=-rw/2+2+k*5;
@@ -1353,7 +1356,11 @@ function boardSVG(){
   g+=tree(X(cols-1)+pad/2,Y(0)-pad/2+4,8)+tree(X(cols-1)+pad/2,Y(rows-1)+pad/2,8);
   // street signs
   const numSt=r=>`${r+1}${['st','nd','rd','th'][r]} St`;
-  if(!TR){for(let c=0;c<cols;c++){const t=AVE_SIGN[c];g+=`<rect class="signp" x="${X(c)-52}" y="5" width="104" height="20" rx="4"/><text class="signt sm" x="${X(c)}" y="15.5">${t}</text>`+
+  const sgn=(x,y,w,t,sm)=>`<rect class="signp" x="${x}" y="${y}" width="${w}" height="20" rx="4"/><text class="signt${sm?' sm':''}" x="${x+w/2}" y="${y+10.5}">${t}</text>`;
+  if(topOut||sideOut){const vT=c=>TR?numSt(c):AVE_SIGN[c],vw=TR?52:104,hT=r=>TR?AVE_SIGN[r]:numSt(r),hw=TR?114:52;
+    for(let c=0;c<cols;c++){const sx=c===cols-1?X(c)-rw/2-7-vw:X(c)+rw/2+7;g+=topOut?sgn(sx,-28,vw,vT(c),!TR)+sgn(sx,H+8,vw,vT(c),!TR):sgn(X(c)-vw/2,5,vw,vT(c),!TR)+sgn(X(c)-vw/2,H-25,vw,vT(c),!TR);}
+    for(let r=0;r<rows;r++)g+=sideOut?sgn(-hw-8,Y(r)-rw/2-27,hw,hT(r),TR)+sgn(W+8,Y(r)-rw/2-27,hw,hT(r),TR):sgn(5,Y(r)-10,hw,hT(r),TR)+sgn(W-5-hw,Y(r)-10,hw,hT(r),TR)}
+  else if(!TR){for(let c=0;c<cols;c++){const t=AVE_SIGN[c];g+=`<rect class="signp" x="${X(c)-52}" y="5" width="104" height="20" rx="4"/><text class="signt sm" x="${X(c)}" y="15.5">${t}</text>`+
     `<rect class="signp" x="${X(c)-52}" y="${H-25}" width="104" height="20" rx="4"/><text class="signt sm" x="${X(c)}" y="${H-14.5}">${t}</text>`}
   for(let r=0;r<rows;r++){const t=numSt(r);g+=`<rect class="signp" x="5" y="${Y(r)-10}" width="52" height="20" rx="4"/><text class="signt" x="31" y="${Y(r)+.5}">${t}</text>`+
     `<rect class="signp" x="${W-57}" y="${Y(r)-10}" width="52" height="20" rx="4"/><text class="signt" x="${W-31}" y="${Y(r)+.5}">${t}</text>`}}
