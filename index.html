@@ -1433,9 +1433,7 @@ function boardSVG(){
   // In full-board view on a tall screen, a wide neighbourhood is drawn turned on its side (streets keep their names) so it fills the screen.
   const TR=vm==='board'&&!replay&&C0>R0&&!!bx0&&bx0.clientHeight>bx0.clientWidth*1.15;
   const rows=TR?C0:R0,cols=TR?R0:C0,cell=110,pad=66,padX=TR?134:pad,rw=26,off=rw/2+10,W=(cols-1)*cell+padX*2;
-  // Full-board view: space the streets out vertically so the neighbourhood is as tall as the screen (no empty lawn above and below).
-  const fill=vm==='board'&&!replay&&!!bx0&&bx0.clientHeight>bx0.clientWidth,ratio=fill?(bx0.clientHeight-8)/Math.max(1,bx0.clientWidth-8):0;
-  const cellY=fill&&rows>1?Math.max(cell,Math.min(cell*2.4,(W*1.06*ratio/1.04-pad*2)/(rows-1))):cell,H=(rows-1)*cellY+pad*2;
+  const cellY=cell,H=(rows-1)*cellY+pad*2;
   const X=c=>padX+c*cell,Y=r=>pad+r*cellY,R=rngFrom(hash('map'+R0+'x'+C0));
   const itXY=it=>{const r0=Math.floor(it/C0),c0=it%C0;return TR?[X(r0),Y(c0)]:[X(c0),Y(r0)]};
   const ROOFS=['#e98a7a','#7fa7d6','#e7b75f','#9c8fd0','#78b9a5','#d98fb3','#c9a27e'];
@@ -1466,7 +1464,7 @@ function boardSVG(){
     if(c<0&&r<0){g+=tree(X(0)-pad/2,Y(0)-pad/2+4,8);continue}
     if(r<0){g+=house(cx,Y(0)-34,R()<.5);continue}
     if(c<0){g+=house(X(0)-36,cy,R()<.5);continue}
-    if(cellY>=165){g+=house(cx,cy-cellY*.2+4,R()<.5)+house(cx,cy+cellY*.2+4,R()<.5)}else g+=house(cx,cy+4,R()<.5);
+    g+=house(cx,cy+4,R()<.5);
     const spots=[[cx,Y(r)+rw/2+11],[cx,Y(r+1)-rw/2-11],[X(c)+rw/2+11,cy],[X(c+1)-rw/2-11,cy]];
     spots.forEach(([tx,ty])=>{if(R()<.55)g+=tree(tx,ty,6+R()*2)})}
   // bottom and right edges
@@ -1560,7 +1558,7 @@ function boardSVG(){
   const staged=!replay&&iPlay()&&(st.status==='setup'||st.status==='active');
   if(staged){const bx=document.querySelector('.stage .rp-board'),asp=bx&&bx.clientHeight>40?Math.min(2.2,Math.max(.35,(bx.clientWidth-8)/(bx.clientHeight-8))):1;
     if(!pv||pv.key!==st.gameId+me){const mine=cornersOf(st,me).sort((a,b)=>st.corners[b].s-st.corners[a].s);const c=mine.length?pos(mine[0]):[W/2,H/2];pv={key:st.gameId+me,cx:W/2,cy:H/2,vh:1e6}}
-    let vh=Math.max(170,Math.min(pv.vh,Math.max(H*1.04,W*1.06/asp))),vw=vh*asp;
+    let vh=Math.max(170,Math.min(pv.vh,maxView(W,H,asp))),vw=vh*asp;
     const fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c-size/2));
     vb=`${fit(pv.cx,vw,W).toFixed(1)} ${fit(pv.cy,vh,H).toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`;boardDims={W,H}}
   if(replay){const f=focusOf(ev),full=vb;
@@ -2282,7 +2280,9 @@ function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corner
 const ptrs=new Map();let pan=null,suppressClick=false;
 function vbOf(svg){const v=svg.viewBox.baseVal;return{x:v.x,y:v.y,w:v.width,h:v.height}}
 function setVB(svg,v){pvBefore=null;const {W,H}=boardDims,fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c));v.x=fit(v.x,v.w,W);v.y=fit(v.y,v.h,H);svg.setAttribute('viewBox',`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`);if(pv){pv.cx=v.x+v.w/2;pv.cy=v.y+v.h/2;pv.vh=v.h}}
-function maxVH(svg){const {W,H}=boardDims,a=svg.clientWidth&&svg.clientHeight?svg.clientHeight/svg.clientWidth:1;return Math.max(H*1.04,W*a*1.06)}
+// How far out the board can zoom. Full-board view stops where the neighbourhood fills the screen (sides crop; drag to see them).
+function maxView(W,H,asp){return vm==='board'&&!replay?Math.min(H,W/asp):Math.max(H*1.04,W*1.06/asp)}
+function maxVH(svg){const {W,H}=boardDims,a=svg.clientWidth&&svg.clientHeight?svg.clientHeight/svg.clientWidth:1;return maxView(W,H,1/a)}
 function upp(svg,v){return Math.max(v.w/svg.clientWidth,v.h/svg.clientHeight)}
 function chartHover(e){const box=e.target.closest&&e.target.closest('.chartbox');if(!box||!st||!st.hist)return;const svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),H=st.hist,n=H.length,W=320,L=26,R=40;
   const sx=(e.clientX-r.left)*W/r.width,i=Math.max(0,Math.min(n-1,Math.round((sx-L)/((W-L-R)/(n-1))))),cx=L+(W-L-R)*i/(n-1),cr=box.querySelector('.cross'),tip=box.querySelector('.ctip');
