@@ -306,6 +306,17 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .oot{color:var(--bad);font-weight:700}
 .lcsnote{flex:0 1 auto;align-self:flex-end;margin:0 0 4px;line-height:1.3}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tiles:has(.upc){grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tile.upc{align-items:stretch;text-align:left;gap:3px;padding:9px 10px}
+.upc .tile-l{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.upc-tag{font-size:9.5px;letter-spacing:.04em;padding:1px 6px;border-radius:999px;background:var(--lemon);color:var(--lemon-ink)}
+.upc-tag.ok{background:var(--good);color:#fff}.upc-tag.max{background:none;color:var(--good);padding:0}
+.upc-n{font-family:var(--display);font-size:17px;line-height:1.1;color:var(--ink)}
+.upc-v{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.upc .tile-b{font-size:13px;min-height:34px}
+.upc .tile-u{align-self:flex-start;font-size:12px}
+.upc-now{font-size:11px;color:var(--muted);border-top:1px dashed var(--line);padding-top:4px;margin-top:2px}
+.tile.upc.maxed{opacity:.75}
 .tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;border:1.5px solid var(--line);border-radius:12px;padding:6px 4px;min-width:0;text-align:center}
 .tile.bought{border-color:var(--good);background:color-mix(in srgb,var(--good) 8%,var(--surface))}
 .tile-l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
@@ -777,7 +788,7 @@ function attack(s,u,a,rng,L,E){
   const aBk=bonusParts(s,u,a.from,false),dBk=bonusParts(s,d,a.to,true),aB=aBk.total,dB=dBk.total;
   const def0=to.s,rolls=[];let att=send,def=to.s,n=0;const ra=Math.max(0,a.retreatAt|0);
   while(att>0&&def>0&&att>ra&&n<1000){n++;const xr=roll(rng,aDie),yr=roll(rng,dDie);rolls.push([xr,yr]);if(xr+aB>yr+dB)def--;else if(xr+aB<yr+dB||dBk.inter>0)att--}
-  const vs=`${nm(u)} hit ${nm(d)} at ${lab(a.to)}: ${send} vs ${def0}, d${aDie}${fmtB(aB)} vs d${dDie}${fmtB(dB)}.`;
+  const vs=`${nm(u)} hit ${nm(d)} at ${lab(a.to)}: ${send} vs ${def0}, 1–${aDie}${fmtB(aB)} vs 1–${dDie}${fmtB(dB)}.`;
   const ev={send,d,def0,aDie,dDie,aB,dB,aBk:{rep:aBk.rep,block:aBk.block,inter:0,salt:aBk.salt},dBk:{rep:dBk.rep,block:dBk.block,inter:dBk.inter,salt:dBk.salt},rolls};
   if(def===0){to.o=u;to.s=att;say(`${vs} Took the corner with ${att} left.`,Object.assign(ev,{res:'took',left:att}))}
   else{to.s=def;if(att>0){from.s+=att;say(`${vs} Retreated with ${att}; ${def} defenders held.`,Object.assign(ev,{res:'retreat',left:att}))}
@@ -1083,7 +1094,7 @@ function battle(s,T,gs,rng,L,E){
     const def0=co.s,rolls=[];let att=g.n,def=co.s,k=0;const ra=g.retreatAt;
     const dTies=dBk.inter>0;
     while(att>0&&def>0&&att>ra&&k<3000){k++;const x=roll(rng,aDie),y=roll(rng,dDie);rolls.push([x,y]);if(x+aB>y+dB)def--;else if(x+aB<y+dB||dTies)att--}
-    const vs=`${nm(u)} hit ${nm(d)} at ${lab(T)}: ${g.n} vs ${def0}, d${aDie}${fmtB(aB)} vs d${dDie}${fmtB(dB)}.`;
+    const vs=`${nm(u)} hit ${nm(d)} at ${lab(T)}: ${g.n} vs ${def0}, 1–${aDie}${fmtB(aB)} vs 1–${dDie}${fmtB(dB)}.`;
     const set=[];let res,tx;
     if(def===0){co.o=u;co.s=att;res='took';tx=`${vs} Took the corner with ${att} left.`}
     else{co.s=def;if(att>0){const h=sendHome(s,u,g.froms,att);res='retreat';if(h!=null)set.push([h,u,s.corners[h].s]);tx=`${vs} Retreated with ${att}${h!=null?` to ${lab(h)}`:''}; ${def} defenders held.`}
@@ -1532,8 +1543,8 @@ function focusOf(ev){if(!ev)return null;if(ev.t==='trick')return ev.it!=null?[ev
 const GUIDE=[
   {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your 10 corners have a dark outline. Tap them to stack your 20 recruits. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
   {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every turn starts with a recap. Tap <b>Next</b> to watch each attack, brawl and move play out, or skip ahead.'},
-  {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Roll your sugar die. You earn the roll × the corners you hold.'},
-  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'The shop',b:'Upgrades last all game: <b>Weapon</b> is your fight die, <b>Sugar</b> your cash die, <b>Whip</b> how many ride per attack, <b>Rep</b> adds to every roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
+  {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Roll for sales. You earn the roll × the corners you hold.'},
+  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'The shop',b:'Upgrades last all game: <b>Weapon</b> sets your fight roll, <b>Sugar</b> your sales roll, <b>Whip</b> how many ride per attack, <b>Rep</b> adds to every roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
   {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Tap your corners on the map to drop recruits there, one per tap. Switch to <b>Tap to remove</b> to take one back.'},
   {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>, and everyone sees who did it in the recap.'},
   {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market day',b:'Every 5 turns the whole block gets a market day, like a heat wave or a garage sale. You get a heads-up 3 turns before, but nobody knows what it is until it hits.'},
@@ -1558,7 +1569,7 @@ function replayScreen(){return `<div class="rp"><div class="rp-board">${boardSVG
 function fxBox(u,raw,b,bk,die,count,state,tag){const ch=CHAR_BY[charOf(u)];
   return `<div class="fx ${state}" style="--crew:${esc(crewColor(u))}"><div class="fx-who">${avatar(charOf(u),crewColor(u),30)}<div class="fx-name"><strong>${esc(ch?ch.name:(st.players[u]?.name||'?'))}</strong><span>${tag||'&nbsp;'}</span></div></div>
     <div class="fx-count ${state==='lose'?'hit':''}"><b>${count}</b><small>${state==='lose'?'−1':'left'}</small></div>
-    <div class="fx-roll"><span class="mdie">${raw==null?'?':raw}<small>d${die}</small></span>${b?`<span class="op">${fmtB(b)}</span>`:''}<span class="op">=</span><span class="tot">${raw==null?'?':raw+b}</span></div>
+    <div class="fx-roll"><span class="mdie">${raw==null?'?':raw}<small>1–${die}</small></span>${b?`<span class="op">${fmtB(b)}</span>`:''}<span class="op">=</span><span class="tot">${raw==null?'?':raw+b}</span></div>
     <div class="chips">${bonusChips(bk,b)}</div></div>`}
 function replaySheet(){
   const all=replay.events.length,rel=rpRel(),n=rel.length,ev=replay.i>=0?replay.events[replay.i]:null,nm=u=>esc(st.players[u]?.name||'?'),pos=Math.max(0,rel.indexOf(replay.i));
@@ -1611,7 +1622,7 @@ function cornerChart(){const H=st.hist||[];if(H.length<2)return'<p class="small 
 function wrapView(){const w=st.winner,ids=seatOrder(st),S=st.stats||{},cnt=u=>cornersOf(st,u).length;
   const rank=ids.slice().sort((a,b)=>(st.players[b].alive!==false)-(st.players[a].alive!==false)||cnt(b)-cnt(a)||soldiersOf(st,b)-soldiersOf(st,a));
   const why=st.endReason==='surrender'?'The computer crews surrendered':st.endReason==='nohumans'?'Every player conceded or left':!st.maxDays||aliveUids(st).length<=1?'Last crew standing':`After ${st.maxDays} ${DW().toLowerCase()}s`;
-  let h=`<div class="panel wrap-hero" style="--crew:${w?esc(crewColor(w)):'#888'}"><span class="eyebrow">${why}</span>${w?bust(charOf(w),crewColor(w),0):''}<h2>${w?esc(st.players[w].name)+' runs the block':'No crew left standing'}</h2>${w?`<p class="muted">${w===me?'That’s you. ':''}${cnt(w)} of ${st.corners.length} corners at the final bell.</p>`:''}</div>`;
+  let h=`<div class="panel wrap-hero" style="--crew:${w?esc(crewColor(w)):'#888'}"><span class="eyebrow">${why}</span>${w?bust(charOf(w),crewColor(w),0):''}<h2>${w?esc(st.players[w].name)+' runs the block':'No crew left standing'}</h2>${w?`<p class="muted">${w===me?'That’s you. ':''}${cnt(w)} of ${st.corners.length} corners at the final bell.${(()=>{const r2=rank.find(u=>u!==w&&st.players[u].alive!==false);return r2&&cnt(r2)===cnt(w)?` Tied with ${esc(st.players[r2].name)} on corners, so it came down to kids on the street: ${soldiersOf(st,w)} to ${soldiersOf(st,r2)}.`:''})()}</p>`:''}</div>`;
   h+=`<div class="panel"><h2>Final standings</h2><ol class="standings">${rank.map((u,k)=>{const p=st.players[u];return `<li class="${u===me?'me':''}"><span class="rk">${k+1}</span>${avatar(charOf(u),p.color,30)}<span class="nm">${esc(p.name)}${u===me?' (you)':''}${p.cpu==='conceded'?' <small>conceded</small>':''}</span><span class="cn">${p.alive===false?'<small>out</small>':`<b>${cnt(u)}</b> corners`}</span></li>`}).join('')}</ol></div>`;
   h+=`<div class="panel"><h2>Corners over the game</h2>${cornerChart()}</div>`;
   const aw=awardsFor();if(aw.length)h+=`<div class="panel"><h2>Awards</h2><div class="awards">${aw.map(a=>`<div class="award"><span class="aw-ic">${AW_IC[a.icon]||''}</span><div><b>${a.t}</b><span class="aw-who">${a.u?avatar(charOf(a.u),crewColor(a.u),18)+esc(st.players[a.u].name):''}</span><small>${esc(a.txt)}</small></div></div>`).join('')}</div></div>`;
@@ -1675,7 +1686,7 @@ function selView(){
   const co=st.corners[sel],own=co.o?st.players[co.o]:null;
   let h=`<span class="eyebrow">${esc(labelC(st,sel))}</span><h3>${own?`<span class="dot" style="background:${esc(own.color)}"></span>${esc(own.name)}${co.o===me?' (you)':''}`:'Empty corner'}</h3>`;
   if(st.status==='setup'&&iPlay()&&co.o===me){ensureDraft();const n=draft.place[sel]|0;h+=`<p class="small muted">${co.s+n} recruits here after setup${n?`, ${n} added by you`:''}.</p>`;return h}
-  if(own){h+=`<p class="small muted">${co.s} recruit${co.s===1?'':'s'} · ${esc(TIERS.weapon[own.weapon].n)} (d${TIERS.weapon[own.weapon].d})${interFull(st,sel)?' · holds the whole intersection, +1 defense':''}</p>`}
+  if(own){h+=`<p class="small muted">${co.s} recruit${co.s===1?'':'s'} · ${esc(TIERS.weapon[own.weapon].n)} (1–${TIERS.weapon[own.weapon].d})${interFull(st,sel)?' · holds the whole intersection, +1 defense':''}</p>`}
   else h+=`<p class="small muted">Anyone can take it by attacking. No fight needed.</p>`;
   if(false){
     if(co.o===me)h+=`<div class="row"><button class="btn" data-act="from-here">Attack from here</button><button class="btn" data-act="move-here">Move from here</button><button class="btn" data-act="recruit-here">Recruit here</button></div>`;
@@ -1687,7 +1698,7 @@ function lobbyView(){
   const how=`<div class="row" style="justify-content:center"><button class="linkbtn" data-act="tab" data-tab="rules">How to play</button></div>`;const howOld=`<div class="panel how"><h2>How a day works</h2><ol>
     <li>Each morning: roll for sales, shop, plan attacks, plan one move, then send. All on the board, on your own phone.</li>
     <li>The day resolves at the daily deadline, or as soon as every crew has orders in.</li>
-    <li>Purchases happen first. Then every crew's attackers roll out at once and fight; crowded corners turn into brawls. Then moves. Each crew then rolls its sugar die times corners held for cash.</li>
+    <li>Purchases happen first. Then every crew's attackers roll out at once and fight; crowded corners turn into brawls. Then moves. Each crew then rolls for sales: the roll times the corners it holds.</li>
     <li>Come back the next day to read what happened and plan again.</li></ol></div>`;
   if(!st){
     const lm=lobbyMode,gm=lm!=='campaign',tsel=Math.min(lm==='lcs'?1440:720,+(formVals['f-turn']||5)),lmax=lm==='campaign'?CAMP_MAX:LEN_MAX,len=Math.min(lmax,Math.max(LEN_MIN,+(formVals['f-len']||20)));
@@ -1785,9 +1796,9 @@ function popView(){
   const hitsAlly=!!(t.o&&t.o===allyOf(st,me)),allyAct=hitsAlly&&activeAlly(st,me)===t.o;
   let h=`<div class="scrim" data-act="pop-cancel"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pop-t">${hitsAlly?`<p class="allywarn"><strong>${esc(dp.name)} is your ally.</strong> ${allyAct?`Attacking breaks the alliance and drops your rep a level (to ${esc(TIERS.rep[Math.max(-3,me_p.rep-1)].n)}).`:'Attacking now calls the deal off before it starts.'}</p>`:''}
   <span class="eyebrow">${a.k>=0?'Edit attack':'Plan an attack'}</span><h2 id="pop-t">${esc(labelS(st,a.from))} → ${esc(labelS(st,a.to))}</h2>
-  <div class="matchup">${side('From',esc(label(st,a.from)),`${baseAt(a.from)} here · ${esc(myW.n)} d${myW.d}`,crewColor(me),bonusChips(aBk,aBk.total))}<span class="vs">VS</span>
-  ${dp?side('Target',esc(dp.name),`${t.s} defending · ${esc(TIERS.weapon[dp.weapon].n)} d${TIERS.weapon[dp.weapon].d}`,dp.color,bonusChips(dBk,dBk.total)):side('Target','Empty corner','No fight needed','var(--line)')}</div>
-  ${dp?`<div class="odds"><span>d${myW.d}${fmtB(aBk.total)} vs d${TIERS.weapon[dp.weapon].d}${fmtB(dBk.total)}</span><span class="${odds>=.5?'ok':'bad'}"><strong>You win ${Math.round(odds*100)}% of rolls</strong>${dBk&&dBk.inter?' · they win ties':''}</span></div>`:''}`;
+  <div class="matchup">${side('From',esc(label(st,a.from)),`${baseAt(a.from)} here · ${esc(myW.n)} 1–${myW.d}`,crewColor(me),bonusChips(aBk,aBk.total))}<span class="vs">VS</span>
+  ${dp?side('Target',esc(dp.name),`${t.s} defending · ${esc(TIERS.weapon[dp.weapon].n)} 1–${TIERS.weapon[dp.weapon].d}`,dp.color,bonusChips(dBk,dBk.total)):side('Target','Empty corner','No fight needed','var(--line)')}</div>
+  ${dp?`<div class="odds"><span>1–${myW.d}${fmtB(aBk.total)} vs 1–${TIERS.weapon[dp.weapon].d}${fmtB(dBk.total)}</span><span class="${odds>=.5?'ok':'bad'}"><strong>You win ${Math.round(odds*100)}% of rolls</strong>${dBk&&dBk.inter?' · they win ties':''}</span></div>`:''}`;
   if(dp&&!hitsAlly&&canAlly(st,me,t.o))h+=`<p class="small allyhint">${ALLY_SVG}Rather team up? ${offerFrom(st,t.o,me)?'<span class="muted">Your alliance offer is waiting on them.</span>':`<button class="linkbtn" data-act="ally-propose" data-u="${esc(t.o)}">Propose an alliance with ${esc(dp.name)}</button>`}</p>`;
   if(mx<1)h+=`<p class="bad">Not enough recruits at ${esc(label(st,a.from))}. One has to stay behind${draft.attacks.some((x,k)=>k!==a.k&&+x.from===+a.from)?', and your other attacks from here already use the rest':''}.</p>`;
   else{h+=`<div class="stepline"><span><strong>Send</strong> <span class="small muted">max ${mx} (whip holds ${capToday()})</span></span><div class="stepper"><button data-act="pop-n" data-d="-1" ${a.n>1?'':'disabled'} aria-label="Send one fewer">−</button><span class="n">${a.n}</span><button data-act="pop-n" data-d="1" ${a.n<mx?'':'disabled'} aria-label="Send one more">+</button><button data-act="pop-n" data-d="99" ${a.n<mx?'':'disabled'}>Max</button></div></div>`;
@@ -1994,9 +2005,9 @@ function catSummary(){const cnt={};replay.events.forEach((e,i)=>{if(!rpShown(i))
   return `<div class="catsum">${['news','trick','brawl','atk','claim','rec','mv','up','ally','betray','loan','door','dad','quiet','cpu','skip','out'].filter(k=>cnt[k]).map(k=>`<span class="evtag ${CATS[k].cls}">${ICONS[k]}${cnt[k]} ${cnt[k]>1?CATS[k].pl:CATS[k].t}</span>`).join('')}</div>`}
 function fighterBox(title,u,raw,bonus,bk,sides,count,state){
   return `<div class="fside ${state}" style="--crew:${esc(crewColor(u))}"><span class="eyebrow">${title}</span><div class="fwho">${avatar(charOf(u),crewColor(u),26)}<strong class="fname">${esc(st.players[u]?.name||'?')}</strong></div>
-  <div class="frow"><div class="die sm"><span class="face">${raw==null?'?':raw}</span><span class="sides">d${sides}</span></div>${bonus?`<span class="op">${fmtB(bonus)}</span>`:''}<span class="op">=</span><span class="tot">${raw==null?'?':raw+bonus}</span></div>
+  <div class="frow"><div class="die sm"><span class="face">${raw==null?'?':raw}</span><span class="sides">1–${sides}</span></div>${bonus?`<span class="op">${fmtB(bonus)}</span>`:''}<span class="op">=</span><span class="tot">${raw==null?'?':raw+bonus}</span></div>
   <div class="chips">${bonusChips(bk,bonus)}</div><span class="counts">${count} left${state==='lose'?' <span class="lost">−1</span>':''}</span></div>`}
-function dieBox(v,bonus,sides,color){return `<div class="die sm" style="border-color:${esc(color)}"><span class="face">${v==null?'?':v+bonus}</span><span class="sides">d${sides}${fmtB(bonus)}</span></div>`}
+function dieBox(v,bonus,sides,color){return `<div class="die sm" style="border-color:${esc(color)}"><span class="face">${v==null?'?':v+bonus}</span><span class="sides">1–${sides}${fmtB(bonus)}</span></div>`}
 function replayPanel(){
   const n=replay.events.length,ev=replay.events[replay.i],nm=u=>esc(st.players[u]?.name||'?');
   const pct=Math.round(100*Math.max(0,replay.i+(replay.phase==='result'||replay.phase==='show'?1:0))/n);
@@ -2026,11 +2037,11 @@ function salesCard(){
   const p=myP(),x=lastSales();if(!p||!x||p.alive===false)return'';
   const when=x.day===0?'Setup night':DW()+' '+x.day+' night',seen=salesSeen(x),animating=rollAnim&&rollAnim.key===seenKey()+x.day;
   if(!seen&&!animating)return `<div class="panel"><span class="eyebrow">Sales · ${when}</span><div class="sales">
-    <div class="die" aria-hidden="true"><span class="face">?</span><span class="sides">d${x.d}</span></div>
-    <div><p>Your lemonade's been selling. Roll your d${x.d} × ${x.c} corners.</p></div></div>
+    <div class="die" aria-hidden="true"><span class="face">?</span><span class="sides">1–${x.d}</span></div>
+    <div><p>Your lemonade's been selling. Roll 1 to ${x.d}, times your ${x.c} corners.</p></div></div>
     <div class="row phase-nav"><button class="btn primary" data-act="roll-sales">Roll for sales</button></div></div>`;
   return `<div class="panel"><span class="eyebrow">Sales · ${when}</span><div class="sales">
-    <div class="die ${animating?'rolling':''}" id="sales-die" aria-hidden="true"><span class="face" id="sales-face">${animating?'?':x.r}</span><span class="sides">d${x.d}</span></div>
+    <div class="die ${animating?'rolling':''}" id="sales-die" aria-hidden="true"><span class="face" id="sales-face">${animating?'?':x.r}</span><span class="sides">1–${x.d}</span></div>
     <div ${animating?'hidden':''} id="sales-result"><p class="take ${salesShowing()?'rise':''}" style="animation-delay:-${Math.max(0,Date.now()-salesLandAt)}ms">+$${x.amt}</p><p class="sales-math">rolled ${x.r} × ${x.c}${x.extra>0?`+${x.extra}`:x.extra<0?`−${-x.extra}`:''} corners${x.mult&&x.mult!==1?` × ${x.mult===2?'2':'½'}`:''}${(x.fx||(x.ev?[x.ev]:[])).map(k=>{const d=k==='raincloud'?{n:'Rain cloud'}:(STREET[k]||TRICKS[k]||{n:k});return ` <span class="evnote">${k==='raincloud'?'☂':STREET_ICON[k]||TRICK_ICON[k]||''} ${d.n}</span>`}).join('')}</p>${(()=>{const dd=((st.log.find(d=>d.day===x.day)||{}).events||[]).find(e=>e.t==='dad'&&e.kind!=='door'&&e.u===me),dc=dd?dd.cash|0:0,base=p.cash+dc;
       return `<p class="cashline">Cash <b data-countup data-from="${base-x.amt}" data-to="${base}">$${salesShowing()?base-x.amt:base}</b></p>`+(dd?`<p class="dadline">${dadFace(3,22)} Then Mom &amp; Dad came to collect: ${[dc?'−$'+dc:'',dd.lost&&dd.lost.length?dd.lost.length+' corner'+(dd.lost.length>1?'s':''):''].filter(Boolean).join(' and ')||'nothing'}. Cash now <b>$${p.cash}</b>.</p>`:'')})()}</div></div>${!animating&&salesShowing()?`<div class="row phase-nav"><button class="btn primary" data-act="sales-done">Start planning</button></div>`:''}</div>`}
 function rollSales(){
@@ -2050,7 +2061,7 @@ function introCard(always){
 let rIdx=0,rDir=1,rAt=0;
 const RCOL=['#e4572e','#2a9d8f','#d29a06','#7b5ea7','#d6457f','#3a86c8'];
 function rDot(x,y,c,n,r=15){return `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="#fff" stroke-width="3"/><text x="${x}" y="${y+1}" class="rn" style="font-size:${r*1.05}px">${n}</text>`}
-function rDie(x,y,v,sides,c='#f7d538',s=46){return `<g transform="translate(${x-s/2},${y-s/2})"><rect width="${s}" height="${s}" rx="11" fill="#fff" stroke="${c}" stroke-width="4"/><text x="${s/2}" y="${s/2+1}" class="rd" style="font-size:${s*.48}px">${v}</text><text x="${s-5}" y="${s-6}" class="rs">d${sides}</text></g>`}
+function rDie(x,y,v,sides,c='#f7d538',s=46){return `<g transform="translate(${x-s/2},${y-s/2})"><rect width="${s}" height="${s}" rx="11" fill="#fff" stroke="${c}" stroke-width="4"/><text x="${s/2}" y="${s/2+1}" class="rd" style="font-size:${s*.48}px">${v}</text><text x="${s-5}" y="${s-6}" class="rs">1–${sides}</text></g>`}
 function rCar(x,y,c,rot=0,k=1){return `<g transform="translate(${x},${y}) rotate(${rot}) scale(${k})"><ellipse cx="1" cy="2" rx="15" ry="10" fill="rgba(0,0,0,.15)"/><rect x="-14" y="-8" width="28" height="16" rx="5" fill="${c}" stroke="#fff" stroke-width="1.8"/><rect x="3" y="-6" width="7" height="12" rx="1.5" fill="#d6eefa"/><rect x="-11" y="-5.5" width="4.5" height="11" rx="1" fill="#d6eefa"/></g>`}
 function rRoads(w,h,xs,ys){let g=`<rect width="${w}" height="${h}" rx="16" fill="#d3eab8"/>`;
   ys.forEach(y=>g+=`<rect x="0" y="${y-18}" width="${w}" height="36" fill="#f1eee8"/><rect x="0" y="${y-13}" width="${w}" height="26" fill="#d9d5cc"/><line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="#fff" stroke-width="1.6" stroke-dasharray="7 7"/>`);
@@ -2064,7 +2075,7 @@ const SV=(inner,vb='0 0 320 190')=>`<svg viewBox="${vb}" class="rsvg" aria-hidde
 function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=RCOL[5];
   return [
   {t:'Run the block',art:SV(rRoads(320,190,[70,160,250],[60,140])+[[48,38,O,4],[92,38,O,6],[48,82,O,3],[92,82,O,5],[138,38,O,2],[182,38,T,3],[138,82,O,4],[182,82,P,2],[228,38,O,3],[272,38,B,2],[228,82,K,3],[272,82,O,4],[48,118,O,5],[92,118,G,2],[138,162,O,3],[182,118,T,4],[228,162,O,2],[272,118,O,3]].map(([x,y,c,n])=>rDot(x,y,c,n,13)).join('')+rAv('zuri',160,112,64)+`<path d="M138 70 l7 -14 l8 9 l7 -13 l7 13 l8 -9 l7 14z" fill="#f7d538" stroke="#141414" stroke-width="2.5" stroke-linejoin="round"/>`),
-   b:`<p>Crews of kids sell lemonade from street corners. Take more corners, earn more cash, build a bigger crew.</p><p><strong>Win:</strong> be the last crew with corners, or hold the most when the last day or turn ends.</p>`},
+   b:`<p>Crews of kids sell lemonade from street corners. Take more corners, earn more cash, build a bigger crew.</p><p><strong>Win:</strong> be the last crew with corners, or hold the most when the last day or turn ends. <strong>Tied on corners?</strong> The crew with the most kids on the street wins.</p>`},
   {t:'The board',art:SV(rRoads(320,190,[160],[95])+rSign(160,16,'Artisanal Ave',104)+rSign(48,95,'1st St',60)+rDot(124,60,O,5,17)+rDot(196,60,T,3,17)+rDot(124,130,O,2,17)+rDot(196,130,'#fff',' ',17).replace('fill="#fff"','fill="#fff" stroke-dasharray="4 3"')
      +`<text x="96" y="40" class="rlab">NW</text><text x="224" y="40" class="rlab">NE</text><text x="96" y="160" class="rlab">SW</text><text x="224" y="160" class="rlab">SE</text>`
      +`<path d="M146 60 C190 30 250 26 280 40" stroke="#141414" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`),
@@ -2072,15 +2083,15 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
   {t:'Your turn, step by step',art:SV([['Roll','<rect x="-14" y="-14" width="28" height="28" rx="7" fill="#fff" stroke="#141414" stroke-width="3"/><circle cx="-6" cy="-6" r="3" fill="#141414"/><circle cx="6" cy="6" r="3" fill="#141414"/><circle cx="0" cy="0" r="3" fill="#141414"/>'],['Shop','<text y="9" class="rbig">$</text>'],['Attack','<path d="M3 -16 L-9 3 h8 l-3 15 l13 -20 h-8z" fill="#141414"/>'],['Move','<path d="M-13 0 h20 M1 -9 l9 9 l-9 9" stroke="#141414" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'],['Send','<path d="M-11 1 l7 7 l15 -16" stroke="#141414" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>']].map(([l,ic],i)=>{const x=36+i*62;return `<circle cx="${x}" cy="80" r="26" fill="${i===0?'#f7d538':'#fff'}" stroke="#141414" stroke-width="3"/><g transform="translate(${x},80)">${ic}</g><text x="${x}" y="130" class="rlab">${i+1}. ${l}</text>`+(i<4?`<path d="M${x+30} 80 h4" stroke="#141414" stroke-width="3"/>`:'')}).join('')),
    b:`<p><strong>Roll</strong> for cash after watching last night's recap. <strong>Shop</strong> for upgrades and recruits. Plan <strong>attacks</strong> and one <strong>move</strong> on the map. Then <strong>send</strong>.</p><p>Everyone plans at once. The turn plays out when time's up or everyone has sent orders.</p>`},
   {t:'Making money',art:SV(rDie(48,90,5,6,'#f7d538',64)+`<text x="104" y="100" class="rop">×</text>`+Array.from({length:12},(_,k)=>rDot(136+(k%4)*22,62+Math.floor(k/4)*26,O,'',9)).join('')+`<text x="169" y="150" class="rcap">12 corners</text><text x="226" y="100" class="rop">=</text><text x="316" y="100" class="rmoney" style="text-anchor:end;font-size:28px">$60</text>`),
-   b:`<p>Each turn you roll your <strong>sugar die</strong> and multiply by the corners you hold.</p><p>Better sugar means a bigger die (d6 up to d12). Losing corners hurts your income.</p>`},
+   b:`<p>Each turn you roll for <strong>sales</strong> and multiply by the corners you hold.</p><p>Better sugar means bigger rolls (1–6 up to 1–12). Losing corners hurts your income.</p>`},
   {t:'The shop',art:`<div class="ladders">${[['Weapon','weapon',t=>'d'+t.d],['Sugar','sugar',t=>'d'+t.d],['Whip','whip',t=>t.cap+' seats'],['Rep','rep',t=>'+'+t.b]].map(([n,c,f])=>`<div class="ladder"><b>${n}</b>${TIERS[c].map((t,i)=>`<span class="rung ${i?'':'base'}"><em>${f(t)}</em><small>${i?'$'+t.c:'start'}</small></span>`).join('')}</div>`).join('')}</div>`,
-   b:`<p>Upgrades go up one level at a time and last all game. <strong>Weapons</strong> set your fight die, <strong>sugar</strong> your cash die, <strong>whips</strong> how many go per attack, and <strong>rep</strong> adds to every fight roll.</p>`},
+   b:`<p>Upgrades go up one level at a time and last all game. <strong>Weapons</strong> set your fight roll (1–6 up to 1–12), <strong>sugar</strong> your sales roll, <strong>whips</strong> how many go per attack, and <strong>rep</strong> adds to every fight roll.</p>`},
   {t:'Recruits',art:SV(rRoads(320,190,[160],[95])+rDot(124,60,O,'5',18)+`<g transform="translate(140,26)"><rect width="40" height="20" rx="10" fill="#f7d538" stroke="#2e2600" stroke-width="2"/><text x="20" y="11" class="rtag">+3</text></g>`+rDot(196,130,O,'2',18)+`<g transform="translate(212,96)"><rect width="40" height="20" rx="10" fill="#f7d538" stroke="#2e2600" stroke-width="2"/><text x="20" y="11" class="rtag">+1</text></g>`+`<circle cx="60" cy="150" r="22" fill="#f7d538" stroke="#141414" stroke-width="3"/><text x="60" y="152" class="rcoin">$10</text><path d="M84 150 Q110 150 112 82" stroke="#141414" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`),
    b:`<p>Each recruit costs <strong>$10</strong>. Tap your corners to place them; tap again for more.</p><p>Recruits arrive before any fighting, so you can recruit and attack from the same corner the same turn.</p><p>Your first <strong>${LOCALS} kids</strong> on the street are locals. Past that, new recruits are <strong>out-of-towners</strong>: they cost triple, because somebody has to cover their bus fare. Lose kids in a fight and you’re back to hiring locals.</p>`},
   {t:'Fighting',art:SV(rDot(70,64,O,'6',20)+rCar(110,64,O,0)+rArrow(130,64,186,64,O,true)+rDot(250,64,T,'4',20)
      +rDie(56,140,4,6,O,48)+`<text x="96" y="146" class="rop sm">+2</text><text x="130" y="146" class="rop sm">=</text><text x="152" y="148" class="rtot win">6</text>`
      +`<text x="186" y="146" class="rop sm">vs</text>`+rDie(234,140,5,6,T,48)+`<text x="276" y="148" class="rtot lose">5</text><text x="250" y="30" class="rminus">−1</text>`),
-   b:`<p>Both sides roll their weapon die and add bonuses. <strong>Higher total wins the roll</strong>; the loser loses one recruit. <strong>Ties roll again</strong>, unless the defender holds the full intersection: then the defender wins ties.</p><p>Rolls repeat until one side is out, or you hit your retreat number.</p>`},
+   b:`<p>Both sides roll a number based on their weapon and add bonuses. <strong>Higher total wins the roll</strong>; the loser loses one recruit. <strong>Ties roll again</strong>, unless the defender holds the full intersection: then the defender wins ties.</p><p>Rolls repeat until one side is out, or you hit your retreat number.</p>`},
   {t:'Sending a crew',art:SV(rRoads(320,190,[90,230],[95])+rDot(66,70,O,'9',18)+rArrow(90,70,200,70,O,true)+rCar(150,58,O,0)+rDot(254,70,T,'3',18)+`<g transform="translate(110,120)"><rect width="120" height="44" rx="12" fill="#fff" stroke="#141414" stroke-width="2.5"/><text x="60" y="17" class="rcap">send 8 · retreat at 2</text><text x="60" y="34" class="rcap muted2">1 always stays home</text></g>`),
    b:`<p>Attack any corner from any of yours. Your <strong>whip</strong> sets how many go (4 to 10). One recruit always stays behind.</p><p>Set <strong>retreat at</strong> so survivors come home instead of fighting to the last.</p>`},
   {t:'Brawls',art:SV(rRoads(320,190,[160],[95])+rDot(184,72,P,'5',20)+rCar(88,72,O,0)+rArrow(104,72,156,72,O,true)+rCar(184,170,T,-90)+rArrow(184,154,184,100,T,true)+rCar(270,72,G,180)+rArrow(254,72,210,72,G,true)
@@ -2143,7 +2154,7 @@ function ordersView(){
 }
 // Loading-screen style showcase while setting up: the bosses in this game, alternating with quick tips. Changes every few seconds; tap for the next one.
 const SHOW_TIPS=[
-  ['Sales','Every turn you roll your sugar die and earn that much from each corner you hold. More corners, more cash.'],
+  ['Sales','Every turn you roll for sales and earn that much from each corner you hold. More corners, more cash.'],
   ['Intersections','Hold all four corners where two streets cross and you get +1 on every fight there.'],
   ['Blocks','Own corners on all four sides of a block for a +3 bonus. Rivals will want to break it up.'],
   ['Ties','Tied rolls go to the defender only if they hold the whole intersection. Otherwise, roll again.'],
@@ -2176,11 +2187,15 @@ function setupOrders(){
   const left=START_SOLDIERS-placedCount();
   return `<div class="panel"><h2>Place your crew on the board</h2><p class="muted">Tap your corners on the map to add recruits. You have ${left} of ${START_SOLDIERS} left to place.</p>
   <div class="row"><button class="btn primary" data-act="tab" data-tab="board">Go to the board</button></div></div>`}
-function shopRow(cat,name){const p=myP(),k=draft.buy[cat],cur=TIERS[cat][p[cat]+k],next=TIERS[cat][p[cat]+k+1],left=cashLeft();
-  const f=t=>cat==='whip'?`${t.cap} seats`:cat==='rep'?repStr(t.b):`d${t.d}`;
-  return `<div class="tile ${k?'bought':''}"><span class="tile-l">${name}</span><span class="tile-v">${f(cur)}</span><span class="tile-n" title="${esc(cur.n)}">${esc(cur.n)}</span>
-    ${next?`<button class="tile-b" data-act="buy" data-cat="${cat}" data-d="1" ${upCost(st,next)<=left?'':'disabled'} aria-label="Upgrade ${name} to ${esc(next.n)} for $${upCost(st,next)}">${f(next)} · $${upCost(st,next)}${upCost(st,next)<next.c?' 🏷':''}</button>`:'<span class="tile-max">Maxed</span>'}
-    ${k?`<button class="tile-u" data-act="buy" data-cat="${cat}" data-d="-1" aria-label="Undo ${name} upgrade">Undo</button>`:''}</div>`}
+// Upgrade cards lead with what you'd be buying; what you have now is the small print.
+const UPV={weapon:t=>`Fights roll 1–${t.d}`,sugar:t=>`Sales roll 1–${t.d}`,whip:t=>`${t.cap} kids per attack`,rep:t=>`${repStr(t.b)} on every fight`};
+const UPS={weapon:t=>`1–${t.d}`,sugar:t=>`1–${t.d}`,whip:t=>`${t.cap} seats`,rep:t=>repStr(t.b)};
+function shopRow(cat,name){const p=myP(),k=draft.buy[cat],own=TIERS[cat][p[cat]],buying=k?TIERS[cat][p[cat]+k]:null,next=TIERS[cat][p[cat]+k+1],left=cashLeft(),show=buying||next||own,cost=next?upCost(st,next):0;
+  const kick=buying?'<span class="upc-tag ok">✓ Buying</span>':next?'<span class="upc-tag">Upgrade to</span>':'<span class="upc-tag max">Maxed</span>';
+  return `<div class="tile upc ${k?'bought':''} ${!buying&&!next?'maxed':''}"><span class="tile-l">${name} ${kick}</span><span class="upc-n">${esc(show.n)}</span><span class="upc-v">${UPV[cat](show)}</span>
+    ${next?`<button class="tile-b" data-act="buy" data-cat="${cat}" data-d="1" ${cost<=left?'':'disabled'} aria-label="${buying?'Also buy':'Buy'} ${esc(next.n)} for $${cost}">${buying?`+ ${esc(next.n)} · $${cost}`:`Buy · $${cost}`}${cost<next.c?' 🏷':''}</button>`:''}
+    ${k?`<button class="tile-u" data-act="buy" data-cat="${cat}" data-d="-1" aria-label="Undo ${name} upgrade">Undo</button>`:''}
+    <span class="upc-now">${!buying&&!next?'Top of the line':`Now: ${esc(own.n)} · ${UPS[cat](own)}`}</span></div>`}
 function dayOrders(){
   const p=myP(),mine=cornersOf(st,me),others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me),left=cashLeft(),cap=capToday(),b=draft.buy;
   let h=`<div class="panel"><h2>Shop</h2><div class="shop">${shopRow('weapon','Weapons')}${shopRow('sugar','Sugar')}${shopRow('whip','Whip')}${shopRow('rep','Rep')}
@@ -2222,14 +2237,14 @@ function crewsView(){
     return `<div class="crew ${p.alive===false?'out':''}" style="border-left-color:${esc(p.color)}"><div class="row" style="justify-content:space-between"><div class="crewhead">${avatar(charOf(u),p.color,44)}<div class="who"><h3>${esc(p.name)}${u===me?' (you)':''}</h3>${CHAR_BY[charOf(u)]?`<span class="small muted">${CHAR_BY[charOf(u)].name} “${CHAR_BY[charOf(u)].nick}”</span>`:''}${u===me&&iPlay()?'<button class="linkbtn" style="padding-left:0;text-align:left" data-act="crew-pick">Change character</button>':''}</div></div>
     <span class="small ${p.alive===false?'bad':hasOrder(u)?'ok':'muted'}">${p.alive===false?'Out':p.cpu==='conceded'?'Conceded · computer':p.cpu==='idle'?'Away · computer':p.bot?'Computer':st.status==='over'?'':hasOrder(u)?'Orders in':'Thinking…'}</span></div>
     ${allyBox(u)}${u!==me&&p.alive!==false&&(st.status==='active'||st.status==='over')?`<button class="scoutbtn" data-act="scout" data-u="${esc(u)}">${adSeen('scout-'+u)||!adsOn()?'🔍 Scouting report':'🔒 Scouting report <small>· watch an ad</small>'}</button>`:''}<dl class="stats"><dt>Corners</dt><dd>${cornersOf(st,u).length}</dd><dt>Recruits</dt><dd>${soldiersOf(st,u)}</dd><dt>Cash</dt><dd>$${p.cash}</dd>
-    <dt>Weapons</dt><dd>${esc(w.n)} d${w.d}</dd><dt>Sugar</dt><dd>${esc(s.n)} d${s.d}</dd><dt>Whip</dt><dd>${esc(v.n)} · ${v.cap}</dd><dt>Rep</dt><dd class="${r.b<0?'bad':''}">${esc(r.n)} ${repStr(r.b)}</dd><dt>Intersections</dt><dd>${fullInters(st,u)} full (+1 defense each)</dd><dt>Blocks</dt><dd>${blockCount(st,u)} (+${3*blockCount(st,u)})</dd>${saltyLeft(st,u)?`<dt>Salty</dt><dd class="bad">−1 on fights · ${saltyLeft(st,u)} turn${saltyLeft(st,u)>1?'s':''} left</dd>`:''}${allyOf(st,u)?`<dt>Ally</dt><dd>${esc(st.players[allyOf(st,u)].name)}${activeAlly(st,u)?` · ${st.players[u].allyUntil-st.day+1} turn${st.players[u].allyUntil-st.day?'s':''} left`:' · starts next turn'}</dd>`:''}${p.loan?`<dt>Dad meter</dt><dd class="${dadStage(p.loan,bankCfg(st).meter)>=3?'bad':''}">${p.loan.bars}/${bankCfg(st).meter} · owes $${p.loan.owe}</dd>`:''}</dl></div>`}).join('')+`</div>`;
+    <dt>Weapons</dt><dd>${esc(w.n)} 1–${w.d}</dd><dt>Sugar</dt><dd>${esc(s.n)} 1–${s.d}</dd><dt>Whip</dt><dd>${esc(v.n)} · ${v.cap}</dd><dt>Rep</dt><dd class="${r.b<0?'bad':''}">${esc(r.n)} ${repStr(r.b)}</dd><dt>Intersections</dt><dd>${fullInters(st,u)} full (+1 defense each)</dd><dt>Blocks</dt><dd>${blockCount(st,u)} (+${3*blockCount(st,u)})</dd>${saltyLeft(st,u)?`<dt>Salty</dt><dd class="bad">−1 on fights · ${saltyLeft(st,u)} turn${saltyLeft(st,u)>1?'s':''} left</dd>`:''}${allyOf(st,u)?`<dt>Ally</dt><dd>${esc(st.players[allyOf(st,u)].name)}${activeAlly(st,u)?` · ${st.players[u].allyUntil-st.day+1} turn${st.players[u].allyUntil-st.day?'s':''} left`:' · starts next turn'}</dd>`:''}${p.loan?`<dt>Dad meter</dt><dd class="${dadStage(p.loan,bankCfg(st).meter)>=3?'bad':''}">${p.loan.bars}/${bankCfg(st).meter} · owes $${p.loan.owe}</dd>`:''}</dl></div>`}).join('')+`</div>`;
   h+=scoutSheet();
   if(crewPickOpen&&iPlay())h=`<div class="panel"><span class="eyebrow">Change character</span>${charSelect(charOf(me),takenByOthers(me),'set-char')}<div class="row"><button class="btn" data-act="crew-pick">Done</button></div></div>`+h;
   return h;
 }
 function logView(){
   if(!st.log||!st.log.length)return `<div class="panel"><h2>Nothing yet</h2><p class="muted">Reports land here after each day resolves.</p></div>`;
-  return st.log.map(d=>{const inc=Object.entries(d.income||{}).map(([u,x])=>`<li>${esc(st.players[u]?.name)} rolled ${x.r} on a d${x.d} × ${x.c} corners = <span class="mono">$${x.amt}</span></li>`).join('');
+  return st.log.map(d=>{const inc=Object.entries(d.income||{}).map(([u,x])=>`<li>${esc(st.players[u]?.name)} rolled ${x.r} (1–${x.d}) × ${x.c} corners = <span class="mono">$${x.amt}</span></li>`).join('');
     return `<div class="panel day"><div class="row" style="justify-content:space-between"><h2>${d.day===0?'Setup':DW()+' '+d.day}</h2>${d.events&&d.events.length&&d.start?`<button class="btn" data-act="replay" data-day="${d.day}">Watch replay</button>`:''}</div><ul>${d.lines.map(l=>`<li>${esc(l)}</li>`).join('')||'<li class="muted">A quiet day.</li>'}</ul>${inc?`<span class="eyebrow">Sales rolls</span><ul>${inc}</ul>`:''}</div>`}).join('');
 }
 
