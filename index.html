@@ -140,7 +140,7 @@ window.LL=(()=>{
 :root{
   --bg:#f1f5ea; --surface:#ffffff; --ink:#1f2a22; --muted:#5b685d; --line:#d8e0d0;
   --lemon:#f7d538; --lemon-ink:#2e2600; --accent:#1f6fb2; --bad:#c2372f; --good:#2c8a4f;
-  --lawn:#d3eab8; --lawn-edge:#c3e0a2; --street:#d9d5cc; --walk:#f1eee8; --lane:#ffffff; --zebra:#ffffff;
+  --lawn:#c3e0a2; --lawn-edge:#c3e0a2; --street:#d9d5cc; --walk:#f1eee8; --lane:#ffffff; --zebra:#ffffff;
   --sign:#1f6b46; --sign-ink:#ffffff; --mapink:#1f2a22; --wall:#fffaf0; --tree:#8fc76b; --tree-dark:#6eae4f;
   --display:'Bungee', 'Arial Black', Impact, sans-serif;
   --body:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -1477,16 +1477,30 @@ function boardSVG(){
       stubs.forEach(t=>{const px=-t.dy,py=t.dx;
         [-62,0,62].forEach(a=>{if(TRR()<.85){const ang=Math.atan2(t.dy,t.dx)+a*Math.PI/180,rr=BW+21;house(t.cx+Math.cos(ang)*rr,t.cy+Math.sin(ang)*rr+6)}});
         [-1,1].forEach(sd=>{if(TRR()<.7)house(t.cx-t.dx*STUB*.45+px*sd*(rw/2+5+19),t.cy-t.dy*STUB*.45+py*sd*(rw/2+5+19)+6)})});
+      // a little golf course: tee, striped fairway, bunker and a flagged green
+      const golf=[];for(let tries=0;tries<80&&!golf.length;tries++){const x=x0+60+TRR()*(vw-120),y=y0+50+TRR()*(vh-100),a=(TRR()-.5)*.7,L=150;
+        const pts=[-1,-.5,0,.5,1].map(f=>[x+Math.cos(a)*f*L/2,y+Math.sin(a)*f*L/2]);if(!pts.every(([px,py])=>free(px,py,34)))continue;
+        pts.forEach(([px,py])=>taken.push([px,py,32]));golf.push({x,y,a,L})}
       // ponds
       const nP=Math.max(1,Math.round(vw*vh/160000));for(let k=0,tries=0;k<nP&&tries<60;tries++){const x=x0+TRR()*vw,y=y0+TRR()*vh,rx=30+TRR()*14,ry=18+TRR()*7;
         if(!free(x,y,rx+8))continue;taken.push([x,y,rx+6]);ponds.push([x,y,rx,ry,TRR()<.6,TRR()]);k++}
       // more houses scattered on the land
-      for(let y=y0;y<y0+vh+40;y+=58)for(let x=x0;x<x0+vw+40;x+=64)if(TRR()<.42)house(x+(TRR()-.5)*30,y+(TRR()-.5)*24);
+      for(let y=y0;y<y0+vh+40;y+=58)for(let x=x0;x<x0+vw+40;x+=64)if(TRR()<.5)house(x+(TRR()-.5)*30,y+(TRR()-.5)*24);
       // flower beds
-      for(let y=y0;y<y0+vh;y+=46)for(let x=x0;x<x0+vw;x+=50)if(TRR()<.16){const fx=x+TRR()*30,fy=y+TRR()*30;if(free(fx,fy,9)){taken.push([fx,fy,10]);const cs=pick([['#e2557a','#f28ab0'],['#f2a93b','#f7d538'],['#8e6bd8','#c3a8f0'],['#ffffff','#f7d538']]);
+      for(let y=y0;y<y0+vh;y+=40)for(let x=x0;x<x0+vw;x+=44)if(TRR()<.22){const fx=x+TRR()*30,fy=y+TRR()*30;if(free(fx,fy,9)){taken.push([fx,fy,10]);const cs=pick([['#e2557a','#f28ab0'],['#f2a93b','#f7d538'],['#8e6bd8','#c3a8f0'],['#ffffff','#f7d538']]);
         items.push([fy,`<ellipse cx="${fx}" cy="${fy+3}" rx="10" ry="5" fill="#4e9a45"/>`+[[-6,0],[-2,-3],[3,-1],[6,2],[0,2]].map(([a,b],q)=>`<circle cx="${fx+a}" cy="${fy+b}" r="2.4" fill="${cs[q%2]}"/>`).join('')])}}
       // lemon trees everywhere else
-      for(let y=y0;y<y0+vh+40;y+=48)for(let x=x0;x<x0+vw+40;x+=52){const jx=x+(TRR()-.5)*26,jy=y+(TRR()-.5)*20,sc=.85+TRR()*.3,sd=TRR();if(TRR()<.2||!free(jx,jy-6,13))continue;taken.push([jx,jy-6,13]);items.push([jy+8,lemonTree(jx,jy,sc,sd)])}
+      for(let y=y0;y<y0+vh+40;y+=48)for(let x=x0;x<x0+vw+40;x+=52){const jx=x+(TRR()-.5)*26,jy=y+(TRR()-.5)*20,sc=.85+TRR()*.3,sd=TRR();if(TRR()<.04||!free(jx,jy-6,13))continue;taken.push([jx,jy-6,13]);items.push([jy+8,lemonTree(jx,jy,sc,sd)])}
+      // shrubs and the odd bench fill whatever lawn is left
+      for(let y=y0;y<y0+vh+20;y+=22)for(let x=x0;x<x0+vw+20;x+=24){const bx=x+(TRR()-.5)*12,by=y+(TRR()-.5)*10;if(TRR()<.35||!free(bx,by,8))continue;taken.push([bx,by,8]);
+        items.push([by,TRR()<.06?`<rect x="${bx-7}" y="${by-3}" width="14" height="3" rx="1" fill="#a8743f"/><rect x="${bx-7}" y="${by-7}" width="14" height="2.5" rx="1" fill="#a8743f"/><rect x="${bx-6}" y="${by}" width="1.6" height="3" fill="#6b4a2a"/><rect x="${bx+4.4}" y="${by}" width="1.6" height="3" fill="#6b4a2a"/>`
+          :`<ellipse cx="${bx+1}" cy="${by+3}" rx="7" ry="2.5" fill="rgba(31,42,34,.13)"/><circle cx="${bx-3}" cy="${by}" r="4.2" fill="#4f9c46"/><circle cx="${bx+3}" cy="${by}" r="4.2" fill="#4f9c46"/><circle cx="${bx}" cy="${by-3}" r="4.6" fill="#62b257"/>`])}
+      golf.forEach(({x,y,a,L})=>{const deg=a*180/Math.PI,gx=x+Math.cos(a)*L*.42,gy=y+Math.sin(a)*L*.42,tx=x-Math.cos(a)*L*.45,ty=y-Math.sin(a)*L*.45,bx=x+Math.cos(a)*L*.18-Math.sin(a)*24,by=y+Math.sin(a)*L*.18+Math.cos(a)*24;
+        g+=`<g transform="rotate(${deg.toFixed(1)} ${x} ${y})"><rect x="${x-L/2}" y="${y-24}" width="${L}" height="48" rx="24" fill="#a9d98a"/>${[0,1,2,3,4,5].map(k=>`<rect x="${x-L/2+12+k*22}" y="${y-22}" width="11" height="44" fill="#b4e095" opacity=".8"/>`).join('')}</g>`+
+          `<ellipse cx="${bx}" cy="${by}" rx="13" ry="7" fill="#ead9a6" stroke="#d8c48a" stroke-width="1"/><circle cx="${gx}" cy="${gy}" r="19" fill="#bfe8a3" stroke="#9fd17f" stroke-width="2"/><circle cx="${gx+3}" cy="${gy+2}" r="2.2" fill="#2f4a2a"/>`+
+          `<rect x="${tx-7}" y="${ty-5}" width="14" height="10" rx="2" fill="#8fcf72"/><circle cx="${tx}" cy="${ty}" r="1.6" fill="#fff"/>`;
+        items.push([gy+4,`<line x1="${gx+3}" y1="${gy+2}" x2="${gx+3}" y2="${gy-22}" stroke="#555" stroke-width="1.4"/><path d="M${gx+3} ${gy-22} l11 3.5 -11 3.5z" fill="#e2453c"/>`]);
+        if(TRR()<.8)items.push([gy-10,`<g transform="translate(${gx-24} ${gy-6})"><rect x="-8" y="-6" width="16" height="10" rx="2" fill="#fff" stroke="#ccc" stroke-width=".8"/><rect x="-8" y="-9" width="16" height="3" rx="1" fill="#2c8a4f"/><circle cx="-5" cy="5" r="2.4" fill="#333"/><circle cx="5" cy="5" r="2.4" fill="#333"/></g>`])});
       ponds.forEach(([x,y,rx,ry,duck,q])=>{g+=`<ellipse cx="${x+2}" cy="${y+3}" rx="${rx+4}" ry="${ry+4}" fill="#8cc07a"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#7cc4e8" stroke="#5aa6cf" stroke-width="2"/><ellipse cx="${x-rx*.3}" cy="${y-ry*.35}" rx="${rx*.35}" ry="${ry*.18}" fill="#bfe4f5" opacity=".8"/>`+
         `<circle cx="${x+rx*.45}" cy="${y+ry*.25}" r="4" fill="#5fae55"/><circle cx="${x+rx*.3}" cy="${y+ry*.45}" r="3" fill="#5fae55"/>`+
         [[-.85,.2],[-.8,-.1],[.82,-.25]].map(([a,b])=>`<line x1="${x+rx*a}" y1="${y+ry*b+4}" x2="${x+rx*a+(a<0?-2:2)}" y2="${y+ry*b-8}" stroke="#4e8a3e" stroke-width="2" stroke-linecap="round"/><ellipse cx="${x+rx*a+(a<0?-2:2)}" cy="${y+ry*b-9}" rx="1.6" ry="3.2" fill="#8a5a33"/>`).join('')+
