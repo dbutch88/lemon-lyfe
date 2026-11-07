@@ -503,6 +503,12 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .vmsheet{align-self:flex-end;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin:-2px 0 -4px;cursor:pointer}
 .vmbtn:focus-visible,.vmsheet:focus-visible{outline:3px solid var(--focus,#2f6fde);outline-offset:2px}
 .stage.vm-board .stage-sheet{display:none}
+/* Split view: the panel always takes the same share of the screen, so the board never resizes between steps or tabs; taller content scrolls inside the panel. */
+.stage.vm-split .rp-board{flex:1 1 0}
+.stage.vm-split .stage-sheet{flex:0 0 50%;min-height:0;overflow-y:auto}
+.stage.vm-split .stage-sheet .sheet-foot,.stage.vm-split .stage-sheet .panel>.phase-nav{position:sticky;bottom:-10px;z-index:3;background:var(--surface);margin:0 -12px -10px;padding:6px 12px 10px;box-shadow:0 -10px 12px -10px rgba(0,0,0,.18)}
+.sheet-foot{display:flex;flex-direction:column;gap:6px}
+.stage-sheet .tile.upc{padding:7px 9px;gap:2px}.stage-sheet .upc-n{font-size:15px}.stage-sheet .upc-v{font-size:12px;margin-bottom:2px}.stage-sheet .upc .tile-b{min-height:30px;font-size:12.5px}.stage-sheet .upc-now{font-size:10.5px;padding-top:3px}
 .stage.vm-panel .rp-board{display:none}
 .stage.vm-panel .stage-sheet{flex:1 1 auto;min-height:0;overflow:auto}
 .rp-board:has(.coach) .vmbtn{display:none}
@@ -1979,8 +1985,8 @@ function shopPanel(){
       <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><button data-act="sold" data-d="1" ${left>=recPrice(st,me,b.soldiers)?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=recTotal(st,me,b.soldiers+5)-recTotal(st,me,b.soldiers)?'':'disabled'}>+5</button></div></div>
     <div class="seg" role="group" aria-label="What a tap on your corner does"><button data-act="rmode" data-m="add" aria-pressed="${recMode==='add'}">Tap to add</button><button data-act="rmode" data-m="remove" aria-pressed="${recMode==='remove'}">Tap to remove</button></div>
     <p class="small oneline">${b.soldiers?`<button class="linkbtn" data-act="rec-clear">Clear</button> ${recruitSummary()}`:recMode==='add'?`Tap your corners on the map to recruit there.`:'Tap a yellow tag on the map to take one back.'}</p></div>`;
-  h+=`<div class="totals"><span>$${cashIn()} − $${spend()}${draft.loan&&canBorrow(st,me)?' <span class="small muted">(incl. loan)</span>':''}</span><span class="${left<0?'bad':'ok'}">$${left} left</span></div>`;
-  return h+phaseNav(null,'attack','Next: Attack')+`</div>`}
+  const tot=`<div class="totals"><span>$${cashIn()} − $${spend()}${draft.loan&&canBorrow(st,me)?' <span class="small muted">(incl. loan)</span>':''}</span><span class="${left<0?'bad':'ok'}">$${left} left</span></div>`;
+  return h+`<div class="sheet-foot">${tot}${phaseNav(null,'attack','Next: Attack')}</div></div>`}
 function dadLayers(stage,uid){
   const mad=stage>=3,S=mad?'#ef9277':'#f2c8a2',SH=shadeHex(S,-.18),H='#4a3322',HG=H,shirt='#3d6fb6',shirtD=shadeHex(shirt,-.22),shirtL=shadeHex(shirt,.4);
   const W=`stroke="${INK}" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"`;
