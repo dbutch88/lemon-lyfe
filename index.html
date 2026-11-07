@@ -474,9 +474,11 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 @keyframes ltShake{0%,100%{transform:rotate(0)}18%{transform:rotate(-6deg)}38%{transform:rotate(5deg)}58%{transform:rotate(-3deg)}78%{transform:rotate(2deg)}}
 @keyframes ltDrop{0%{transform:translateY(0)}38%{transform:translateY(25px)}48%{transform:translateY(19px)}58%{transform:translateY(25px)}64%{transform:translate(3px,23px)}70%{transform:translate(5px,25px)}85%{opacity:1;transform:translate(5px,25px)}100%{opacity:0;transform:translate(5px,25px)}}
 @media (prefers-reduced-motion:reduce){.ltree.shake .lt-sway,.ltree.shake .lt-drop{animation:none}}
-.showcase{display:flex;flex-direction:column;justify-content:space-between;min-height:250px;width:100%;margin-top:14px;text-align:left;font:inherit;color:inherit;background:var(--surface-2,#f6f3e8);border:1px solid var(--line);border-radius:18px;padding:16px;cursor:pointer;animation:scIn .45s ease}
+.showcase{display:flex;flex-direction:column;justify-content:space-between;min-height:250px;width:100%;margin-top:14px;text-align:left;font:inherit;color:inherit;background:var(--surface-2,#f6f3e8);border:1px solid var(--line);border-radius:18px;padding:16px;cursor:pointer;color:var(--ink);opacity:1}
+.showcase.in{animation:scIn .45s ease both}
+.showcase .sc-name,.showcase p{color:var(--ink);opacity:1}
 @keyframes scIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.showcase{animation:none}}
+@media (prefers-reduced-motion:reduce){.showcase.in{animation:none}}
 .sc-boss{display:flex;gap:14px;align-items:center}.sc-art{flex:none;width:140px;height:190px}.sc-art svg{width:100%;height:100%}
 .sc-txt{display:flex;flex-direction:column;gap:4px;min-width:0}.sc-name{font-family:var(--display,inherit);font-size:22px;line-height:1.1}
 .sc-crew{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted)}.sc-crew i{width:10px;height:10px;border-radius:50%;background:var(--c)}
@@ -2297,7 +2299,7 @@ function showcase(){const it=showItems(),n=it.length,k=((Math.floor(Date.now()/6
     :`<div class="sc-tip"><span class="eyebrow">Did you know?</span><b class="sc-name">${esc(x.tip[0])}</b><p>${esc(x.tip[1])}</p></div>`;
   return `<div id="showcase"><button class="showcase" data-act="show-next" aria-label="Next: crews and tips">${body}<span class="sc-dots" aria-hidden="true">${it.map((_,i)=>`<i class="${i===k?'on':''}"></i>`).join('')}</span></button>`+
     `<div class="sc-line"><span class="eyebrow">In this game</span><div class="sc-row" style="grid-template-columns:repeat(${Object.keys(st.players).length===4?2:Math.min(3,Object.keys(st.players).length)},1fr)">${Object.keys(st.players).map(u=>st.players[u]).sort((a,b)=>(a.seat||0)-(b.seat||0)).map(p=>{const c=CHAR_BY[p.char]||CHARS[0];return `<div class="sc-mini ${p===myP()?'me':''}" style="--c:${esc(p.color)}">${avatar(c.id,p.color,46)}<b>${esc(c.nick)}</b><small>${p===myP()?'You':p.bot||p.cpu?'Computer':esc(c.name)}</small></div>`}).join('')}</div></div></div>`}
-setInterval(()=>{const el=document.getElementById('showcase');if(!el||document.hidden)return;const k=Math.floor(Date.now()/6000);if(k===showAt)return;showAt=k;const tmp=document.createElement('div');tmp.innerHTML=showcase();el.replaceWith(tmp.firstElementChild)},500);
+setInterval(()=>{const el=document.getElementById('showcase');if(!el||document.hidden)return;const k=Math.floor(Date.now()/6000);if(k===showAt)return;showAt=k;const tmp=document.createElement('div');tmp.innerHTML=showcase();const nw=tmp.firstElementChild;el.replaceWith(nw);const b=nw.querySelector('.showcase');if(b)b.classList.add('in')},500);
 function placePanel(){
   ensureDraft();const left=START_SOLDIERS-placedCount(),sent=hasOrder(me);
   return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><div><span class="bigcount ${left?'':'ok'}">${left}</span> <span class="muted small">of ${START_SOLDIERS} to place</span></div>
@@ -2533,7 +2535,7 @@ document.addEventListener('click',async e=>{
   if(act==='concede'){confirmConcede=true;return render()}
   if(act==='bot-lvl'){const l=el.dataset.l;return save(()=>stateRef.update({botLevel:l}))}
   if(act==='pause'){if(!st||st.hostId!==realMe)return;return save(()=>st.paused?stateRef.update({paused:false,pauseLeft:null,nextResolveAt:Date.now()+Math.max(5000,st.pauseLeft||st.turnMs||300000)}):stateRef.update({paused:true,pauseLeft:Math.max(0,st.nextResolveAt-Date.now())}))}
-  if(act==='show-next'){showOff++;const el=document.getElementById('showcase');if(el){const tmp=document.createElement('div');tmp.innerHTML=showcase();el.replaceWith(tmp.firstElementChild)}return}
+  if(act==='show-next'){showOff++;const el=document.getElementById('showcase');if(el){const tmp=document.createElement('div');tmp.innerHTML=showcase();const nw=tmp.firstElementChild;el.replaceWith(nw);const b=nw.querySelector('.showcase');if(b)b.classList.add('in')}return}
   if(act==='vm'){vm=el.dataset.v;try{localStorage.setItem('sc-vm',vm)}catch(e){}if(pv){const {W,H}=boardDims;pv.vh=1e6;pv.cx=W/2;pv.cy=H/2}return render()}
   if(act==='mk-hide'){mkHide(el.dataset.k);return render()}
   if(act==='ally-propose'){const u=el.dataset.u;if(!canAlly(st,me,u))return render();notice=`Alliance offer sent to ${st.players[u].name}. They answer on their turn.`;return save(()=>stateRef.update({players:{[u]:{offers:{[me]:st.day}}}}))}
