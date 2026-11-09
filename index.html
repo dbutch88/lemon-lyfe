@@ -500,6 +500,24 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .sc-mini{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:color-mix(in srgb,var(--c) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 30%,transparent);text-align:center}
 .sc-mini.me{border:2px solid var(--c)}.sc-mini b{font-size:14px;line-height:1.15}.sc-mini small{font-size:12px;color:var(--muted)}
 .sc-dots{display:flex;gap:5px;justify-content:center;margin-top:12px}.sc-dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}.sc-dots i.on{background:var(--ink)}
+.scorebar{position:relative;flex:none;z-index:6}
+.sb-row{display:flex;align-items:center;gap:8px;width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 8px;cursor:pointer;min-height:34px}
+.sb-goal{flex:none;font-size:12px;color:var(--muted)}.sb-goal b{color:var(--ink)}
+.sb-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1}.sb-chips::-webkit-scrollbar{display:none}
+.sb-c{display:flex;align-items:center;gap:3px;flex:none;padding:1px 6px 1px 2px;border-radius:999px;border:1px solid transparent}.sb-c b{font-size:13px}
+.sb-c.me{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.sb-c.near{animation:nearPulse 1.4s ease-in-out infinite;border-color:var(--c)}
+.sb-more{flex:none;font-size:12px;color:var(--muted)}
+.sb-pop{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px;max-height:60vh;overflow:auto}
+.sb-pop table{width:100%;border-collapse:collapse;font-size:12px}.sb-pop th{font-weight:700;color:var(--muted);text-align:right;padding:3px 4px;font-size:10.5px}.sb-pop th:first-child,.sb-pop td:first-child{text-align:left}
+.sb-pop td{text-align:right;padding:5px 4px;border-top:1px solid var(--line)}.sb-pop tr.me td{font-weight:700}.sb-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.sb-pop p{margin:8px 0 0}
+@keyframes nearPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 0%,transparent)}50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 45%,transparent)}}
+.c.nearwin>circle:not(.allyring){animation:cornerPulse 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes cornerPulse{0%,100%{transform:scale(1);filter:none}50%{transform:scale(1.18);filter:drop-shadow(0 0 4px rgba(255,214,0,.95))}}
+@media (prefers-reduced-motion:reduce){.c.nearwin>circle,.sb-c.near{animation:none}.c.nearwin>circle:not(.allyring){stroke:#f7d538;stroke-width:3}}
+.bigstamp.near{background:var(--c,#2b2b2b)}
+.seg.lens{display:flex}.seg.lens button{min-height:34px;flex:1 1 auto;padding:0 5px;font-size:12.5px;white-space:nowrap}.seg.lens button[data-l=std]{flex-grow:1.6}.lenhint{display:block;margin-top:4px}
 .vmbtn{position:absolute;right:8px;bottom:8px;z-index:5;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .vmbtn.on,.vmsheet.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .vmsheet{align-self:flex-end;display:flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin:-2px 0 -4px;cursor:pointer}
@@ -857,6 +875,7 @@ function activeAlly(s,u){const v=allyOf(s,u);return v&&s.day>=(s.players[u].ally
 const teamHas=(s,o,x)=>x===o||(!!o&&!!x&&activeAlly(s,o)===x);
 function canAlly(s,u,v){if(!s||s.status!=='active'||!u||!v||u===v)return false;const P=s.players[u],Q=s.players[v];if(!P||!Q||P.alive===false||Q.alive===false)return false;
   if(aliveUids(s).length<ALLY_MIN||allyOf(s,u)||allyOf(s,v))return false;if((P.allyCount|0)>=ALLY_CAP||(Q.allyCount|0)>=ALLY_CAP)return false;
+  if(s.target)return s.day>=ALLY_FROM;
   return !(s.maxDays&&s.day+ALLY_TURNS>s.maxDays)}
 function offerFrom(s,to,from){const o=(s.players[to]&&s.players[to].offers)||{};return (o[from]|0)>=s.day-1&&(o[from]|0)>0}
 function formAlly(s,a,b,from){const pa=s.players[a],pb=s.players[b];[[pa,b],[pb,a]].forEach(([p,v])=>{p.ally=v;p.allyFrom=from;p.allyUntil=from+ALLY_TURNS-1;p.allyCount=(p.allyCount|0)+1;if(p.offers){delete p.offers[v]}});}
@@ -888,14 +907,25 @@ const humansAlive=s=>aliveUids(s).filter(u=>!isCpu(s.players[u]));
 const MISS_LIMIT=3;
 function surrenderAvail(s,u){if(!s||s.status!=='active')return false;const p=s.players[u];if(!p||p.alive===false||isCpu(p))return false;
   const others=aliveUids(s).filter(x=>x!==u);return others.length>0&&others.every(x=>isCpu(s.players[x]))&&cornersOf(s,u).length*2>s.corners.length}
-function pickWinner(s,still){const pool=still.filter(u=>s.players[u].cpu!=='conceded');return (pool.length?pool:still).sort((a,b)=>cornersOf(s,b).length-cornersOf(s,a).length||soldiersOf(s,b)-soldiersOf(s,a))[0]||null}
+// ---- Points: first crew to the target wins. 1 per corner, +2 per full intersection, +3 per block, +2 Biggest Crew. Only your own corners count (allies share fight bonuses, not points).
+const LEN_PTS={std:[20,25],long:[25,30],xl:[30,35]},LEN_BACKSTOP={std:40,long:40,xl:50},LEN_NAME={std:'Standard',long:'Long',xl:'XL'},ALLY_FROM=3,NEAR_WIN=3;
+const targetFor=(len,n)=>(LEN_PTS[len]||LEN_PTS.std)[n<=3?0:1];
+function ptsOf(s){const al=aliveUids(s),out={};let big=null,bk=-1,tie=false;
+  for(const u of al){const k=soldiersOf(s,u);if(k>bk){bk=k;big=u;tie=false}else if(k===bk)tie=true}
+  for(const u of al){let inters=0,blocks=0;const own=it=>[0,1,2,3].every(q=>s.corners[it*4+q].o===u);
+    for(let it=0;it<s.rows*s.cols;it++)if(own(it))inters++;
+    for(let r=0;r<s.rows-1;r++)for(let c=0;c<s.cols-1;c++)if(own(r*s.cols+c)&&own(r*s.cols+c+1)&&own((r+1)*s.cols+c)&&own((r+1)*s.cols+c+1))blocks++;
+    const corners=cornersOf(s,u).length,bigC=u===big&&!tie?2:0;out[u]={corners,inters,blocks,big:bigC,total:corners+2*inters+3*blocks+bigC}}
+  return out}
+function pickWinner(s,still){const pool=still.filter(u=>s.players[u].cpu!=='conceded'),P=s.target?ptsOf(s):null,sc=u=>P?(P[u]?P[u].total:0):cornersOf(s,u).length;
+  return (pool.length?pool:still).sort((a,b)=>sc(b)-sc(a)||soldiersOf(s,b)-soldiersOf(s,a))[0]||null}
 function dealCorners(ids,total,rng){let corners;
   for(let t=0;t<500;t++){const idx=shuffle([...Array(total).keys()],rng);corners=Array.from({length:total},()=>({o:null,s:0}));let k=0;
     for(let r=0;r<START_CORNERS;r++)for(const u of ids)corners[idx[k++]]={o:u,s:1};
     let ok=true;for(let it=0;it<total/4&&ok;it++){const o=corners[it*4].o;if(o&&corners[it*4+1].o===o&&corners[it*4+2].o===o&&corners[it*4+3].o===o)ok=false}
     if(ok)return corners}
   return corners}
-function bankCfg(s){const N=s.maxDays||0,meter=N?Math.max(2,Math.min(7,Math.round(N/4)-1)):7,open=N?Math.max(2,Math.round(N/4)):8;return{meter,open,close:N?N-meter-1:Infinity}}
+function bankCfg(s){if(s&&s.target)return{meter:4,open:5,close:Infinity};const N=s.maxDays||0,meter=N?Math.max(2,Math.min(7,Math.round(N/4)-1)):7,open=N?Math.max(2,Math.round(N/4)):8;return{meter,open,close:N?N-meter-1:Infinity}}
 function lastPlace(s,u){const al=aliveUids(s);if(al.length<2)return false;const c=x=>cornersOf(s,x).length;return c(u)===Math.min(...al.map(c))}
 function canBorrow(s,u){const p=s.players[u];if(!p||p.alive===false||p.loan||p.loanUsed||s.status!=='active')return false;const b=bankCfg(s);return s.day>=b.open&&s.day<=b.close&&lastPlace(s,u)}
 function dadStage(ln,meter){if(!ln)return 0;const r=ln.bars/meter;return r>=.75?3:r>=.375?2:1}
@@ -1130,9 +1160,9 @@ function botOrders(s,u){
     const w=mine.map(i=>1+2*nbr(s,u,i)+(style==='turtle'?1:0));
     while(left>0){const tot=w.reduce((a,b)=>a+b,0);let r=rng()*tot,k=0;while(k<w.length-1&&r>w[k]){r-=w[k];k++}place[mine[k]]=(place[mine[k]]||0)+1;left--}
     return{place,bot:true}}
-  const alive=aliveUids(s),cnt=x=>cornersOf(s,x).length,ranked=alive.slice().sort((a,b)=>cnt(b)-cnt(a)),leader=ranked[0];
+  const alive=aliveUids(s),PT=s.target?ptsOf(s):null,cnt=x=>PT?(PT[x]?PT[x].total:0):cornersOf(s,x).length,ranked=alive.slice().sort((a,b)=>cnt(b)-cnt(a)),leader=ranked[0],raceAt=PT?cnt(leader)/s.target:0;
   const lvl=p.level||s.botLevel||'normal',small=alive.length<=4,hoardAt=small?.42:.55,runaway=P.hoard&&s.day>=5&&leader!==u&&cnt(leader)>=Math.max(6,cnt(u)*1.6);
-  const late=runaway||(s.maxDays?s.day>=s.maxDays*(P.hoard?hoardAt:.7):s.day>=(P.hoard?(small?13:17):25));
+  const late=runaway||(PT?raceAt>=(P.hoard?.6:.75):s.maxDays?s.day>=s.maxDays*(P.hoard?hoardAt:.7):s.day>=(P.hoard?(small?13:17):25));
   const humans=alive.filter(v=>v!==u&&!isCpu(s.players[v])).sort((a,b)=>cnt(b)-cnt(a)),topH=humans[0];
   const focus=lvl==='hard'&&topH&&cnt(topH)>=cnt(leader)*.8?topH:leader;
   const chase=lvl==='hard'?focus!==u:leader!==u&&ranked.length>1&&cnt(leader)>=cnt(ranked[1])*1.25;
@@ -1317,7 +1347,7 @@ function resolveDay(s0,ords){
   const income={};
   for(const u of order){const p=s.players[u],c=cornersOf(s,u).length;
     if(c===0){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx});continue}
-    const d=TIERS.sugar[p.sugar].d,r=roll(rng,d),e=evToday(s),T=s._tricks||[],fx=[];let mult=1,extra=0;
+    const d=TIERS.sugar[p.sugar].d,r=roll(rng,d),e=marketAt(s,s.day+1),T=s._tricks||[],fx=[];let mult=1,extra=0;  // tonight's sales are the roll players see on the next turn, so they use that turn's market day
     const mineAt=it=>[0,1,2,3].filter(q=>s.corners[it*4+q].o===u).length;
     const stinks=new Set(T.filter(t=>t.k==='stink').map(t=>t.it)),parties=new Set(T.filter(t=>t.k==='party'&&t.u===u).map(t=>t.it));
     stinks.forEach(it=>{const m=mineAt(it);if(m){extra-=m;fx.push('stink')}});parties.forEach(it=>{if(stinks.has(it))return;const m=mineAt(it);if(m){extra+=2*m;fx.push('party')}});
@@ -1333,7 +1363,11 @@ function resolveDay(s0,ords){
       if(p.loan.bars>=bc.meter){p.loan.bars=bc.meter;p.loan.door=true;const first=!p.loan.told;p.loan.told=true;
         const tx=first?`Dad’s at the door at ${nm(u)}’s! ${nm(u)} owes $${p.loan.owe}.`:`Dad’s back at the door. You still owe $${p.loan.owe}.`;
         if(first)L.push(tx);E.push(first?{t:'dad',kind:'door',u,text:tx}:{t:'dad',kind:'door',u,text:tx,priv:u})}}
-    for(const u of order){const p=s.players[u];if(p.alive!==false&&!cornersOf(s,u).length&&income[u]){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx})}}}
+    for(const u of order){const p=s.players[u];if(p.alive!==false&&!cornersOf(s,u).length&&income[u]){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx})}}
+    if(s.target){const top=()=>Math.max(0,...Object.values(ptsOf(s)).map(x=>x.total));
+      if(top()>=s.target){for(const u of order){const p=s.players[u];if(p.loan&&p.alive!==false)dadCollect(s,u,'The game is ending, and the loan came due.',L,E)}
+        for(const u of order){const p=s.players[u];if(p.alive!==false&&!cornersOf(s,u).length){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx})}}
+        if(top()>=s.target)s._won=true}}}
   s.log=[{day:s.day,lines:L,income,start,events:E},...(s.log||[])].slice(0,40);
   s.log.forEach((d,k)=>{if(k>=3){delete d.start;delete d.events}});
   s.lastResolvedDay=s.day;s.day++;
@@ -1345,10 +1379,11 @@ function resolveDay(s0,ords){
       if(few||s.day>(p.allyUntil||0)){clearAlly(s,u);const tx=few?`Fewer than ${ALLY_MIN} crews are left, so ${p.name} and ${q.name} went their separate ways.`:`The alliance between ${p.name} and ${q.name} ran its course.`;L.push(tx);E.push({t:'ally',kind:'ended',u,v,text:tx})}}}
   const still=aliveUids(s),hadHumans=Object.values(s.players).some(p=>!p.bot);
   if(still.length<=1){s.status='over';s.winner=still[0]||null}
+  else if(s._won){s.status='over';s.endReason='points';s.winner=pickWinner(s,still)}
   else if(s.maxDays&&s.day>s.maxDays){s.status='over';s.winner=pickWinner(s,still)}
   else if(hadHumans&&!still.some(u=>!isCpu(s.players[u]))){s.status='over';s.endReason='nohumans';s.winner=pickWinner(s,still)}
   if(s.status==='active'){delete s.event;const m=marketAt(s,s.day);if(m){const tx=`Market day tomorrow (${s.mode==='game'?'Turn':'Day'} ${s.day})! Nobody knows what’s coming.`;L.push(tx);E.push({t:'news',k:null,text:tx})}}
-  delete s._tricks;
+  delete s._tricks;delete s._won;
   tallyStats(s,s0,ords,E,income,s.day-1);
   s.nextResolveAt=s.mode==='game'?Date.now()+(s.turnMs||300000):nextDeadline(s.nextResolveAt);s.lastResolvedAt=Date.now();if(s.paused)s.pauseLeft=Math.max(0,s.nextResolveAt-Date.now());
   return s;
@@ -1373,7 +1408,8 @@ function tallyStats(s,s0,ords,E,income,day){const S=s.stats||(s.stats={});const 
     if(e.t==='ally'){if(e.kind==='formed'){g(e.u).allies++;g(e.v).allies++}if(e.kind==='ended'){g(e.u).kept++;g(e.v).kept++}if(e.kind==='betray'||e.kind==='broke'){g(e.u).betrays++;if(e.v)g(e.v).betrayed++}}}
   for(const [u,x] of Object.entries(income||{}))g(u).earned+=x.amt|0;
   const c={};for(const u of Object.keys(s.players)){c[u]=cornersOf(s,u).length;g(u).peak=Math.max(g(u).peak,c[u])}
-  (s.hist||(s.hist=[])).push({d:day,c})}
+  const hp={};if(s.target){const P=ptsOf(s);for(const u in P)hp[u]=P[u].total}
+  (s.hist||(s.hist=[])).push(s.target?{d:day,c,p:hp}:{d:day,c})}
 
 /* ---------- helpers for the viewer ---------- */
 const myP=()=>st&&me&&st.players?st.players[me]:null;
@@ -1425,7 +1461,7 @@ const adsOn=()=>{if(/[?&]ads=1/.test(location.search))return true;try{return loc
 const adKey=k=>'sc-ad-'+(st&&st.gameId)+'-'+realMe+'-'+k;
 const adSeen=k=>{try{return localStorage.getItem(adKey(k))==='1'}catch(e){return !!(adState&&adState.mem&&adState.mem[k])}};
 const markAd=k=>{try{localStorage.setItem(adKey(k),'1')}catch(e){}};
-function halfKey(){if(!st||st.status!=='active')return null;if(st.maxDays){const mid=Math.floor(st.maxDays/2);return st.day>mid?'half':null}const b=Math.floor((st.day-1)/15);return b>=1?'half'+b:null}
+function halfKey(){if(!st||st.status!=='active')return null;if(st.target){const P=ptsOf(st);return Object.values(P).some(x=>x.total*2>=st.target)?'half':null}if(st.maxDays){const mid=Math.floor(st.maxDays/2);return st.day>mid?'half':null}const b=Math.floor((st.day-1)/15);return b>=1?'half'+b:null}
 function adGate(){if(!st||!adsOn()||!me)return'';
   if(adState)return adScreen();
   if(!st.players[realMe]&&!myCrews().length)return'';
@@ -1454,7 +1490,7 @@ function renderHeader(){
   const s=document.getElementById('status'),t=document.getElementById('tabs');
   if(!st||st.status==='lobby'){s.innerHTML=st?`<span class="chip">Lobby</span>`:'';t.hidden=true;return}
   const alive=humansAlive(st),inN=alive.filter(hasOrder).length,p=myP();
-  let bits=`<span class="chip">${st.status==='setup'?(st.mode==='game'?'Setup':'Setup day'):st.status==='over'?'Final':DW()+' '+st.day+(st.maxDays?`<span class="of">/${st.maxDays}</span>`:'')}</span>`;
+  let bits=`<span class="chip">${st.status==='setup'?(st.mode==='game'?'Setup':'Setup day'):st.status==='over'?'Final':DW()+' '+st.day+(st.maxDays&&!st.target&&st.mode!=='game'?`<span class="of">/${st.maxDays}</span>`:'')}</span>`;
   if(st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000&&!st.paused?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">${st.paused?'⏸':'⏱'} ${clockText()}</span>`}
   if(st.hostId===realMe&&(st.status==='setup'||st.status==='active'))bits+=`<button class="chip pausebtn ${st.paused?'on':''}" data-act="pause" aria-label="${st.paused?'Resume the turn clock':'Pause the turn clock'}" title="Testing: ${st.paused?'resume':'pause'} the turn clock">${st.paused?'▶':'⏸'}</button>`;
   const info=st.status!=='over'?`<p class="navinfo">${inN}/${alive.length} orders in · ${esc(countdown())}</p>`:'';
@@ -1473,6 +1509,7 @@ function boardGeom(){const R0=st.rows,C0=st.cols,TR=tallFull()&&C0>R0,rows=TR?C0
   return{R0,C0,TR,rows,cols,cell,pad,padX,W:(cols-1)*cell+padX*2,H:(rows-1)*cell+pad*2}}
 function boardSVG(){
   const {R0,C0,TR,rows,cols,cell,pad,padX,W,H}=boardGeom(),rw=26,off=rw/2+10,cellY=cell;
+  const nearSet=st.target&&st.status==='active'&&!replay?(P=>new Set(Object.keys(P).filter(u=>P[u].total>=st.target-NEAR_WIN)))(ptsOf(st)):null;
   const X=c=>padX+c*cell,Y=r=>pad+r*cellY,R=rngFrom(hash('map'+R0+'x'+C0));
   const itXY=it=>{const r0=Math.floor(it/C0),c0=it%C0;return TR?[X(r0),Y(c0)]:[X(c0),Y(r0)]};
   const ROOFS=['#e98a7a','#7fa7d6','#e7b75f','#9c8fd0','#78b9a5','#d98fb3','#c9a27e'];
@@ -1649,7 +1686,7 @@ function boardSVG(){
   g+=under;
   B.forEach((co,i)=>{const extra=placing&&co.o===me?(draft.place[i]|0):(planning&&co.o===me&&draft.buy.soldiers?recAt(i):0);
     const [cx,cy]=pos(i);
-    const cls=['c',co.o?'':'empty',sel===i?'sel':'',co.o&&co.o===me?'mine':'',extra?'placed':''].join(' '),isAlly=!!(co.o&&me&&co.o===allyOf(st,me));
+    const cls=['c',co.o?'':'empty',sel===i?'sel':'',co.o&&co.o===me?'mine':'',extra?'placed':'',co.o&&nearSet&&nearSet.has(co.o)?'nearwin':''].join(' '),isAlly=!!(co.o&&me&&co.o===allyOf(st,me));
     g+=`<g class="${cls}" data-act="corner" data-i="${i}" role="button" tabindex="0" aria-label="${esc(label(st,i))}${isAlly?' (ally)':''}">${isAlly?`<circle class="allyring" cx="${cx}" cy="${cy}" r="18" stroke="${esc(crewColor(me))}"/>`:''}<circle cx="${cx}" cy="${cy}" r="13" ${co.o?`fill="${esc(crewColor(co.o))}"`:''}/><text x="${cx}" y="${cy}">${co.o?co.s+extra:''}</text></g>`});
   if(!replay&&st.status==='active'&&draft&&draft.trick&&iPlay()){const t=draft.trick,col='#7a2bb0';
     if(t.it!=null){const [x,y]=itXY(t.it),hs=off+27;const lx=Math.max(44,Math.min(W-44,x));over+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="15" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="3 5"/><g class="blabel"><rect x="${lx-42}" y="${y+hs-9}" width="84" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${lx}" y="${y+hs}">YOUR ${TRICKS[t.k].n.toUpperCase().replace('ICE-CREAM ','')}</text></g>`}
@@ -1750,7 +1787,7 @@ function awardsFor(){const S=st.stats||{},ids=seatOrder(st),best=(f,min=1)=>{let
   add('money','Lemonade mogul',best(x=>x.earned,50),v=>`$${v} in sales`);
   return out}
 const AW_IC={trick:ICONS.trick,brawl:ICONS.brawl,atk:ICONS.atk,take:ICONS.claim,wall:'<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg>',betray:ICONS.betray,ally:ICONS.ally,dad:ICONS.dad,loan:ICONS.loan,claim:ICONS.claim,money:'<svg viewBox="0 0 16 16"><text x="8" y="13" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">$</text></svg>'};
-function cornerChart(){const H=st.hist||[];if(H.length<2)return'<p class="small muted">Not enough turns to chart.</p>';
+function cornerChart(){const H=(st.hist||[]).map(h=>st.target&&h.p?{d:h.d,c:h.p}:h);if(H.length<2)return'<p class="small muted">Not enough turns to chart.</p>';
   const ids=seatOrder(st),W=320,Ht=170,L=26,R=40,T=10,B=22,maxC=Math.max(4,...H.flatMap(h=>Object.values(h.c))),n=H.length;
   const x=i=>L+(W-L-R)*i/(n-1),y=v=>T+(Ht-T-B)*(1-v/maxC),step=Math.max(1,Math.ceil(maxC/4/5)*5);
   let g='';for(let v=0;v<=maxC;v+=step)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="cg"/><text x="${L-5}" y="${y(v)}" class="cy">${v}</text>`;
@@ -1759,11 +1796,11 @@ function cornerChart(){const H=st.hist||[];if(H.length<2)return'<p class="small 
     g+=`<polyline points="${pts}" fill="none" stroke="${esc(crewColor(u))}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" class="cl"/>`;lab.push({u,v:last,yy:y(last)})});
   lab.sort((a,b)=>a.yy-b.yy);for(let k=1;k<lab.length;k++)if(lab[k].yy-lab[k-1].yy<12)lab[k].yy=lab[k-1].yy+12;const bot=Ht-B+4;if(lab.length&&lab[lab.length-1].yy>bot){lab[lab.length-1].yy=bot;for(let k=lab.length-2;k>=0;k--)if(lab[k+1].yy-lab[k].yy<12)lab[k].yy=lab[k+1].yy-12}
   lab.forEach(l=>{g+=`<circle cx="${x(n-1)}" cy="${y(l.v)}" r="4" fill="${esc(crewColor(l.u))}" stroke="var(--surface)" stroke-width="2"/><text x="${W-R+6}" y="${l.yy}" class="cv">${l.v}</text><circle cx="${W-R+26}" cy="${l.yy}" r="5" fill="${esc(crewColor(l.u))}"/>`});
-  return `<div class="chartbox" data-hist="1"><svg viewBox="0 0 ${W} ${Ht}" class="cchart" role="img" aria-label="Corners held by each crew over the game">${g}<line class="cross" x1="0" x2="0" y1="${T}" y2="${Ht-B}" style="display:none"/><rect class="chit" x="${L}" y="${T}" width="${W-L-R}" height="${Ht-T-B}" fill="transparent"/></svg><div class="ctip" hidden></div></div>
+  return `<div class="chartbox" data-hist="1"><svg viewBox="0 0 ${W} ${Ht}" class="cchart" role="img" aria-label="${st.target?'Points':'Corners held'} by each crew over the game">${g}<line class="cross" x1="0" x2="0" y1="${T}" y2="${Ht-B}" style="display:none"/><rect class="chit" x="${L}" y="${T}" width="${W-L-R}" height="${Ht-T-B}" fill="transparent"/></svg><div class="ctip" hidden></div></div>
     <div class="clegend">${ids.map(u=>`<span>${avatar(charOf(u),crewColor(u),18)}${esc(CHAR_BY[charOf(u)]?.name||st.players[u].name)}</span>`).join('')}</div>`}
 function wrapView(){const w=st.winner,ids=seatOrder(st),S=st.stats||{},cnt=u=>cornersOf(st,u).length;
   const rank=ids.slice().sort((a,b)=>(st.players[b].alive!==false)-(st.players[a].alive!==false)||cnt(b)-cnt(a)||soldiersOf(st,b)-soldiersOf(st,a));
-  const why=st.endReason==='surrender'?'The computer crews surrendered':st.endReason==='nohumans'?'Every player conceded or left':!st.maxDays||aliveUids(st).length<=1?'Last crew standing':`After ${st.maxDays} ${DW().toLowerCase()}s`;
+  const why=st.endReason==='points'?`${esc(st.players[st.winner]?.name||'')} reached ${st.target} points on ${DW().toLowerCase()} ${st.day-1}`:st.target&&st.maxDays&&st.day>st.maxDays?`Nobody reached ${st.target} by ${DW().toLowerCase()} ${st.maxDays}, so the top score won`:st.endReason==='surrender'?'The computer crews surrendered':st.endReason==='nohumans'?'Every player conceded or left':!st.maxDays||aliveUids(st).length<=1?'Last crew standing':`After ${st.maxDays} ${DW().toLowerCase()}s`;
   let h=`<div class="panel wrap-hero" style="--crew:${w?esc(crewColor(w)):'#888'}"><span class="eyebrow">${why}</span>${w?bust(charOf(w),crewColor(w),0):''}<h2>${w?esc(st.players[w].name)+' runs the block':'No crew left standing'}</h2>${w?`<p class="muted">${w===me?'That’s you. ':''}${cnt(w)} of ${st.corners.length} corners at the final bell.${(()=>{const r2=rank.find(u=>u!==w&&st.players[u].alive!==false);return r2&&cnt(r2)===cnt(w)?` Tied with ${esc(st.players[r2].name)} on corners, so it came down to kids on the street: ${soldiersOf(st,w)} to ${soldiersOf(st,r2)}.`:''})()}</p>`:''}</div>`;
   h+=`<div class="panel"><h2>Final standings</h2><ol class="standings">${rank.map((u,k)=>{const p=st.players[u];return `<li class="${u===me?'me':''}"><span class="rk">${k+1}</span>${avatar(charOf(u),p.color,30)}<span class="nm">${esc(p.name)}${u===me?' (you)':''}${p.cpu==='conceded'?' <small>conceded</small>':''}</span><span class="cn">${p.alive===false?'<small>out</small>':`<b>${cnt(u)}</b> corners`}</span></li>`}).join('')}</ol></div>`;
   h+=`<div class="panel"><h2>Corners over the game</h2>${cornerChart()}</div>`;
@@ -1806,7 +1843,7 @@ function boardView(){
     if(st.status==='setup')sh=placePanel();
     else{sh=`<div class="stage-steps">${phaseBar()}</div>`+((myP().missed|0)>=MISS_LIMIT-1&&!hasOrder(me)?`<p class="warnline">You missed ${myP().missed} turns. Miss one more and the computer takes over.</p>`:'');if(isPlanning()&&!salesShowing()){ensureDraft();sh+=phasePanel()}else sh+=salesCard()}
     const selc=sel!=null&&st.corners[sel]?`<div class="selchip">${selLine()}</div>`:newsPill();
-    return h+`<div class="stage vm-${vm}"><div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
+    return h+`<div class="stage vm-${vm}">${scoreBar()}<div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()||nearStamp()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
   else{h+=awayPanel();
     if(isPlanning()){ensureDraft();if(dayPhase==='shop')h+=salesCard();h+=phasePanel()}
     else h+=salesCard()+(salesPending()?'':introCard(false))}
@@ -1845,10 +1882,11 @@ function lobbyView(){
   if(!st){
     const lm=lobbyMode,gm=lm!=='campaign',tsel=Math.min(lm==='lcs'?1440:720,+(formVals['f-turn']||5)),lmax=lm==='campaign'?CAMP_MAX:LEN_MAX,len=Math.min(lmax,Math.max(LEN_MIN,+(formVals['f-len']||20)));
     const mb=(m,t)=>`<button role="tab" data-act="lmode" data-m="${m}" aria-pressed="${lm===m}" aria-selected="${lm===m}">${t}</button>`;
+    const lenSeg=`<div class="field lenfield"><label>Length</label><div class="seg lens" role="group" aria-label="Game length">${['std','long','xl'].map(l=>`<button data-act="llen" data-l="${l}" aria-pressed="${lobbyLen===l}">${LEN_NAME[l]}</button>`).join('')}</div><span class="small muted lenhint">First to <b>${LEN_PTS[lobbyLen][1]}</b> points (${LEN_PTS[lobbyLen][0]} with 3 crews)</span></div>`;
     const slider=`<div class="field lenfield"><label for="f-len">${lm==='campaign'?'Days':'Turns'} <span class="small muted">${LEN_MIN}–${lmax}</span> <output id="f-len-out" class="lenout">${len}</output></label><input id="f-len" type="range" min="${LEN_MIN}" max="${lmax}" step="5" value="${len}" aria-valuetext="${len} ${lm==='campaign'?'days':'turns'}"></div>`;
-    return `<div class="panel"><div class="seg modes" role="tablist" aria-label="Type">${mb('game','Game')}${mb('campaign','Campaign')}${mb('lcs','Last Crew Standing')}</div>
+    return `<div class="panel"><div class="seg modes" role="tablist" aria-label="Type">${mb('game','Game')}${mb('lcs','Last Crew Standing')}</div>
       <div class="field">${charSelect(pickChar,{},'pick-char')}</div>
-      ${gm?`<div class="row"><div class="field"><label for="f-turn">Time per turn</label><select id="f-turn">${TURN_OPTS.filter(m=>lm==='lcs'||m<1440).map(m=>`<option value="${m}" ${m===tsel?'selected':''}>${fmtTurn(m)}</option>`).join('')}</select></div>${lm==='lcs'?'<p class="small muted lcsnote">No turn limit.<br>Last crew left wins.</p>':lm==='game'?slider:''}</div>`
+      ${gm?`<div class="row"><div class="field"><label for="f-turn">Time per turn</label><select id="f-turn">${TURN_OPTS.filter(m=>lm==='lcs'||m<1440).map(m=>`<option value="${m}" ${m===tsel?'selected':''}>${fmtTurn(m)}</option>`).join('')}</select></div>${lm==='lcs'?'<p class="small muted lcsnote">No turn limit.<br>Last crew left wins.</p>':lm==='game'?lenSeg:''}</div>`
       :`<div class="row"><div class="field"><label for="f-time">Days end at</label><input id="f-time" type="time" value="${esc(formVals['f-time']||'20:00')}"></div>${slider}</div>`}
       <div class="row createrow"><button class="btn primary" data-act="create" ${me&&canWrite?'':'disabled'}>Open the ${lm==='campaign'?'campaign':'game'} lobby</button><button class="newstog ${lobbyNews?'on':''}" data-act="lnews" data-v="${lobbyNews?0:1}" aria-pressed="${lobbyNews}" title="A block-wide event every 5 turns">Market days: <b>${lobbyNews?'On':'Off'}</b></button></div>
       ${me?'':'<p class="small muted">Connecting…</p>'}</div>`+how;
@@ -1856,10 +1894,10 @@ function lobbyView(){
   const ids=seatOrder(st),joined=!!st.players[realMe],host=st.hostId===realMe;
   let h=`<div class="panel"><span class="eyebrow">Lobby · ${ids.length}/6 crews</span><h2>Waiting for crews</h2>
     <div class="legend">${ids.map((u,k)=>{const cm=charMapFor(st.players)[u];return `<span>${avatar(cm,CHAR_BY[cm]?.color,26)}${esc(st.players[u].name)}${cm?` <span class="muted">“${CHAR_BY[cm].nick}”</span>`:''}${u===st.hostId?' (host)':''}${st.players[u].ctrl?' (test)':''}${st.players[u].bot?' (computer)':''}${u===realMe?' (you)':''}</span>`}).join('')}</div>
-    <p class="small muted">${st.news===false?'Market days off · ':''}${st.mode==='game'?`${st.lcs||!st.maxDays?'Last Crew Standing':'Game'} · ${fmtTurn(Math.round((st.turnMs||300000)/60000))} per turn, recap included${st.maxDays?` · ${st.maxDays} turns`:' · until one crew is left'}.`:`Campaign · days end at ${esc(st.resolveLabel||'the daily deadline')} host time${st.maxDays?`, for ${st.maxDays} days`:', until one crew is left'}.`}</p>`;
+    <p class="small muted">${st.news===false?'Market days off · ':''}${st.mode==='game'?`${st.lcs||!st.maxDays?'Last Crew Standing':'Game'} · ${fmtTurn(Math.round((st.turnMs||300000)/60000))} per turn, recap included${st.lenSet?` · ${LEN_NAME[st.lenSet]}: first to ${targetFor(st.lenSet,Object.keys(st.players).length)} points`:st.maxDays?` · ${st.maxDays} turns`:' · until one crew is left'}.`:`Campaign · days end at ${esc(st.resolveLabel||'the daily deadline')} host time${st.maxDays?`, for ${st.maxDays} days`:', until one crew is left'}.`}</p>`;
   if(joined&&iPlayLobby())h+=lobbyPick?`<div class="field">${charSelect(charMapFor(st.players)[realMe],takenByOthers(realMe),'set-char')}<button class="linkbtn" data-act="lobby-pick">Done</button></div>`:`<div class="row"><button class="linkbtn" data-act="lobby-pick">Change your character</button></div>`;
   if(!joined&&me){const tk=takenByOthers(null);if(!pickChar||tk[pickChar])pickChar=(CHARS.find(c=>!tk[c.id])||CHARS[0]).id;
-    h+=ids.length>=6?`<p>This lobby is full.</p>`:`<div class="field"><label>Pick your character</label>${charSelect(pickChar,tk,'pick-char')}</div><div class="row"><button class="btn primary" data-act="join" ${canWrite?'':'disabled'}>Join the campaign</button></div>`}
+    h+=ids.length>=6?`<p>This lobby is full.</p>`:`<div class="field"><label>Pick your character</label>${charSelect(pickChar,tk,'pick-char')}</div><div class="row"><button class="btn primary" data-act="join" ${canWrite?'':'disabled'}>Join the game</button></div>`}
   if(host)h+=`<div class="row"><button class="btn" data-act="add-bot" ${ids.length<6&&canWrite?'':'disabled'}>Add a computer crew</button><button class="btn" data-act="add-test" ${ids.length<6&&canWrite?'':'disabled'}>Add a crew you play</button></div><div class="lvlrow"><span class="small"><b>Computer skill</b></span><div class="seg" role="group" aria-label="Computer skill">${['easy','normal','hard'].map(l=>`<button data-act="bot-lvl" data-l="${l}" aria-pressed="${(st.botLevel||'normal')===l}">${l[0].toUpperCase()+l.slice(1)}</button>`).join('')}</div></div><p class="small muted">Computer crews write their own orders every day. Crews you play show up in your Playing as menu.</p><div class="row"><button class="btn primary" data-act="start" ${ids.length>=2?'':'disabled'}>Start the game</button><button class="btn" data-act="reset">Cancel lobby</button></div>${resetConfirm()}${ids.length<2?'<p class="small muted">Need at least 2 crews. Send friends your invite link so they can join.</p>':''}`;
   else if(joined)h+=`<p class="small muted">You're in. The host starts the game once everyone has joined.</p>`;
   return h+`</div>`+how;
@@ -2217,7 +2255,7 @@ const SV=(inner,vb='0 0 320 190')=>`<svg viewBox="${vb}" class="rsvg" aria-hidde
 function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=RCOL[5];
   return [
   {t:'Run the block',art:SV(rRoads(320,190,[70,160,250],[60,140])+[[48,38,O,4],[92,38,O,6],[48,82,O,3],[92,82,O,5],[138,38,O,2],[182,38,T,3],[138,82,O,4],[182,82,P,2],[228,38,O,3],[272,38,B,2],[228,82,K,3],[272,82,O,4],[48,118,O,5],[92,118,G,2],[138,162,O,3],[182,118,T,4],[228,162,O,2],[272,118,O,3]].map(([x,y,c,n])=>rDot(x,y,c,n,13)).join('')+rAv('zuri',160,112,64)+`<path d="M138 70 l7 -14 l8 9 l7 -13 l7 13 l8 -9 l7 14z" fill="#f7d538" stroke="#141414" stroke-width="2.5" stroke-linejoin="round"/>`),
-   b:`<p>Crews of kids sell lemonade from street corners. Take more corners, earn more cash, build a bigger crew.</p><p><strong>Win:</strong> be the last crew with corners, or hold the most when the last day or turn ends. <strong>Tied on corners?</strong> The crew with the most kids on the street wins.</p>`},
+   b:`<p>Crews of kids sell lemonade from street corners. Take more corners, earn more cash, build a bigger crew.</p><p><strong>Win:</strong> be the first crew to reach the target score at the end of a night. <strong>Points:</strong> 1 for every corner, +2 for each full intersection, +3 for each block, and +2 for <strong>Biggest Crew</strong> (the most kids on the street). Only your own corners count, so allies share fight bonuses, not points.</p><p>If two crews pass the target on the same night, the higher score wins, then the most kids. In <strong>Last Crew Standing</strong>, the last crew with corners wins.</p>`},
   {t:'The board',art:SV(rRoads(320,190,[160],[95])+rSign(160,16,'Artisanal Ave',104)+rSign(48,95,'1st St',60)+rDot(124,60,O,5,17)+rDot(196,60,T,3,17)+rDot(124,130,O,2,17)+rDot(196,130,'#fff',' ',17).replace('fill="#fff"','fill="#fff" stroke-dasharray="4 3"')
      +`<text x="96" y="40" class="rlab">NW</text><text x="224" y="40" class="rlab">NE</text><text x="96" y="160" class="rlab">SW</text><text x="224" y="160" class="rlab">SE</text>`
      +`<path d="M146 60 C190 30 250 26 280 40" stroke="#141414" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`),
@@ -2247,9 +2285,9 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
    b:`<p>Once per turn you can move recruits from one of your corners to another. Moves happen <strong>after</strong> the fighting, and one recruit always stays behind.</p>`},
   {t:'The crew bosses',art:`<div class="rcast">${CHARS.map(c=>`<div>${avatar(c.id,c.color,54)}<b>${c.name}</b><small>“${c.nick}”</small></div>`).join('')}</div>`,
    b:`<p>Pick a kid to lead your crew. Each kid leads one crew per game. They're just for looks and don't change the rules.</p>`},
-  {t:'Games and campaigns',art:SV(`<g transform="translate(80,92)"><circle r="52" fill="#fff" stroke="#141414" stroke-width="4"/><rect x="-8" y="-66" width="16" height="12" rx="3" fill="#141414"/><path d="M0 0 L0 -36 M0 0 L24 12" stroke="#d9412b" stroke-width="5" stroke-linecap="round"/><circle r="5" fill="#141414"/></g><text x="80" y="176" class="rcap">Game: 1 min to 12 hrs a turn</text>`
-     +`<g transform="translate(240,92)"><rect x="-50" y="-48" width="100" height="96" rx="12" fill="#fff" stroke="#141414" stroke-width="4"/><rect x="-50" y="-48" width="100" height="26" rx="12" fill="#d9412b"/><rect x="-50" y="-30" width="100" height="8" fill="#d9412b"/><text x="0" y="22" class="rbig">1</text><path d="M-28 -56 v14 M28 -56 v14" stroke="#141414" stroke-width="5" stroke-linecap="round"/></g><text x="240" y="176" class="rcap">Campaign: 1 turn a day</text>`),
-   b:`<p><strong>Game:</strong> a turn timer from 1 minute to 12 hours, ${LEN_MIN} to ${LEN_MAX} turns. <strong>Campaign:</strong> one turn a day at the host's deadline, up to ${CAMP_MAX} days. <strong>Last Crew Standing:</strong> no turn limit.</p><p>A turn ends early once every crew sends orders.</p>`},
+  {t:'Ways to play',art:SV(`<g transform="translate(80,92)"><circle r="52" fill="#fff" stroke="#141414" stroke-width="4"/><rect x="-8" y="-66" width="16" height="12" rx="3" fill="#141414"/><path d="M0 0 L0 -36 M0 0 L24 12" stroke="#d9412b" stroke-width="5" stroke-linecap="round"/><circle r="5" fill="#141414"/></g><text x="80" y="176" class="rcap">Game: first to the target</text>`
+     +`<g transform="translate(240,92)"><rect x="-50" y="-48" width="100" height="96" rx="12" fill="#fff" stroke="#141414" stroke-width="4"/><rect x="-50" y="-48" width="100" height="26" rx="12" fill="#d9412b"/><rect x="-50" y="-30" width="100" height="8" fill="#d9412b"/><text x="0" y="22" class="rbig">1</text><path d="M-28 -56 v14 M28 -56 v14" stroke="#141414" stroke-width="5" stroke-linecap="round"/></g><text x="240" y="176" class="rcap">Last Crew Standing</text>`),
+   b:`<p><strong>Game:</strong> first to the target score wins. <strong>Standard</strong> is first to ${LEN_PTS.std[1]}, <strong>Long</strong> ${LEN_PTS.long[1]}, <strong>XL</strong> ${LEN_PTS.xl[1]} (${LEN_PTS.std[0]}, ${LEN_PTS.long[0]} and ${LEN_PTS.xl[0]} with 3 crews). If nobody gets there by turn ${LEN_BACKSTOP.std} (${LEN_BACKSTOP.xl} for XL), the top score wins.</p><p><strong>Last Crew Standing:</strong> no target, no turn limit. Last crew with corners wins.</p><p>Turns can run from 1 minute to 12 hours, and a turn ends early once every crew sends orders.</p>`},
   {t:'Dirty tricks',art:`<div class="rnews">${Object.keys(TRICKS).map(k=>`<div><span class="ni k-${k}">${TRICK_ICON[k]}</span><b>${TRICKS[k].n} · ${priceTag(k)}</b><small>${TRICKS[k].b}</small></div>`).join('')}</div>`,
    b:`<p>Buy one trick per turn in the <strong>Shop</strong>'s Tricks tab, then tap the map to aim it. It hits that same turn. <strong>Each trick once per game</strong> (in Last Crew Standing, it recharges ${TRICK_RECHARGE} turns after use).</p><p>Everyone sees who did it in the recap, so expect payback.</p>`},
   {t:'Market days',art:`<div class="rnews">${Object.keys(STREET).map(k=>`<div><span class="ni k-${k}">${STREET_ICON[k]}</span><b>${STREET[k].n}</b><small>${STREET[k].b}</small></div>`).join('')}</div>`,
@@ -2296,6 +2334,7 @@ function ordersView(){
 }
 // Loading-screen style showcase while setting up: the bosses in this game, alternating with quick tips. Changes every few seconds; tap for the next one.
 const SHOW_TIPS=[
+  ['Points','First to the target wins: 1 point per corner, +2 for a full intersection, +3 for a block, +2 for the biggest crew.'],
   ['Sales','Every turn you roll for sales and earn that much from each corner you hold. More corners, more cash.'],
   ['Intersections','Hold all four corners where two streets cross and you get +1 on every fight there.'],
   ['Blocks','Own corners on all four sides of a block for a +3 bonus. Rivals will want to break it up.'],
@@ -2319,6 +2358,22 @@ function showcase(){const it=showItems(),n=it.length,k=((Math.floor(Date.now()/6
   return `<div id="showcase"><button class="showcase" data-act="show-next" aria-label="Next: crews and tips">${body}<span class="sc-dots" aria-hidden="true">${it.map((_,i)=>`<i class="${i===k?'on':''}"></i>`).join('')}</span></button>`+
     `<div class="sc-line"><span class="eyebrow">In this game</span><div class="sc-row" style="grid-template-columns:repeat(${Object.keys(st.players).length===4?2:Math.min(3,Object.keys(st.players).length)},1fr)">${Object.keys(st.players).map(u=>st.players[u]).sort((a,b)=>(a.seat||0)-(b.seat||0)).map(p=>{const c=CHAR_BY[p.char]||CHARS[0];return `<div class="sc-mini ${p===myP()?'me':''}" style="--c:${esc(p.color)}">${avatar(c.id,p.color,46)}<b>${esc(c.nick)}</b><small>${p===myP()?'You':p.bot||p.cpu?'Computer':esc(c.name)}</small></div>`}).join('')}</div></div></div>`}
 setInterval(()=>{const el=document.getElementById('showcase');if(!el||document.hidden)return;const k=Math.floor(Date.now()/6000);if(k===showAt)return;showAt=k;const tmp=document.createElement('div');tmp.innerHTML=showcase();const nw=tmp.firstElementChild;el.replaceWith(nw);const b=nw.querySelector('.showcase');if(b)b.classList.add('in')},500);
+// Points race: a slim bar of every crew's score against the target; tap for the breakdown.
+let scoreOpen=false;
+function scoreBar(){if(!st||!st.target||st.status==='over')return'';const P=ptsOf(st),ids=Object.keys(P).sort((a,b)=>P[b].total-P[a].total||soldiersOf(st,b)-soldiersOf(st,a));
+  const chip=u=>{const x=P[u],near=x.total>=st.target-NEAR_WIN;return `<span class="sb-c ${u===me?'me':''} ${near?'near':''}" style="--c:${esc(crewColor(u))}">${avatar(charOf(u),crewColor(u),20)}<b>${x.total}</b></span>`};
+  const rows=ids.map(u=>{const x=P[u];return `<tr class="${u===me?'me':''}"><td><span class="sb-dot" style="background:${esc(crewColor(u))}"></span>${esc(st.players[u].name)}</td><td>${x.corners}</td><td>${x.inters?'+'+2*x.inters:'–'}</td><td>${x.blocks?'+'+3*x.blocks:'–'}</td><td>${x.big?'+2':'–'}</td><td><b>${x.total}</b></td></tr>`}).join('');
+  return `<div class="scorebar"><button class="sb-row" data-act="score-open" aria-expanded="${scoreOpen}" aria-label="Scores: first to ${st.target} points. Tap for the breakdown."><span class="sb-goal">First to <b>${st.target}</b></span><span class="sb-chips">${ids.map(chip).join('')}</span><span class="sb-more" aria-hidden="true">${scoreOpen?'▴':'▾'}</span></button>
+    ${scoreOpen?`<div class="sb-pop"><table><thead><tr><th>Crew</th><th>Corners</th><th>Inter­sections</th><th>Blocks</th><th>Biggest crew</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table><p class="small muted">1 point per corner, +2 for each full intersection, +3 for each block, +2 for the most kids on the street. Only your own corners count. First to ${st.target} at the end of a night wins.</p></div>`:''}</div>`}
+// One big stamp the first time a crew gets close (per device), then its corners just pulse.
+let nearAt=0,nearKey='';
+function nearStamp(){if(!st||!st.target||!planningNow()||mkStamp()||mkSoon())return'';{const mp=myP();if(mp&&mp.loan&&!dadSeen())return''}
+  const P=ptsOf(st),u=Object.keys(P).filter(x=>P[x].total>=st.target-NEAR_WIN).sort((a,b)=>P[b].total-P[a].total)[0];if(!u)return'';
+  const key=st.gameId+':near:'+u;let seen=false;try{seen=localStorage.getItem('sc-'+key)==='1'}catch(x){seen=nearKey===key&&!nearAt}
+  if(seen&&!(nearKey===key&&nearAt))return'';
+  if(nearKey!==key){nearKey=key;nearAt=Date.now();try{localStorage.setItem('sc-'+key,'1')}catch(x){}setTimeout(()=>sfx('stamp'),60);setTimeout(()=>{nearAt=0;render()},2900)}
+  const el=Date.now()-nearAt;if(!nearAt||el>2800)return'';const left=st.target-P[u].total;
+  return `<div class="bigstamp market soon near" style="animation-delay:-${el}ms;--c:${esc(crewColor(u))}" role="status"><span class="mk-ic">🏁</span><span class="mk-t">${u===me?'YOU’RE':esc(st.players[u].name).toUpperCase()+' IS'} ${left>0?left+' POINT'+(left>1?'S':'')+' FROM WINNING!':'AT THE FINISH LINE!'}<small>First to ${st.target} at the end of a night wins.</small></span></div>`}
 function placePanel(){
   ensureDraft();const left=START_SOLDIERS-placedCount(),sent=hasOrder(me);
   return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><div><span class="bigcount ${left?'':'ok'}">${left}</span> <span class="muted small">of ${START_SOLDIERS} to place</span></div>
@@ -2406,7 +2461,7 @@ function applyZoomUi(){const z=document.querySelector('.zoomctl');if(z)z.classLi
 function pokeZoom(){zoomUiUntil=Date.now()+2800;applyZoomUi();clearTimeout(zoomT);zoomT=setTimeout(applyZoomUi,2850)}
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('.stage .rp-board'))pokeZoom()},true);
 document.addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.stage .rp-board'))pokeZoom()},{capture:true,passive:true});
-let lobbyMode='game',lobbyNews=true;
+let lobbyMode='game',lobbyNews=true,lobbyLen='std';
 let navOpen=false,lastAsp=null,lobbyPick=false;
 function setTab(t){if(t==='rules'&&tab!=='rules'){rMode='quick';rIdx=0}navOpen=false;notice="";if(replay&&t!=='board'){clearT();if(replay.live){replay=null}else replay=null}tab=t;try{localStorage.setItem('sc-tab',t)}catch(e){}render();window.scrollTo(0,0)}
 function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corners[y].s-st.corners[x].s);const others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me);
@@ -2422,7 +2477,7 @@ setInterval(shakeTree,3200);
 function maxView(W,H,asp){return Math.max(H*1.04,W*1.06/asp)}
 function maxVH(svg){const {W,H}=boardDims,a=svg.clientWidth&&svg.clientHeight?svg.clientHeight/svg.clientWidth:1;return maxView(W,H,1/a)}
 function upp(svg,v){return Math.max(v.w/svg.clientWidth,v.h/svg.clientHeight)}
-function chartHover(e){const box=e.target.closest&&e.target.closest('.chartbox');if(!box||!st||!st.hist)return;const svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),H=st.hist,n=H.length,W=320,L=26,R=40;
+function chartHover(e){const box=e.target.closest&&e.target.closest('.chartbox');if(!box||!st||!st.hist)return;const svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),H=st.hist.map(h=>st.target&&h.p?{d:h.d,c:h.p}:h),n=H.length,W=320,L=26,R=40;
   const sx=(e.clientX-r.left)*W/r.width,i=Math.max(0,Math.min(n-1,Math.round((sx-L)/((W-L-R)/(n-1))))),cx=L+(W-L-R)*i/(n-1),cr=box.querySelector('.cross'),tip=box.querySelector('.ctip');
   cr.setAttribute('x1',cx);cr.setAttribute('x2',cx);cr.style.display='';const h=H[i];
   tip.innerHTML=`<b>${h.d===0?'Setup':DW()+' '+h.d}</b>`+seatOrder(st).slice().sort((a,b)=>(h.c[b]||0)-(h.c[a]||0)).map(u=>`<span><i style="background:${esc(crewColor(u))}"></i>${esc(CHAR_BY[charOf(u)]?.name||'?')}<em>${h.c[u]||0}</em></span>`).join('');
@@ -2451,6 +2506,7 @@ document.addEventListener('click',async e=>{
   if(act==='rtopic'){rMode='all';rIdx=+el.dataset.i;rAt=Date.now();rDir=1;return render()}
   if(act==='rgo'){const i=+el.dataset.i;if(i===rIdx)return;rDir=i>rIdx?1:-1;rIdx=i;rAt=Date.now();return render()}
   if(act==='lmode'){lobbyMode=el.dataset.m;return render()}
+  if(act==='llen'){lobbyLen=el.dataset.l;return render()}
   if(act==='lnews'){lobbyNews=el.dataset.v==='1';return render()}
   if(act==='news-t'){const on=st.news!==false;return save(()=>stateRef.update({news:!on}))}
   if(act==='lobby-pick'){lobbyPick=!lobbyPick;csIdx=null;csAt=0;return render()}
@@ -2507,9 +2563,9 @@ document.addEventListener('click',async e=>{
   if(act==='pl-clear'){ensureDraft();draft.place={};dirty=true;return render()}
   if(act==='create'){const name=CHAR_BY[pickChar].name+"'s Crew";
     const gm=lobbyMode!=='campaign',turnMin=gm?Math.max(1,Math.min(lobbyMode==='lcs'?1440:720,parseInt((document.getElementById('f-turn')||{}).value,10)||5)):0;const tv=(document.getElementById('f-time')||{}).value||'20:00',[hh,mm]=tv.split(':').map(Number),min=hh*60+mm;
-    const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||20)/5)*5));
+    const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:lobbyMode==='game'?LEN_BACKSTOP[lobbyLen]:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||20)/5)*5));
     const lab=new Date(2000,0,1,hh,mm).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
-    return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
+    return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',lenSet:lobbyMode==='game'?lobbyLen:null,news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='join'){const name=CHAR_BY[pickChar].name+"'s Crew";
     return save(()=>stateRef.update({players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='pick-char'){pickChar=el.dataset.c;return render()}
@@ -2522,7 +2578,7 @@ document.addEventListener('click',async e=>{
   if(act==='start'){const ids=seatOrder(st).slice(0,6),{rows,cols}=layoutFor(ids.length),total=rows*cols*4,rng=rngFrom(hash(st.gameId+':deal'));
     const corners=dealCorners(ids,total,rng);
     const cmap=charMapFor(st.players);const players={};ids.forEach((u,n)=>players[u]={name:st.players[u].name,char:cmap[u]||null,ctrl:st.players[u].ctrl||null,bot:!!st.players[u].bot,style:st.players[u].style||null,seat:n,color:(CHAR_BY[cmap[u]]||{}).color||CREW_COLORS[n],cash:100,weapon:0,sugar:0,whip:0,rep:0,alive:true});
-    const ns=Object.assign({},st,{status:'setup',day:0,rows,cols,corners,players,log:[],nextResolveAt:st.mode==='game'?Date.now()+(st.turnMs||300000):firstDeadline(st.resolveMin??1200)});
+    const ns=Object.assign({},st,{status:'setup',day:0,rows,cols,corners,players,log:[],target:st.lenSet?targetFor(st.lenSet,ids.length):null,nextResolveAt:st.mode==='game'?Date.now()+(st.turnMs||300000):firstDeadline(st.resolveMin??1200)});
     return save(()=>stateRef.set(ns))}
   if(act==='reset'){confirmReset=true;return render()}
   if(act==='intro-done'){introSeen=true;try{localStorage.setItem('sc-intro','1')}catch(e){}return render()}
@@ -2562,6 +2618,7 @@ document.addEventListener('click',async e=>{
   if(act==='bot-lvl'){const l=el.dataset.l;return save(()=>stateRef.update({botLevel:l}))}
   if(act==='pause'){if(!st||st.hostId!==realMe)return;return save(()=>st.paused?stateRef.update({paused:false,pauseLeft:null,nextResolveAt:Date.now()+Math.max(5000,st.pauseLeft||st.turnMs||300000)}):stateRef.update({paused:true,pauseLeft:Math.max(0,st.nextResolveAt-Date.now())}))}
   if(act==='show-next'){showOff++;const el=document.getElementById('showcase');if(el){const tmp=document.createElement('div');tmp.innerHTML=showcase();const nw=tmp.firstElementChild;el.replaceWith(nw);const b=nw.querySelector('.showcase');if(b)b.classList.add('in')}return}
+  if(act==='score-open'){scoreOpen=!scoreOpen;return render()}
   if(act==='vm'){vm=el.dataset.v;try{localStorage.setItem('sc-vm',vm)}catch(e){}if(pv){const {W,H}=boardDims;pv.vh=1e6;pv.cx=W/2;pv.cy=H/2}return render()}
   if(act==='mk-hide'){mkHide(el.dataset.k);return render()}
   if(act==='ally-propose'){const u=el.dataset.u;if(!canAlly(st,me,u))return render();notice=`Alliance offer sent to ${st.players[u].name}. They answer on their turn.`;return save(()=>stateRef.update({players:{[u]:{offers:{[me]:st.day}}}}))}
