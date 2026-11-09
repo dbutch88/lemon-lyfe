@@ -507,6 +507,8 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .sb-c{display:flex;align-items:center;gap:3px;flex:none;padding:1px 6px 1px 2px;border-radius:999px;border:1px solid transparent}.sb-c b{font-size:13px}
 .sb-c.me{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
 .sb-c.near{animation:nearPulse 1.4s ease-in-out infinite;border-color:var(--c)}
+.sb-al{display:inline-flex;align-items:center;margin-left:1px;padding:1px;border-radius:999px;border:2px dashed var(--p)}.sb-al .allyic{width:13px;height:13px}.sb-al.soon{opacity:.45}
+.sb-allies{list-style:none;margin:10px 0 0;padding:0;font-size:12.5px}.sb-allies li{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:3px 0}.sb-allies .allyic{width:16px;height:16px;margin-right:2px}
 .sb-more{flex:none;font-size:12px;color:var(--muted)}
 .sb-pop{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px;max-height:60vh;overflow:auto}
 .sb-pop table{width:100%;border-collapse:collapse;font-size:12px}.sb-pop th{font-weight:700;color:var(--muted);text-align:right;padding:3px 4px;font-size:10.5px}.sb-pop th:first-child,.sb-pop td:first-child{text-align:left}
@@ -773,6 +775,7 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 .bchip{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--lemon);color:var(--lemon-ink);white-space:nowrap}
 .bchip.blk{background:#2f6fb2;color:#fff}
 .bchip.int{background:#2c8a4f;color:#fff}
+.bchip.ally{background:#f7d538;color:#141414;display:inline-flex;align-items:center;gap:3px}.bchip.ally .allyic{width:14px;height:14px}
 .bchip.none{background:var(--bg);color:var(--muted);font-weight:400}
 .roundmsg{font-weight:700}
 .odds{display:flex;justify-content:space-between;gap:8px;font-size:14px;border-top:1px dashed var(--line);padding-top:8px}
@@ -888,10 +891,14 @@ function blockList(s,u){const wins=[];for(let r=0;r<s.rows-1;r++)for(let c=0;c<s
     if(ch.every(x=>Math.abs(x[0]-w[0])>=2||Math.abs(x[1]-w[1])>=2))go(i+1,[...ch,w]);go(i+1,ch)};go(0,[]);return best}
 function fullInters(s,u){let n=0;for(let it=0;it<s.rows*s.cols;it++)if(interFull(s,it*4)&&[0,1,2,3].some(q=>s.corners[it*4+q].o===u))n++;return n}
 const saltyLeft=(s,u)=>{const p=s.players[u];return p&&p.salty!=null&&p.salty>=s.day?p.salty-s.day+1:0};
-function bonusParts(s,u,corner,defending,repLvl){const p=s.players[u],rep=TIERS.rep[repLvl??p.rep].b,block=3*blockCount(s,u),inter=defending&&corner!=null&&interFull(s,corner)?1:0,salt=saltyLeft(s,u)?-1:0;return{rep,block,inter,salt,total:rep+block+inter+salt}}
+function bonusParts(s,u,corner,defending,repLvl){const p=s.players[u],rep=TIERS.rep[repLvl??p.rep].b,block=3*blockCount(s,u),inter=defending&&corner!=null&&interFull(s,corner)?1:0,salt=saltyLeft(s,u)?-1:0;
+  let ab=0,ai=0;if((block||inter)&&activeAlly(s,u)){const so=soloView(s,u);ab=block-3*blockCount(so,u);ai=inter&&!interFull(so,corner)?1:0}
+  return{rep,block,inter,salt,ab,ai,total:rep+block+inter+salt}}
+// The same state with u's alliance switched off: what u would have alone.
+function soloView(s,u){const v=s.players[u].ally,P=Object.assign({},s.players,{[u]:Object.assign({},s.players[u],{ally:null})});if(v&&P[v])P[v]=Object.assign({},P[v],{ally:null});return Object.assign({},s,{players:P})}
 function bonusChips(bk,total){
   if(!bk)return total?`<span class="bchip ${total<0?'neg':''}">Bonus ${fmtB(total)}</span>`:'<span class="bchip none">No bonus</span>';
-  const out=[];if(bk.rep)out.push(`<span class="bchip ${bk.rep<0?'neg':''}">${bk.rep<0?esc(TIERS.rep[bk.rep]?.n||'Rep')+' '+fmtB(bk.rep):'Rep +'+bk.rep}</span>`);if(bk.block)out.push(`<span class="bchip blk">Block${bk.block>3?'s':''} +${bk.block}</span>`);if(bk.inter)out.push(`<span class="bchip int">Intersection +${bk.inter}</span>`);if(bk.salt)out.push(`<span class="bchip salt">🧂 Salty ${fmtB(bk.salt)}</span>`);
+  const out=[];if(bk.rep)out.push(`<span class="bchip ${bk.rep<0?'neg':''}">${bk.rep<0?esc(TIERS.rep[bk.rep]?.n||'Rep')+' '+fmtB(bk.rep):'Rep +'+bk.rep}</span>`);{const ab=bk.ab|0,ob=bk.block-ab;if(ob)out.push(`<span class="bchip blk">Block${ob>3?'s':''} +${ob}</span>`);if(ab)out.push(`<span class="bchip ally">${ALLY_SVG}Ally block${ab>3?'s':''} +${ab}</span>`)}if(bk.inter)out.push(bk.ai?`<span class="bchip ally">${ALLY_SVG}Ally intersection +1</span>`:`<span class="bchip int">Intersection +${bk.inter}</span>`);if(bk.salt)out.push(`<span class="bchip salt">🧂 Salty ${fmtB(bk.salt)}</span>`);
   return out.join('')||'<span class="bchip none">No bonus</span>'}
 function roundOdds(aD,aB,dD,dB,dTies){let w=0,l=0;for(let x=1;x<=aD;x++)for(let y=1;y<=dD;y++){if(x+aB>y+dB)w++;else if(x+aB<y+dB||dTies)l++}return w+l?w/(w+l):.5}
 function blockCount(s,u){return blockList(s,u).length}
@@ -1627,13 +1634,28 @@ function boardSVG(){
   {const e=replay?(ev&&ev.t==='trick'&&ev.it!=null?ev:null):null;if(e&&e.it!=null&&(e.k==='party'||e.k==='truck'||e.k==='stink')){const [x,y]=itXY(e.it),hs=off+24,col=e.k==='party'?'#e07b12':e.k==='stink'?'#6b8e23':'#3a86c8';
     under+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="14" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-width="2.5" stroke-dasharray="6 4"/>`;
     over+=`<g class="blabel"><rect x="${x-34}" y="${y-hs-9}" width="68" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y-hs}">${e.k==='party'?'PARTY ×3':e.k==='stink'?'NO SALES':'NO ATTACKS'}</text></g>`}}
-  {const SB={corners:B,rows:R0,cols:C0};
-    for(let it=0;it<rows*cols;it++){const i0=it*4;if(B[i0].o&&interFull(SB,i0)){const col=esc(crewColor(B[i0].o)),[x,y]=itXY(it),hs=off+19;
-      under+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="12" fill="${col}" fill-opacity=".22" stroke="${col}" stroke-opacity=".8" stroke-width="2"/>`;
-      over+=`<g class="ibadge"><circle cx="${x}" cy="${y}" r="9.5" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y}">+1</text></g>`}}
-    [...new Set(B.map(c=>c.o).filter(Boolean))].forEach(o=>blockList(SB,o).forEach(([r0,c0])=>{const r=TR?c0:r0,c=TR?r0:c0,col=esc(crewColor(o)),x1=X(c)-off-20,y1=Y(r)-off-20,x2=X(c+1)+off+20,y2=Y(r+1)+off+20,cx=(x1+x2)/2;
-      under+=`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" rx="16" fill="${col}" fill-opacity=".08" stroke="${col}" stroke-width="3" stroke-dasharray="9 5"/>`;
-      over+=`<g class="blabel"><rect x="${cx-31}" y="${y1-9}" width="62" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${cx}" y="${y1}">BLOCK +3</text></g>`}))}
+  {const SB={corners:B,rows:R0,cols:C0,players:st.players,day:replay?st.day-1:st.day};
+    // Two-crew (alliance) zones get a split fill and alternating dashes in both colours.
+    let gid=0;const split=(a,b)=>{const id='ag'+(gid++);under+=`<defs><linearGradient id="${id}" x1="0" x2="1" y1="0" y2="0"><stop offset="50%" stop-color="${a}"/><stop offset="50%" stop-color="${b}"/></linearGradient></defs>`;return `url(#${id})`};
+    const twoDash=(x,y,w,h,rx,a,b,sw,d)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="none" stroke="${a}" stroke-width="${sw}" stroke-dasharray="${d} ${d}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="none" stroke="${b}" stroke-width="${sw}" stroke-dasharray="${d} ${d}" stroke-dashoffset="${d}"/>`;
+    const crewsIn=is=>[...new Set(is.map(i=>B[i].o).filter(Boolean))].sort();
+    for(let it=0;it<rows*cols;it++){const i0=it*4;if(B[i0].o&&interFull(SB,i0)){const cs=crewsIn([0,1,2,3].map(q=>i0+q)),[x,y]=itXY(it),hs=off+19;
+      if(cs.length<2){const col=esc(crewColor(cs[0]));
+        under+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="12" fill="${col}" fill-opacity=".22" stroke="${col}" stroke-opacity=".8" stroke-width="2"/>`;
+        over+=`<g class="ibadge"><circle cx="${x}" cy="${y}" r="9.5" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y}">+1</text></g>`}
+      else{const a=esc(crewColor(cs[0])),b=esc(crewColor(cs[1])),f=split(a,b);
+        under+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="12" fill="${f}" fill-opacity=".2"/>`+twoDash(x-hs,y-hs,hs*2,hs*2,12,a,b,2.6,6);
+        over+=`<g class="ibadge ally"><circle cx="${x}" cy="${y}" r="9.5" fill="${f}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y}">+1</text></g>`}}}
+    const seenB=new Set();
+    [...new Set(B.map(c=>c.o).filter(Boolean))].forEach(o=>blockList(SB,o).forEach(([r0,c0])=>{const k=r0+','+c0;if(seenB.has(k))return;seenB.add(k);
+      const is=[];for(let dr=0;dr<2;dr++)for(let dc=0;dc<2;dc++)for(let q=0;q<4;q++)is.push(((r0+dr)*C0+(c0+dc))*4+q);const cs=crewsIn(is);
+      const r=TR?c0:r0,c=TR?r0:c0,x1=X(c)-off-20,y1=Y(r)-off-20,x2=X(c+1)+off+20,y2=Y(r+1)+off+20,cx=(x1+x2)/2;
+      if(cs.length<2){const col=esc(crewColor(cs[0]||o));
+        under+=`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" rx="16" fill="${col}" fill-opacity=".08" stroke="${col}" stroke-width="3" stroke-dasharray="9 5"/>`;
+        over+=`<g class="blabel"><rect x="${cx-31}" y="${y1-9}" width="62" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${cx}" y="${y1}">BLOCK +3</text></g>`}
+      else{const a=esc(crewColor(cs[0])),b=esc(crewColor(cs[1])),f=split(a,b);
+        under+=`<rect x="${x1}" y="${y1}" width="${x2-x1}" height="${y2-y1}" rx="16" fill="${f}" fill-opacity=".09"/>`+twoDash(x1,y1,x2-x1,y2-y1,16,a,b,3.2,9);
+        over+=`<g class="blabel ally"><rect x="${cx-45}" y="${y1-9}" width="90" height="18" rx="9" fill="${f}" stroke="#fff" stroke-width="1.5"/><text x="${cx}" y="${y1}">ALLY BLOCK +3</text></g>`}}))}
   const planning=isPlanning();if(planning)ensureDraft();
   if(planning){const col=esc(crewColor(me));
     if(dayPhase!=='shop')draft.attacks.forEach((a,k)=>{if(st.corners[a.from]==null||st.corners[a.to]==null)return;const [x1,y1]=pos(a.from),[x2,y2]=pos(a.to),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
@@ -1686,8 +1708,8 @@ function boardSVG(){
   g+=under;
   B.forEach((co,i)=>{const extra=placing&&co.o===me?(draft.place[i]|0):(planning&&co.o===me&&draft.buy.soldiers?recAt(i):0);
     const [cx,cy]=pos(i);
-    const cls=['c',co.o?'':'empty',sel===i?'sel':'',co.o&&co.o===me?'mine':'',extra?'placed':'',co.o&&nearSet&&nearSet.has(co.o)?'nearwin':''].join(' '),isAlly=!!(co.o&&me&&co.o===allyOf(st,me));
-    g+=`<g class="${cls}" data-act="corner" data-i="${i}" role="button" tabindex="0" aria-label="${esc(label(st,i))}${isAlly?' (ally)':''}">${isAlly?`<circle class="allyring" cx="${cx}" cy="${cy}" r="18" stroke="${esc(crewColor(me))}"/>`:''}<circle cx="${cx}" cy="${cy}" r="13" ${co.o?`fill="${esc(crewColor(co.o))}"`:''}/><text x="${cx}" y="${cy}">${co.o?co.s+extra:''}</text></g>`});
+    const cls=['c',co.o?'':'empty',sel===i?'sel':'',co.o&&co.o===me?'mine':'',extra?'placed':'',co.o&&nearSet&&nearSet.has(co.o)?'nearwin':''].join(' '),isAlly=!!(co.o&&me&&co.o===allyOf(st,me)),pal=co.o&&!replay?activeAlly(st,co.o):null;
+    g+=`<g class="${cls}" data-act="corner" data-i="${i}" role="button" tabindex="0" aria-label="${esc(label(st,i))}${isAlly?' (ally)':''}">${pal?`<circle class="allyring" cx="${cx}" cy="${cy}" r="18" style="stroke:${esc(crewColor(pal))}"/>`:isAlly?`<circle class="allyring" cx="${cx}" cy="${cy}" r="18" style="stroke:${esc(crewColor(me))};stroke-opacity:.5"/>`:''}<circle cx="${cx}" cy="${cy}" r="13" ${co.o?`fill="${esc(crewColor(co.o))}"`:''}/><text x="${cx}" y="${cy}">${co.o?co.s+extra:''}</text></g>`});
   if(!replay&&st.status==='active'&&draft&&draft.trick&&iPlay()){const t=draft.trick,col='#7a2bb0';
     if(t.it!=null){const [x,y]=itXY(t.it),hs=off+27;const lx=Math.max(44,Math.min(W-44,x));over+=`<rect x="${x-hs}" y="${y-hs}" width="${hs*2}" height="${hs*2}" rx="15" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="3 5"/><g class="blabel"><rect x="${lx-42}" y="${y+hs-9}" width="84" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="1.5"/><text x="${lx}" y="${y+hs}">YOUR ${TRICKS[t.k].n.toUpperCase().replace('ICE-CREAM ','')}</text></g>`}
     else if(t.v)cornersOf(st,t.v).forEach(i=>{const [x,y]=pos(i);over+=`<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="${col}" stroke-width="2.5" stroke-dasharray="3 3"/>`})}
@@ -2361,10 +2383,14 @@ setInterval(()=>{const el=document.getElementById('showcase');if(!el||document.h
 // Points race: a slim bar of every crew's score against the target; tap for the breakdown.
 let scoreOpen=false;
 function scoreBar(){if(!st||!st.target||st.status==='over')return'';const P=ptsOf(st),ids=Object.keys(P).sort((a,b)=>P[b].total-P[a].total||soldiersOf(st,b)-soldiersOf(st,a));
-  const chip=u=>{const x=P[u],near=x.total>=st.target-NEAR_WIN;return `<span class="sb-c ${u===me?'me':''} ${near?'near':''}" style="--c:${esc(crewColor(u))}">${avatar(charOf(u),crewColor(u),20)}<b>${x.total}</b></span>`};
+  const chip=u=>{const x=P[u],near=x.total>=st.target-NEAR_WIN,v=allyOf(st,u),on=v&&activeAlly(st,u)===v;return `<span class="sb-c ${u===me?'me':''} ${near?'near':''}" style="--c:${esc(crewColor(u))}">${avatar(charOf(u),crewColor(u),20)}<b>${x.total}</b>${v?`<span class="sb-al ${on?'':'soon'}" style="--p:${esc(crewColor(v))}" title="Allied with ${esc(st.players[v].name)}">${ALLY_SVG}</span>`:''}</span>`};
+  const pairs=[];ids.forEach(u=>{const v=allyOf(st,u);if(v&&u<v)pairs.push([u,v])});
+  const allyRows=pairs.map(([u,v])=>{const on=activeAlly(st,u)===v,left=st.players[u].allyUntil-st.day+1,sh=on?soloView(st,u):null;
+    const extra=w=>on?(3*(blockCount(st,w)-blockCount(sh,w))+(fullInters(st,w)-fullInters(sh,w))):0,eb=extra(u)+extra(v);
+    return `<li>${ALLY_SVG}<span class="sb-dot" style="background:${esc(crewColor(u))}"></span><b>${esc(st.players[u].name)}</b> + <span class="sb-dot" style="background:${esc(crewColor(v))}"></span><b>${esc(st.players[v].name)}</b> · ${on?`${left} turn${left>1?'s':''} left${eb?' · sharing bonuses now':''}`:'starts next turn'}</li>`}).join('');
   const rows=ids.map(u=>{const x=P[u];return `<tr class="${u===me?'me':''}"><td><span class="sb-dot" style="background:${esc(crewColor(u))}"></span>${esc(st.players[u].name)}</td><td>${x.corners}</td><td>${x.inters?'+'+2*x.inters:'–'}</td><td>${x.blocks?'+'+3*x.blocks:'–'}</td><td>${x.big?'+2':'–'}</td><td><b>${x.total}</b></td></tr>`}).join('');
   return `<div class="scorebar"><button class="sb-row" data-act="score-open" aria-expanded="${scoreOpen}" aria-label="Scores: first to ${st.target} points. Tap for the breakdown."><span class="sb-goal">First to <b>${st.target}</b></span><span class="sb-chips">${ids.map(chip).join('')}</span><span class="sb-more" aria-hidden="true">${scoreOpen?'▴':'▾'}</span></button>
-    ${scoreOpen?`<div class="sb-pop"><table><thead><tr><th>Crew</th><th>Corners</th><th>Inter­sections</th><th>Blocks</th><th>Biggest crew</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table><p class="small muted">1 point per corner, +2 for each full intersection, +3 for each block, +2 for the most kids on the street. Only your own corners count. First to ${st.target} at the end of a night wins.</p></div>`:''}</div>`}
+    ${scoreOpen?`<div class="sb-pop"><table><thead><tr><th>Crew</th><th>Corners</th><th>Inter­sections</th><th>Blocks</th><th>Biggest crew</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table>${allyRows?`<ul class="sb-allies">${allyRows}</ul><p class="small muted">Allies' corners count together for intersections and blocks, which means fight bonuses (dashed in both colours on the board). They don't add points.</p>`:''}<p class="small muted">1 point per corner, +2 for each full intersection, +3 for each block, +2 for the most kids on the street. Only your own corners count. First to ${st.target} at the end of a night wins.</p></div>`:''}</div>`}
 // One big stamp the first time a crew gets close (per device), then its corners just pulse.
 let nearAt=0,nearKey='';
 function nearStamp(){if(!st||!st.target||!planningNow()||mkStamp()||mkSoon())return'';{const mp=myP();if(mp&&mp.loan&&!dadSeen())return''}
