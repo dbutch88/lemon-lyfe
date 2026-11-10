@@ -170,6 +170,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media (max-width:400px){.brand{font-size:13px;padding:3px 8px 2px 6px;gap:5px}.brand svg{width:15px;height:15px}.brandrow .chip{padding:2px 6px;font-size:11.5px}.menubtn{padding:4px 8px;font-size:12.5px}}
 .brand{flex:none;display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-size:15px;letter-spacing:.02em;background:var(--lemon);color:var(--lemon-ink);padding:4px 11px 3px 8px;border-radius:8px;border:2px solid var(--lemon-ink);box-shadow:2px 2px 0 var(--lemon-ink)}
 .status{font-size:13px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mkchip{display:inline-flex;align-items:center;gap:3px}
+@media (max-width:430px){.brandrow:has(.mkchip) .status{gap:4px}.brandrow:has(.mkchip) .chip{padding:2px 5px}}
+@container (max-height:380px){.bigstamp.market small{display:none!important}}.mkchip .mkn{display:none}
+@media (max-width:430px){.mkchip .mkl{display:none}.mkchip .mkn{display:inline}.brandrow:has(.mkchip):has(.pausebtn) .brand{display:none}}.mkchip .mksvg{width:14px;height:14px}.mkchip.soon{border-color:#e07b12;color:#b55d00;font-weight:600}
+.mkchip.now{background:#e07b12;border-color:#e07b12;color:#fff;font-weight:600}.mkchip.now.k-rain{background:#5b6b7a;border-color:#5b6b7a}.mkchip.now.k-garage{background:#c2185b;border-color:#c2185b}.mkchip.now.k-drive{background:#2c8a4f;border-color:#2c8a4f}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .mkchip.soon{color:#ffb15c}}
 .chip{font-family:var(--mono);font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink);white-space:nowrap}
 .chip.cash{border-color:var(--good);color:var(--good)}
 .chip .of{opacity:.6;font-weight:600}
@@ -578,7 +584,7 @@ nav.tabs .tipsbtn{align-self:flex-start;padding:2px 0;color:var(--accent);font-w
 .stage-sel span{flex:1;min-width:0}
 .adminbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .adminbar.panel{flex-direction:column;align-items:stretch}
-.rp-board{position:relative;flex:1 1 auto;min-height:120px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rp-board{position:relative;flex:1 1 auto;min-height:120px;container-type:size;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .rp-board svg.board{width:100%;height:100%;max-width:100%;display:block}
 .rp-sheet{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.08);padding:10px 12px;display:flex;flex-direction:column;gap:7px}
 .rp-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -671,6 +677,10 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 .mk .ni.k-mystery,.newspill.soon .ni{background:#8c968b}
 .bigstamp.market{flex-direction:row;gap:10px;background:#e07b12;top:38%;font-size:clamp(22px,7.5vw,32px);white-space:normal;max-width:88%}.bigstamp.market.soon{background:#2b2b2b;top:30%}
 .bigstamp.market.k-rain{background:#5b6b7a}.bigstamp.market.k-garage{background:#c2185b}.bigstamp.market.k-drive{background:#2c8a4f}
+.bigstamp{font-size:clamp(15px,min(9cqw,11cqh),40px);padding:min(8px,1.6cqh) min(18px,3.5cqw) min(6px,1.2cqh);border-width:min(4px,.8cqh);box-shadow:min(5px,1cqh) min(5px,1cqh) 0 #141414;max-width:92cqw}
+.bigstamp.trick,.bigstamp.news{font-size:clamp(13px,min(7cqw,8.5cqh),32px)}
+.bigstamp.market{font-size:clamp(13px,min(6.5cqw,7.5cqh),32px);max-width:90cqw;top:50%}.bigstamp.market.soon{top:45%}
+.bigstamp.market small{font-size:clamp(9px,min(3.2cqw,4cqh),13px)!important;margin-top:min(4px,.8cqh)!important}
 .bigstamp.market .mk-ic{font-size:1.2em}.bigstamp.market .mk-t{display:flex;flex-direction:column;line-height:1.05}.bigstamp.market small{font-family:var(--body);font-size:13px;font-weight:700;text-shadow:none;margin-top:4px;opacity:.95}
 .newspill.soon{right:auto;background:color-mix(in srgb,var(--surface) 92%,transparent);border-width:1.5px;box-shadow:none;font-size:12px;padding:3px 9px 3px 4px}.newspill.soon .ni{width:20px;height:20px;font-size:11px}.newspill.k-stink .ni{background:#6b8e23}.newspill.k-truck .ni{background:#3a86c8}.newspill.k-drive .ni{background:#2c8a4f}.newspill.k-guard .ni{background:#7a2bb0}
 .evnote{display:inline-block;font-family:var(--body);font-size:11.5px;font-weight:700;background:#fff3d6;color:#8a4b00;border-radius:999px;padding:0 7px;margin-left:4px}.c-betray{background:#7a2bb0}
@@ -823,6 +833,7 @@ const ALLY_TURNS=5,ALLY_CAP=3,ALLY_MIN=4;
 const STREET={heat:{n:'Heat wave',b:'Everyone’s sales are doubled.'},rain:{n:'Rainy day',b:'Everyone’s sales are halved.'},drive:{n:'Recruiting drive',b:'Recruits cost $5.'},garage:{n:'Garage sale',b:'Upgrades are 25% off.'}};
 const STREET_ICON={heat:'☀',rain:'☂',drive:'+',garage:'🏷'};
 const MARKET_EVERY=5;
+const MK_SVG='<svg class="mksvg" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.6" y="6.2" width="10.8" height="7.6" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 6.4 2.8 2h10.4L15 6.4Z" fill="#e07b12"/><path d="M5.6 2 5 6.4M8 2v4.4M10.4 2l.6 4.4" stroke="#fff" stroke-width="1.3"/><rect x="6.3" y="9" width="3.4" height="4.8" fill="currentColor"/></svg>';
 function marketAt(s,day){if(!s||s.news===false||!s.gameId||day<MARKET_EVERY||day%MARKET_EVERY)return null;const ks=shuffle(Object.keys(STREET),rngFrom(hash(s.gameId+':market'))),n=day/MARKET_EVERY-1;
   const cyc=Math.floor(n/ks.length),order=cyc?shuffle(ks,rngFrom(hash(s.gameId+':market:'+cyc))):ks;return{k:order[n%ks.length],day}}
 function evToday(s){return s&&s.status==='active'?marketAt(s,s.day):null}
@@ -1468,7 +1479,7 @@ const adsOn=()=>{if(/[?&]ads=1/.test(location.search))return true;try{return loc
 const adKey=k=>'sc-ad-'+(st&&st.gameId)+'-'+realMe+'-'+k;
 const adSeen=k=>{try{return localStorage.getItem(adKey(k))==='1'}catch(e){return !!(adState&&adState.mem&&adState.mem[k])}};
 const markAd=k=>{try{localStorage.setItem(adKey(k),'1')}catch(e){}};
-function halfKey(){if(!st||st.status!=='active')return null;if(st.target){const P=ptsOf(st);return Object.values(P).some(x=>x.total*2>=st.target)?'half':null}if(st.maxDays){const mid=Math.floor(st.maxDays/2);return st.day>mid?'half':null}const b=Math.floor((st.day-1)/15);return b>=1?'half'+b:null}
+function halfKey(){if(!st||st.status!=='active')return null;if(st.target){const P=ptsOf(st);return Object.values(P).some(x=>x.total>=st.target*.8)?'half':null}if(st.maxDays){const mid=Math.floor(st.maxDays/2);return st.day>mid?'half':null}const b=Math.floor((st.day-1)/15);return b>=1?'half'+b:null}
 function adGate(){if(!st||!adsOn()||!me)return'';
   if(adState)return adScreen();
   if(!st.players[realMe]&&!myCrews().length)return'';
@@ -1498,6 +1509,9 @@ function renderHeader(){
   if(!st||st.status==='lobby'){s.innerHTML=st?`<span class="chip">Lobby</span>`:'';t.hidden=true;return}
   const alive=humansAlive(st),inN=alive.filter(hasOrder).length,p=myP();
   let bits=`<span class="chip">${st.status==='setup'?(st.mode==='game'?'Setup':'Setup day'):st.status==='over'?'Final':DW()+' '+st.day+(st.maxDays&&!st.target&&st.mode!=='game'?`<span class="of">/${st.maxDays}</span>`:'')}</span>`;
+  if(st.status==='active'){const e=evToday(st),nx=nextMarket(st);
+    if(e)bits+=`<span class="chip mkchip now k-${e.k}" title="Market day today: ${esc(STREET[e.k].n)}" aria-label="Market day today: ${esc(STREET[e.k].n)}"><span class="mki">${STREET_ICON[e.k]}</span><span class="mkl">Today</span></span>`;
+    else if(nx){const n=nx.day-st.day;bits+=`<span class="chip mkchip ${n<=1?'soon':''}" title="Next market day: ${DW().toLowerCase()} ${nx.day}" aria-label="Next market day in ${n} turn${n>1?'s':''}">${MK_SVG}<span class="mkl">${n<=1?'Next':'in '+n}</span><span class="mkn">${n}</span></span>`}}
   if(st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000&&!st.paused?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">${st.paused?'⏸':'⏱'} ${clockText()}</span>`}
   if(st.hostId===realMe&&(st.status==='setup'||st.status==='active'))bits+=`<button class="chip pausebtn ${st.paused?'on':''}" data-act="pause" aria-label="${st.paused?'Resume the turn clock':'Pause the turn clock'}" title="Testing: ${st.paused?'resume':'pause'} the turn clock">${st.paused?'▶':'⏸'}</button>`;
   const info=st.status!=='over'?`<p class="navinfo">${inN}/${alive.length} orders in · ${esc(countdown())}</p>`:'';
@@ -2552,7 +2566,7 @@ document.addEventListener('click',async e=>{
         else if(draft.recruits[i]>0){draft.recruits[i]--;if(!draft.recruits[i])delete draft.recruits[i];draft.buy.soldiers=Math.max(0,draft.buy.soldiers-1);dirty=true}}return render()}
       if(dayPhase==='move'){if(own){if(movePick==null||movePick===i){movePick=movePick===i?null:i;if(movePick!=null)zoomOutForPick();else restoreZoom()}else openMove(movePick,i)}return render()}
       if(dayPhase==='review')return render();
-      const first=pick.from==null&&pick.to==null;
+      sel=null;const first=pick.from==null&&pick.to==null;
       if(own){if(pick.to!=null)openPop(i,pick.to);else pick={from:pick.from===i?null:i,to:null}}
       else{if(pick.from!=null)openPop(pick.from,i);else pick={from:null,to:pick.to===i?null:i}}
       if(first&&(pick.from!=null||pick.to!=null))zoomOutForPick();else if(pick.from==null&&pick.to==null&&!atkPop)restoreZoom();
