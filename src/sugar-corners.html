@@ -523,7 +523,7 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 .ti{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:14px;flex:none;background:#7a2bb0}.ti.k-stink{background:#6b8e23}.ti.k-rain{background:#5b6b7a}.ti.k-batch{background:#9a7b2f}.ti.k-truck{background:#3a86c8}.ti.k-party{background:#e07b12}
 .trickset{display:flex;align-items:center;gap:10px;border:2px solid #7a2bb0;border-radius:12px;padding:8px 10px;background:#f3e6fb;color:#2a0e3d}.trickset>div{flex:1;min-width:0;font-size:13.5px}.trickset small{display:block;font-size:11.5px;color:#5a3d70}.trickset.aiming{border-style:dashed}
 .rnews{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}.rnews div{display:grid;grid-template-columns:auto 1fr;column-gap:6px;align-items:center;border:2px solid #141414;border-radius:10px;background:#fff;padding:5px 7px;color:#141414}
-.rnews b{font-size:12.5px}.rnews.big{grid-template-columns:1fr;gap:8px}.rnews.big div{padding:9px 12px;column-gap:12px}.rnews.big b{font-size:15.5px}.rnews.big small{font-size:13px}.rnews.big .ni{width:42px;height:42px;font-size:21px}.rnews.big .rpx{font-size:12px;margin-left:4px;vertical-align:1px}.rnews .rpx{display:inline-block;white-space:nowrap;font-size:11px;font-weight:800;background:#f7d538;border:1.5px solid #141414;border-radius:999px;padding:0 6px;line-height:1.4}.rnews small{grid-column:2;font-size:11px;color:#5b685d;line-height:1.2}.rnews .ni{grid-row:span 2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e07b12;color:#fff;font-size:13px}
+.pl-tools{flex-wrap:nowrap;gap:8px;margin-top:8px}.pl-tools .btn{flex:1;min-height:40px;padding:6px 10px}.rnews b{font-size:12.5px}.rnews.big{grid-template-columns:1fr;gap:8px}.rnews.big div{padding:9px 12px;column-gap:12px}.rnews.big b{font-size:15.5px}.rnews.big small{font-size:13px}.rnews.big .ni{width:42px;height:42px;font-size:21px}.rnews.big .rpx{font-size:12px;margin-left:4px;vertical-align:1px}.rnews .rpx{display:inline-block;white-space:nowrap;font-size:11px;font-weight:800;background:#f7d538;border:1.5px solid #141414;border-radius:999px;padding:0 6px;line-height:1.4}.rnews small{grid-column:2;font-size:11px;color:#5b685d;line-height:1.2}.rnews .ni{grid-row:span 2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e07b12;color:#fff;font-size:13px}
 .rnews .k-rain{background:#5b6b7a}.rnews .k-batch{background:#9a7b2f}.rnews .k-garage{background:#c2185b}
 .marketsched .mkrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.mk{display:flex;flex-direction:column;align-items:center;gap:2px;border:1.5px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}.mk.now{border-color:#e07b12;background:#fff3d6}
 .mk .ni{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e07b12;color:#fff;font-size:13px}.mk .ni.k-rain{background:#5b6b7a}.mk .ni.k-garage{background:#c2185b}.mk .ni.k-drive{background:#2c8a4f}.mk b{font-size:12px}.mk small{font-size:11px;color:var(--muted);line-height:1.2}.rnews .k-trick{background:#7a2bb0}.rnews .k-stink{background:#6b8e23}.rnews .k-truck{background:#3a86c8}.rnews .k-drive{background:#2c8a4f}.rnews .k-guard{background:#7a2bb0}
@@ -685,10 +685,10 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 
 <script>
 const TIERS={
-  weapon:[{n:'Fists',d:6,c:0},{n:'Slingshot',d:8,c:150},{n:'Water gun',d:10,c:200},{n:'Beebee gun',d:12,c:300}],
+  weapon:[{n:'Fists',d:6,c:0},{n:'Slingshot',d:8,c:150},{n:'Water Gun',d:10,c:200},{n:'BB Gun',d:12,c:300}],
   sugar:[{n:'Sweetener',d:6,c:0},{n:'Diner Sugar Packets',d:8,c:150},{n:'Agave',d:10,c:200},{n:'Raw Cane Sugar',d:12,c:300}],
   whip:[{n:'Sedan',cap:4,c:0},{n:'SUV',cap:6,c:150},{n:'Minivan',cap:8,c:200},{n:'Van',cap:10,c:300}],
-  rep:[{n:'No street cred',b:0,c:0},{n:'Charity Case',b:1,c:100},{n:'Connected',b:2,c:200},{n:'Local Legend',b:3,c:300},{n:'Mogul',b:4,c:400},{n:'Kingpin',b:5,c:500}]
+  rep:[{n:'No Street Cred',b:0,c:0},{n:'Charity Case',b:1,c:100},{n:'Connected',b:2,c:200},{n:'Local Legend',b:3,c:300},{n:'Mogul',b:4,c:400},{n:'Kingpin',b:5,c:500}]
 };
 const CREW_COLORS=['#e4572e','#2a9d8f','#d29a06','#7b5ea7','#3a86c8','#d6457f'];
 const COLOR_NAME={'#e4572e':'red','#2a9d8f':'teal','#d29a06':'gold','#7b5ea7':'purple','#3a86c8':'blue','#d6457f':'pink'};
@@ -698,7 +698,7 @@ const START_SOLDIERS=20,LOCALS=50,OOT_MULT=3, START_CORNERS=10, SOLDIER_COST=10;
 const LOAN_AMT=200,LOAN_OWE=250,LOAN_STEP=50,DAD_PER_CORNER=25;
 const LEN_MIN=15,LEN_MAX=50,CAMP_MAX=30;
 const ALLY_TURNS=5,ALLY_CAP=3,ALLY_MIN=4;
-const STREET={heat:{n:'Heat wave',b:'Everyone’s sales are doubled.'},rain:{n:'Rainy day',b:'Everyone’s sales are halved.'},drive:{n:'Recruiting drive',b:'Recruits cost $5.'},garage:{n:'Garage sale',b:'Upgrades are 25% off.'}};
+const STREET={heat:{n:'Heat Wave',b:'Everyone’s sales are doubled.'},rain:{n:'Rainy Day',b:'Everyone’s sales are halved.'},drive:{n:'Recruiting Drive',b:'Recruits cost $5.'},garage:{n:'Garage Sale',b:'Upgrades are 25% off.'}};
 const STREET_ICON={heat:'☀',rain:'☂',drive:'+',garage:'🏷'};
 const MARKET_EVERY=5;
 const MK_SVG='<svg class="mksvg" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.6" y="6.2" width="10.8" height="7.6" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 6.4 2.8 2h10.4L15 6.4Z" fill="#e07b12"/><path d="M5.6 2 5 6.4M8 2v4.4M10.4 2l.6 4.4" stroke="#fff" stroke-width="1.3"/><rect x="6.3" y="9" width="3.4" height="4.8" fill="currentColor"/></svg>';
@@ -713,8 +713,8 @@ const recruitCost=s=>{const e=evToday(s);return e&&e.k==='drive'?5:SOLDIER_COST}
 const upCost=(s,t)=>{const e=evToday(s);return t?(e&&e.k==='garage'?Math.round(t.c*.75):t.c):0};
 const truckAt=(s,i)=>false;
 const atkLimit=s=>10;
-const TRICKS={stink:{n:'Stink bomb',c:40,aim:'inter',b:'No sales for anyone at one intersection, you included.'},batch:{n:'Bad batch',c:60,aim:'crew',b:'Swap a rival’s sugar for salt. −1 to their street cred for 3 turns.'},
-  truck:{n:'Ice-cream truck',c:60,aim:'inter',b:'No attacks on one intersection.'},party:{n:'Block party',c:50,aim:'mine',b:'Your corners at one intersection sell triple.'}};
+const TRICKS={stink:{n:'Stink Bomb',c:40,aim:'inter',b:'No sales for anyone at one intersection, you included.'},batch:{n:'Bad Batch',c:60,aim:'crew',b:'Swap a rival’s sugar for salt. −1 to their Street Cred for 3 turns.'},
+  truck:{n:'Ice Cream Truck',c:60,aim:'inter',b:'No attacks on one intersection.'},party:{n:'Block Party',c:50,aim:'mine',b:'Your corners at one intersection sell triple.'}};
 const TRICK_RECHARGE=15;
 const TRICK_ICON={stink:'💨',batch:'🧂',truck:'🍦',party:'★'};
 function trickPrice(s,t){if(!t||!TRICKS[t.k])return 0;const d=TRICKS[t.k];return d.per&&t.v?Math.max(d.c,d.per*cornersOf(s,t.v).length):d.c}
@@ -856,9 +856,9 @@ function attack(s,u,a,rng,L,E){
 const CHARS=[
   {id:'zuri',iris:'#3b2314',name:'Zuri',nick:'Zest',color:'#e4572e',skin:'#6b4226',hair:'#1c1310',bio:'Science-fair champ. Swears her recipe is chemically perfect.'},
   {id:'mateo',iris:'#4a2a14',name:'Mateo',nick:'Pips',color:'#2a9d8f',skin:'#b97a50',hair:'#2a1a12',bio:'Keeps the books, knows every price on the street and never forgets a debt.'},
-  {id:'priya',iris:'#3a1d10',name:'Priya',nick:'Turbo',color:'#d29a06',skin:'#9a6038',hair:'#1b1110',bio:'Fastest bike in the neighborhood. Gets lemonade anywhere in under a minute.'},
+  {id:'priya',iris:'#3a1d10',name:'Priya',nick:'Turbo',color:'#d29a06',skin:'#9a6038',hair:'#1b1110',bio:'Fastest bike in the neighbourhood. Gets lemonade anywhere in under a minute.'},
   {id:'kenji',iris:'#2b1d12',name:'Kenji',nick:'Sunshine',color:'#7b5ea7',skin:'#f0c8a0',hair:'#151515',bio:'Hasn’t smiled since kindergarten. Has never lost a staring contest.'},
-  {id:'amira',iris:'#4a2f1c',name:'Amira',nick:'Fizz',color:'#d6457f',skin:'#d5a070',hair:'#2f5f7a',brow:'#3a2416',bio:'Calm, sharp and three moves ahead. Brings snacks to every standoff.'},
+  {id:'amira',iris:'#4a2f1c',name:'Amira',nick:'Fizz',color:'#d6457f',skin:'#d5a070',hair:'#2f5f7a',brow:'#3a2416',bio:'Calm, sharp, and three moves ahead. Brings snacks to every standoff.'},
   {id:'liam',iris:'#2f6aa8',name:'Liam',nick:'Big Squeeze',color:'#3a86c8',skin:'#f7d6c0',hair:'#c4552a',bio:'Biggest kid on the block, all freckles and big plans. Never takes the first offer.'}];
 const CHAR_BY=Object.fromEntries(CHARS.map(c=>[c.id,c]));
 function charMapFor(players){const m={},used=new Set();if(!players)return m;const ids=Object.keys(players).sort((a,b)=>(players[a].seat||0)-(players[b].seat||0));
@@ -1029,7 +1029,6 @@ const catOf=ev=>ev.t==='dad'&&ev.kind==='door'?'door':ev.t==='ally'&&(ev.kind===
 /* ---------- computer crews ---------- */
 const BOT_NAMES=['Cul-de-Sac Kings','Juice Box Crew','Bike Rack Bandits','Recess Rebels','Sprinkler Squad','Pixie Stix Posse'];
 const BOT_STYLES={brawler:'Brawler',builder:'Builder',turtle:'Turtle',hustler:'Hustler',snake:'Snake',grudge:'Grudge-holder',hoarder:'Hoarder'};
-const BOT_BLURB={brawler:'Buys weapons early and attacks often.',builder:'Grows its sugar income first.',turtle:'Defends hard and picks safe fights.',hustler:'Grabs open corners fast.'};
 function nbr(s,u,i){const it=i>>2;let n=0;for(let q=0;q<4;q++){const j=it*4+q;if(j!==i&&s.corners[j].o===u)n++}return n}
 const BOT_P={brawler:{prio:['weapon','rep','whip','sugar'],reserve:25,save:.25,aggr:.95,maxAtk:3,claim:1.3,betray:.08},
   builder:{prio:['sugar','weapon','rep','whip'],reserve:10,save:.15,aggr:.85,maxAtk:3,claim:1.5,betray:.02},
@@ -1624,18 +1623,18 @@ function focusOf(ev){if(!ev)return null;if(ev.t==='trick')return ev.it!=null?[ev
   if(ev.t==='mv')return [ev.from,ev.to];if(ev.t==='rec')return ev.is||[ev.i];if(ev.t==='dad'&&ev.lost&&ev.lost.length)return ev.lost;return null}
 /* ---------- first-game guide ---------- */
 const GUIDE=[
-  {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your 10 corners have a dark outline. Tap them to stack your 20 recruits. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
-  {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every turn starts with a recap. Tap <b>Next</b> to watch each attack, brawl and move play out, or skip ahead.'},
-  {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Roll for sales. You earn the roll × the corners you hold.'},
-  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'The shop',b:'Upgrades last all game: <b>Weapon</b> sets your fight roll, <b>Sugar</b> your sales roll, <b>Mom’s Whip</b> how many ride per attack, <b>Street cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
-  {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Tap your corners on the map to drop recruits there, one per tap. Switch to <b>Tap to remove</b> to take one back.'},
-  {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>, and everyone sees who did it in the recap.'},
-  {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market day',b:'Every 5 turns the whole block gets a market day, like a heat wave or a garage sale. You get a heads-up 3 turns before, but nobody knows what it is until it hits.'},
-  {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'You’re in last place, so Mom &amp; Dad will lend you $200, once. Check the <b>Bank</b> tab, and pay back $250 before Dad’s meter fills.'},
-  {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Plan attacks',b:'Tap a corner to hit, then one of yours to attack from (either order). Dashed corners are empty and free to claim. Attacks are optional.'},
-  {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'Tap any rival corner and hit <b>Ally?</b> to offer a 5-turn alliance. Allies share intersection and block bonuses. Breaking one costs street cred.'},
-  {id:'move',when:()=>planningNow()&&dayPhase==='move',t:'One move a turn',b:'Tap one of your corners, then another, to shift recruits between them. Moves happen after the fighting.'},
-  {id:'send',when:()=>planningNow()&&dayPhase==='review',t:'Send your orders',b:'Check your list and tap ✕ to cancel anything. Then <b>Send</b>. The turn plays out when the timer ends or every crew has sent.'}];
+  {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your corners have a dark outline. Tap them to stack your 20 recruits, or tap <b>Spread evenly</b> to share them out. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
+  {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every day starts with a recap of last night. Tap <b>Next</b> to watch each attack, brawl and move play out, or skip ahead.'},
+  {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Start your day by rolling for cash. Multiply your roll by the corners you hold. More corners, more money.'},
+  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'Gear up',b:'Upgrades last all game. <b>Weapons</b> set your fight roll, <b>Sugar</b> your sales roll, <b>Mom’s Whip</b> how many recruits you can send, and <b>Street Cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
+  {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Each local recruit costs $10. Tap your corners on the map to drop them there, one per tap, or switch to <b>Tap to remove</b> to take one back. Recruits arrive before any fighting, so you can recruit to and attack from the same corner.'},
+  {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>. Be warned: everyone sees who played it in the recap.'},
+  {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market day',b:'Something’s in the air. Every 5 turns a market day hits the whole block, like a heat wave or a garage sale. Nobody knows which until it hits.'},
+  {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'Unlucky? You’re in last place, so Mom &amp; Dad will lend you $200, once. Dad wants $250 back. Pay it in $50 chunks from the <b>Bank</b> tab before his meter fills.'},
+  {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Dashed corners are empty and free to claim. Attacks are optional.'},
+  {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'There’s strength in numbers. When you plan an attack on a rival, tap <b>Rather team up?</b> to offer a 5-turn alliance. Your corners count together for intersections and blocks. Breaking it costs Street Cred.'},
+  {id:'move',when:()=>planningNow()&&dayPhase==='move',t:'Shore up your defences',b:'Once a turn, tap one of your corners, then another, to move recruits between them. Moves happen after the fighting.'},
+  {id:'send',when:()=>planningNow()&&dayPhase==='review',t:'Send your orders',b:'Check your list and tap ✕ to cancel anything. Then <b>Send</b>. Everyone plans at once, and the day plays out when the timer ends or every crew has sent.'}];
 const guideMem={};
 function guideGet(k){try{return localStorage.getItem(k)}catch(e){return guideMem[k]??null}}
 function guideSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}if(v==null)delete guideMem[k];else guideMem[k]=v}
@@ -1718,7 +1717,7 @@ const mkHideKey=k=>'sc-mkhide-'+(st&&st.gameId)+'-'+k,mkMem={};
 const mkHidden=k=>{try{return localStorage.getItem(mkHideKey(k))==='1'}catch(e){return !!mkMem[k]}};
 const mkHide=k=>{mkMem[k]=1;try{localStorage.setItem(mkHideKey(k),'1')}catch(e){}};
 function newsPill(){const e=evToday(st);
-  if(e)return mkHidden('day'+st.day)?'':`<div class="newspill k-${e.k}" role="status"><span class="ni" aria-hidden="true">${STREET_ICON[e.k]}</span><span><b>Market day: ${STREET[e.k].n}</b> · ${esc(STREET[e.k].b)}</span><button class="pillx" data-act="mk-hide" data-k="day${st.day}" aria-label="Hide market day banner">✕</button></div>`;
+  if(e)return mkHidden('day'+st.day)?'':`<div class="newspill k-${e.k}" role="status"><span class="ni" aria-hidden="true">${STREET_ICON[e.k]}</span><span><b>Market Day: ${STREET[e.k].n}</b> · ${esc(STREET[e.k].b)}</span><button class="pillx" data-act="mk-hide" data-k="day${st.day}" aria-label="Hide market day banner">✕</button></div>`;
   return''}
 let vm=(()=>{try{const v=localStorage.getItem('sc-vm');return v==='board'||v==='panel'?v:'split'}catch(e){return 'split'}})();
 const VM_EXP='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -2210,14 +2209,14 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
    b:`<p><strong>Concede</strong> any time from the Menu; the computer takes over your crew and plays it safe. <strong>Miss ${MISS_LIMIT} turns in a row</strong> and the computer runs your crew until you come back and take control.</p><p>Hold <strong>more than half the board</strong> with only computer crews left and they offer to surrender. Accept to win, or keep going for the sweep.</p>`},
   {t:'Bank of Mom & Dad',art:SV(dadFace(1,128,'x="14" y="30"')+`<g transform="translate(150,40)"><rect width="150" height="54" rx="12" fill="#fff" stroke="#141414" stroke-width="3"/><text x="75" y="24" class="rcap">borrow $${LOAN_AMT}</text><text x="75" y="44" class="rcap">pay back $${LOAN_OWE}</text></g>`
      +`<g transform="translate(150,116)">${Array.from({length:4},(_,i)=>`<rect x="${i*38}" width="32" height="18" rx="5" fill="${i<1?'#e8b04a':'#ddd'}" stroke="#141414" stroke-width="1.5"/>`).join('')}</g><text x="225" y="160" class="rcap">Dad meter</text>`),
-   b:`<p>Unlucky? Feeling the heat? Mom and Dad can bail you out. The <strong>last-place crew</strong> can borrow <strong>$${LOAN_AMT}</strong>. But there's no such thing as a free lunch. Dad wants <strong>$${LOAN_OWE}</strong> back. <strong>Once per game.</strong> Repay in $${LOAN_STEP} chunks whenever you like. Once you’ve paid back $${LOAN_OWE}, you’re debt free.</p><p>Mom and Dad have bills too. Each turn you owe fills a bar on <strong>Dad's meter</strong>; each $${LOAN_STEP} repaid empties one.${st?(()=>{const b=bankCfg(st);return st.target?` <strong>This game:</strong> opens turn ${b.open}, ${b.meter}-bar meter.`:st.maxDays?` <strong>This game:</strong> open turns ${b.open}–${b.close}, ${b.meter}-bar meter.`:` <strong>This game:</strong> opens turn ${b.open}, ${b.meter}-bar meter.`})():''}</p>`},
+   b:`<p>Unlucky? Feeling the heat? Mom and Dad can bail you out. The <strong>last-place crew</strong> can borrow <strong>$${LOAN_AMT}</strong>. But there's no such thing as a free lunch. Dad wants <strong>$${LOAN_OWE}</strong> back. <strong>Once per game.</strong> Repay in $${LOAN_STEP} chunks whenever you like. Once you’ve paid back $${LOAN_OWE}, you’re debt free.${st?(()=>{const b=bankCfg(st);return st.target?` <strong>This game:</strong> opens turn ${b.open}, ${b.meter}-bar meter.`:st.maxDays?` <strong>This game:</strong> open turns ${b.open}–${b.close}, ${b.meter}-bar meter.`:` <strong>This game:</strong> opens turn ${b.open}, ${b.meter}-bar meter.`})():''}</p>`},
   {t:'Dad’s at the door',art:SV(dadFace(3,128,'x="14" y="30"')+`<g transform="translate(150,52)"><rect x="-6" y="-26" width="162" height="36" rx="8" fill="#d9412b" stroke="#141414" stroke-width="3" transform="rotate(-4 75 -8)"/><text x="75" y="-8" class="rtag w" style="font-size:13px" transform="rotate(-4 75 -8)">DAD’S AT THE DOOR!</text></g>`
      +`<g transform="translate(150,116)">${Array.from({length:4},(_,i)=>`<rect x="${i*38}" width="32" height="18" rx="5" fill="#d9412b" stroke="#141414" stroke-width="1.5"/>`).join('')}</g><text x="225" y="160" class="rcap">Meter full</text>`),
-   b:`<p>When Dad's meter fills, <strong>Dad’s at the door</strong>: you get one more turn to pay at least $${LOAN_STEP}. If you don’t, he takes your cash, then a corner for every $${DAD_PER_CORNER} still owed.</p><p>And don't get cute. The same happens if the game ends while you owe.</p>`}]}
+   b:`<p>Mom and Dad have bills too. Each turn you owe fills a bar on <strong>Dad's meter</strong>; each $${LOAN_STEP} repaid empties one.</p><p>When Dad's meter fills, <strong>Dad’s at the door</strong>: you get one more turn to pay at least $${LOAN_STEP}. If you don’t, he takes your cash, then a corner for every $${DAD_PER_CORNER} still owed.</p><p>And don't get cute. The same happens if the game ends while you owe.</p>`}]}
 let rMode='quick';
 const QUICK=['Run the streets','Your turn, step by step.','Making money','Fighting','Sending a crew'];
 function deckCards(){const all=ruleCards();return rMode==='quick'?QUICK.map(t=>all.find(c=>c.t===t)).filter(Boolean):all}
-const TOPIC_GROUPS=[['Basics',['Run the streets','The board','Your turn, step by step.','Making money','The shop','Recruits']],['Fighting',['Fighting','Sending a crew','Brawls','Bonuses','Moving']],['Twists',['Market days','Dirty tricks','Alliances','Bank of Mom & Dad','Dad’s at the door']],['Setup & players',['Ways to play','The crew bosses','Leaving & surrender']]];
+const TOPIC_GROUPS=[['Basics',['Run the streets','The board','Your turn, step by step.','Making money','The shop','Recruits']],['Fighting',['Fighting','Sending a crew','Brawls','Bonuses','Moving']],['Twists',['Market days','Dirty tricks','Alliances','Bank of Mom & Dad']],['Setup & players',['Ways to play','The crew bosses','Leaving & surrender']]];
 function rulesIndex(){const all=ruleCards();
   return `<div class="panel rindex"><span class="eyebrow">How to play</span><h2>All the rules</h2><p class="small muted">New here? <button class="linkbtn" data-act="rulesmode" data-m="quick">Take the 1-minute quick start</button></p>
     ${TOPIC_GROUPS.map(([g,ts])=>`<div class="rgroup"><b>${g}</b><div class="rtopics">${ts.map(t=>{const i=all.findIndex(c=>c.t===t);return i<0?'':`<button data-act="rtopic" data-i="${i}">${esc(t)}</button>`}).join('')}</div></div>`).join('')}
@@ -2246,20 +2245,22 @@ function ordersView(){
 }
 // Loading-screen style showcase while setting up: the bosses in this game, alternating with quick tips. Changes every few seconds; tap for the next one.
 const SHOW_TIPS=[
-  ['Points','First to the target wins: 1 point per corner, +2 for a full intersection, +3 for a block, +2 for the biggest crew.'],
-  ['Sales','Every turn you roll for sales and earn that much from each corner you hold. More corners, more cash.'],
-  ['Intersections','Hold all four corners where two streets cross and you get +1 on every fight there.'],
-  ['Blocks','Own corners on all four sides of a block for a +3 bonus. Rivals will want to break it up.'],
-  ['Ties','Tied rolls go to the defender only if they hold the whole intersection. Otherwise, roll again.'],
-  ['Out-of-towners','Your first 50 kids are locals at $10. After that, recruits come from out of town and cost triple.'],
-  ['Vehicles','Your ride sets how many kids you can send in one attack. Upgrade it before a big push.'],
-  ['Recruits','New recruits arrive before any fighting, so you can recruit and attack from the same corner.'],
-  ['Retreat','Set a retreat point so your kids head home before a fight goes bad.'],
-  ['Market days','Every 5 turns something hits the whole block. You get a heads-up 3 turns before, but not what it is.'],
-  ['Dirty tricks','Stink bombs, bad batches, ice-cream trucks and block parties. Each one once a game, and everyone sees who did it.'],
-  ['Bank of Mom & Dad','Last place can borrow $200. Pay back $250 before Dad’s meter fills, or he comes to collect.'],
-  ['Alliances','Team up for 5 turns to share intersection and block bonuses. Breaking one costs you street cred.'],
-  ['Street cred','Street cred adds to every fight roll. Betray an ally and you can sink to Snitch, Rat or even Traitor.'],
+  ['Points','1 point per corner, 2 for each full intersection, 3 for each block, and 2 for the biggest crew. First to the target wins.'],
+  ['Sales','More corners, more money. Your sales roll is multiplied by every corner you hold.'],
+  ['Sugar','Better sugar makes better product. Upgrade your sugar for bigger sales rolls.'],
+  ['Intersections','Hold all four corners where two streets cross. You get +1 against attacks there, and you win ties.'],
+  ['Blocks','Hold a 2×2 group of intersections (16 corners) for +3 on every fight roll, anywhere on the board.'],
+  ['Tiebreak','Two crews hit the target the same night? The higher score wins. Still tied? Most kids on the street.'],
+  ['Out-of-towners','Your first 50 kids are locals at $10. After that, recruits come from out of town and cost triple. Somebody has to cover their bus fare.'],
+  ['Mom’s Whip','Opposing crew stacked a corner? Upgrade your ride. Mom’s Whip sets how many recruits you can send.'],
+  ['Recruits','New recruits arrive before any fighting, so you can recruit to and attack from the same corner.'],
+  ['Retreat','Don’t carry all your lemons in one basket. Set a retreat number so recruits come home before a fight goes bad.'],
+  ['Hold the fort','One recruit always stays back to hold down the fort. But can they hold off another attack all alone?'],
+  ['Market days','Want some extra kick to that lemonade? Every 5 turns a market day hits the whole block.'],
+  ['Dirty tricks','Stink Bombs, Bad Batches, Ice Cream Trucks and Block Parties. Each one once a game. Expect retribution.'],
+  ['Bank of Mom & Dad','Feeling the heat? Last place can borrow $200 from Mom & Dad. Dad wants $250 back before his meter fills.'],
+  ['Alliances','There’s strength in numbers. Team up for 5 turns and your corners count together for intersections and blocks.'],
+  ['Street Cred','Loyalty matters, and the streets don’t forget. Betray an ally and you can sink to Snitch, Rat or even Traitor.'],
   ['Lemon trees','Keep an eye on the orchard. Sometimes a lemon drops.']];
 let showAt=0,showOff=0;
 function showItems(){const crews=Object.keys(st.players).map(u=>st.players[u]).sort((a,b)=>(a.seat||0)-(b.seat||0)),out=[];let t=Math.floor(hash(st.gameId||'')%SHOW_TIPS.length);
@@ -2295,7 +2296,7 @@ function placePanel(){
   return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><div><span class="bigcount ${left?'':'ok'}">${left}</span> <span class="muted small">of ${START_SOLDIERS} to place</span></div>
     <div class="seg" role="group" aria-label="What a tap does" style="min-width:170px"><button data-act="pmode" data-m="add" aria-pressed="${placeMode==='add'}">+ Add</button><button data-act="pmode" data-m="remove" aria-pressed="${placeMode==='remove'}">− Remove</button></div></div>
   <div class="youare" style="--crew:${esc(crewColor(me))}">${avatar(charOf(me),crewColor(me),32)}<span><b>You're ${esc(myP().name)}</b> · ${placeMode==='add'?`tap your <i class="sw"></i><b class="cn">${COLOR_NAME[crewColor(me)]||'glowing'}</b> corners`:'tap a ringed corner to take one back'}</span></div>
-  <div class="row phase-nav"><button class="btn" data-act="pl-clear" ${placedCount()?'':'disabled'}>Clear</button><button class="btn primary" data-act="submit" ${canWrite&&(dirty||!sent)?'':'disabled'}>${sent&&!dirty?'Placement sent ✓':sent?'Update placement':'Send placement'}</button></div></div>${vm==='panel'?showcase():''}`}
+  <div class="row pl-tools"><button class="btn" data-act="pl-even">Spread evenly</button><button class="btn" data-act="pl-clear" ${placedCount()?'':'disabled'}>Clear</button></div><div class="row phase-nav"><button class="btn primary" style="flex:1" data-act="submit" ${canWrite&&(dirty||!sent)?'':'disabled'}>${sent&&!dirty?'Placement sent ✓':sent?'Update placement':'Send placement'}</button></div></div>${vm==='panel'?showcase():''}`}
 function setupOrders(){
   const left=START_SOLDIERS-placedCount();
   return `<div class="panel"><h2>Place your crew on the board</h2><p class="muted">Tap your corners on the map to add recruits. You have ${left} of ${START_SOLDIERS} left to place.</p>
@@ -2477,6 +2478,8 @@ document.addEventListener('click',async e=>{
   if(act==='rp-skip'){if(!replay)return;return skipReplay()}
   if(act==='replay'){const e=(st.log||[]).find(d=>String(d.day)===el.dataset.day);if(!e||!e.events)return;startReplay(e,false);tab='board';render();window.scrollTo(0,0);return}
   if(act==='pl-clear'){ensureDraft();draft.place={};dirty=true;return render()}
+  if(act==='pl-even'){ensureDraft();const mine=cornersOf(st,me),k=mine.length;if(!k)return;const base=Math.floor(START_SOLDIERS/k);let extra=START_SOLDIERS-base*k;draft.place={};
+    const order=mine.slice().sort((a,b)=>(hash(st.gameId+':'+a)%97)-(hash(st.gameId+':'+b)%97));order.forEach(i=>{const n=base+(extra>0?1:0);if(extra>0)extra--;if(n)draft.place[i]=n});dirty=true;return render()}
   if(act==='create'){const name=CHAR_BY[pickChar].name+"'s Crew";
     const gm=lobbyMode!=='campaign',turnMin=gm?Math.max(1,Math.min(lobbyMode==='lcs'?1440:720,parseInt((document.getElementById('f-turn')||{}).value,10)||5)):0;const tv=(document.getElementById('f-time')||{}).value||'20:00',[hh,mm]=tv.split(':').map(Number),min=hh*60+mm;
     const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:lobbyMode==='game'?LEN_BACKSTOP[lobbyLen]:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||20)/5)*5));
