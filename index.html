@@ -445,6 +445,18 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .mering{fill:none;stroke-width:3;pointer-events:none}@media (prefers-reduced-motion:no-preference){.mering{animation:mepulse 1.4s ease-in-out infinite}}@keyframes mepulse{50%{stroke-opacity:.25}}
 .lvlrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.lvlrow .seg{flex:1;max-width:240px}.lvlrow .seg button{min-height:32px;padding:3px 6px}
 .oot{color:var(--bad);font-weight:700}
+.rulesfield{margin-top:8px}.rulesfield .small{display:block;margin-top:4px}.seg.rulesseg{display:flex}.seg.rulesseg button{flex:1}
+.rec-quick{margin-top:8px}.rec-quick .btn{flex:1;min-height:40px}
+.takeodds{margin:6px 0 2px;font-size:14px}.takeodds.ok strong{color:var(--ok,#2c8a4f)}.takeodds.bad strong{color:var(--bad,#c2372f)}.advbtn{display:block;margin:4px 0 8px}
+.reactbtn{position:absolute;left:10px;bottom:10px;z-index:7;width:44px;height:44px;border-radius:50%;border:2px solid #141414;background:#fff;font-size:20px;box-shadow:2px 2px 0 #141414;cursor:pointer}
+.reactbtn.on{background:#f7d538}
+.reactpick{position:absolute;left:10px;bottom:62px;z-index:8;display:flex;flex-wrap:wrap;gap:6px;max-width:min(320px,calc(100% - 20px));background:var(--surface);border:2px solid #141414;border-radius:14px;padding:8px;box-shadow:3px 3px 0 #141414}
+.reactpick button{font:inherit;font-size:13px;font-weight:600;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 10px;cursor:pointer}
+.reactpick button:active{background:#f7d538}
+.rtoasts{position:absolute;left:10px;top:10px;z-index:7;display:flex;flex-direction:column;gap:6px;max-width:calc(100% - 20px);pointer-events:none}
+.rtoast{display:flex;align-items:center;gap:6px;background:var(--surface);color:var(--ink);border:2px solid var(--c);border-radius:999px;padding:3px 12px 3px 3px;font-size:14px;box-shadow:2px 2px 0 rgba(0,0,0,.25);animation:rtIn .25s ease-out}
+@keyframes rtIn{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.rtoast{animation:none}}
 .sdfield{margin-top:8px}.seg.sds{display:flex;flex-wrap:wrap}.seg.sds button{flex:1 1 auto;min-height:34px;padding:0 6px;font-size:12.5px;white-space:nowrap}.sdfield .small{display:block;margin-top:4px}
 .lcsnote{flex:0 1 auto;align-self:flex-end;margin:0 0 4px;line-height:1.3}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
@@ -859,7 +871,7 @@ function trickPrice(s,t){if(!t||!TRICKS[t.k])return 0;const d=TRICKS[t.k];return
 const priceTag=k=>TRICKS[k].per?`$${TRICKS[k].per}/corner`:`$${TRICKS[k].c}`;
 function trickWait(s,u,k){const p=s.players[u],used=p&&p.tricksUsed&&p.tricksUsed[k];if(used==null)return 0;if(s.maxDays)return Infinity;return Math.max(0,used+TRICK_RECHARGE-s.day)}
 const trickReady=(s,u,k)=>trickWait(s,u,k)===0;
-function trickValid(s,u,t){if(!t||!TRICKS[t.k])return false;const d=TRICKS[t.k];
+function trickValid(s,u,t){if(!t||!TRICKS[t.k]||(s&&s.basic))return false;const d=TRICKS[t.k];
   if(d.aim==='crew')return !!(t.v&&t.v!==u&&s.players[t.v]&&s.players[t.v].alive!==false);
   if(!(t.it>=0&&t.it<s.rows*s.cols))return false;if(d.aim==='mine')return [0,1,2,3].some(q=>s.corners[t.it*4+q].o===u);return true}
 const trickTruck=(s,i)=>(s._tricks||[]).some(t=>t.k==='truck'&&t.it===(i>>2));
@@ -893,7 +905,7 @@ const recAfford=(s,u,cash)=>{let n=0;while(n<500&&cash>=recPrice(s,u,n)){cash-=r
 function allyOf(s,u){const p=s&&s.players&&s.players[u];if(!p||!p.ally)return null;const q=s.players[p.ally];if(!q||q.alive===false||q.ally!==u||s.day>(p.allyUntil||0))return null;return p.ally}
 function activeAlly(s,u){const v=allyOf(s,u);return v&&s.day>=(s.players[u].allyFrom||0)?v:null}
 const teamHas=(s,o,x)=>x===o||(!!o&&!!x&&activeAlly(s,o)===x);
-function canAlly(s,u,v){if(!s||s.status!=='active'||!u||!v||u===v)return false;const P=s.players[u],Q=s.players[v];if(!P||!Q||P.alive===false||Q.alive===false)return false;
+function canAlly(s,u,v){if(!s||s.basic||s.status!=='active'||!u||!v||u===v)return false;const P=s.players[u],Q=s.players[v];if(!P||!Q||P.alive===false||Q.alive===false)return false;
   if(aliveUids(s).length<ALLY_MIN||allyOf(s,u)||allyOf(s,v))return false;if((P.allyCount|0)>=ALLY_CAP||(Q.allyCount|0)>=ALLY_CAP)return false;
   if(s.target)return s.day>=ALLY_FROM;
   return !(s.maxDays&&s.day+ALLY_TURNS>s.maxDays)}
@@ -951,7 +963,7 @@ function dealCorners(ids,total,rng){let corners;
   return corners}
 function bankCfg(s){if(s&&s.target)return{meter:4,open:5,close:Infinity};const N=s.maxDays||0,meter=N?Math.max(2,Math.min(7,Math.round(N/4)-1)):7,open=N?Math.max(2,Math.round(N/4)):8;return{meter,open,close:N?N-meter-1:Infinity}}
 function lastPlace(s,u){const al=aliveUids(s);if(al.length<2)return false;const c=x=>cornersOf(s,x).length;return c(u)===Math.min(...al.map(c))}
-function canBorrow(s,u){const p=s.players[u];if(!p||p.alive===false||p.loan||p.loanUsed||s.status!=='active')return false;const b=bankCfg(s);return s.day>=b.open&&s.day<=b.close&&lastPlace(s,u)}
+function canBorrow(s,u){const p=s.players[u];if(s.basic||!p||p.alive===false||p.loan||p.loanUsed||s.status!=='active')return false;const b=bankCfg(s);return s.day>=b.open&&s.day<=b.close&&lastPlace(s,u)}
 function dadStage(ln,meter){if(!ln)return 0;const r=ln.bars/meter;return r>=.75?3:r>=.375?2:1}
 function dadCollect(s,u,why,L,E){const p=s.players[u],ln=p.loan;if(!ln)return;let owe=ln.owe;const fromCash=Math.min(p.cash,owe);p.cash-=fromCash;owe-=fromCash;
   const n=Math.ceil(owe/DAD_PER_CORNER),lost=cornersOf(s,u).sort((a,b)=>s.corners[a].s-s.corners[b].s).slice(0,n);
@@ -1215,7 +1227,7 @@ function botOrders(s,u){
     else if(style==='turtle'){const it=its.sort((a,b)=>own(b)-own(a))[0];if(own(it)>=2)o.trick={k:'truck',it}}
     else if(style==='snake'&&focus!==u)o.trick={k:'batch',v:focus};
     else if(focus!==u){if(rng()<.5){const it=its.sort((a,b)=>lead(b)-lead(a))[0];if(lead(it)>=2)o.trick={k:'stink',it}}else o.trick={k:'batch',v:focus}}
-    if(o.trick&&!trickReady(s,u,o.trick.k))o.trick=null;if(o.trick)cash-=trickPrice(s,o.trick)}
+    if(o.trick&&(s.basic||!trickReady(s,u,o.trick.k)))o.trick=null;if(o.trick)cash-=trickPrice(s,o.trick)}
   // alliances: propose now and then; betray now and then
   const myAlly=allyOf(s,u),act=activeAlly(s,u);
   if(!myAlly&&alive.length>=ALLY_MIN&&rng()<(P.ally||(style==='turtle'||style==='builder'?.16:.1))){const c=alive.filter(v=>v!==u&&v!==leader&&canAlly(s,u,v)&&!offerFrom(s,v,u)).sort((a,b)=>Math.abs(cnt(a)-cnt(u))-Math.abs(cnt(b)-cnt(u)));if(c.length)o.proposeTo=c[0]}
@@ -1775,7 +1787,7 @@ const GUIDE=[
   {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Start your day by rolling for cash. Multiply your roll by the corners you hold. More corners, more money.'},
   {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'Gear up',b:'Upgrades last all game. <b>Weapons</b> set your fight roll, <b>Sugar</b> your sales roll, <b>Rideshare</b> how many attacks you can make, and <b>Street Cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
   {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Each local recruit costs $10. Tap your corners on the map to drop them there, one per tap, or switch to <b>Tap to remove</b> to take one back. Recruits arrive before any fighting, so you can recruit to and attack from the same corner.'},
-  {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty Tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>. Be warned: everyone sees who played it in the recap.'},
+  {id:'tricks',when:()=>!st.basic&&planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty Tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>. Be warned: everyone sees who played it in the recap.'},
   {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market Day',b:'Something’s in the air. Every 5 turns a Market Day hits the whole block, like a Heat Wave or a Garage Sale. Nobody knows which until it hits.'},
   {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'Unlucky? You’re in last place, so Mom &amp; Dad will lend you $200, once. Dad wants $250 back. Pay it in $50 chunks from the <b>Bank</b> tab before his meter fills.'},
   {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Your Rideshare sets how many attacks you get each turn. Dashed corners are empty and free to claim, but each claim still uses an attack. Attacks are optional.'},
@@ -1848,7 +1860,8 @@ function cornerChart(){const H=(st.hist||[]).map(h=>st.target&&h.p?{d:h.d,c:h.p}
   lab.forEach(l=>{g+=`<circle cx="${x(n-1)}" cy="${y(l.v)}" r="4" fill="${esc(crewColor(l.u))}" stroke="var(--surface)" stroke-width="2"/><text x="${W-R+6}" y="${l.yy}" class="cv">${l.v}</text><circle cx="${W-R+26}" cy="${l.yy}" r="5" fill="${esc(crewColor(l.u))}"/>`});
   return `<div class="chartbox" data-hist="1"><svg viewBox="0 0 ${W} ${Ht}" class="cchart" role="img" aria-label="${st.target?'Points':'Corners held'} by each crew over the game">${g}<line class="cross" x1="0" x2="0" y1="${T}" y2="${Ht-B}" style="display:none"/><rect class="chit" x="${L}" y="${T}" width="${W-L-R}" height="${Ht-T-B}" fill="transparent"/></svg><div class="ctip" hidden></div></div>
     <div class="clegend">${ids.map(u=>`<span>${avatar(charOf(u),crewColor(u),18)}${esc(CHAR_BY[charOf(u)]?.name||st.players[u].name)}</span>`).join('')}</div>`}
-function wrapView(){const w=st.winner,ids=seatOrder(st),S=st.stats||{},cnt=u=>cornersOf(st,u).length;
+function wrapView(){try{if(st&&st.gameId){const k='sc-played',v=JSON.parse(localStorage.getItem(k)||'[]');if(!v.includes(st.gameId)){v.push(st.gameId);localStorage.setItem(k,JSON.stringify(v.slice(-50)))}}}catch(e){}
+const w=st.winner,ids=seatOrder(st),S=st.stats||{},cnt=u=>cornersOf(st,u).length;
   const rank=ids.slice().sort((a,b)=>(st.players[b].alive!==false)-(st.players[a].alive!==false)||cnt(b)-cnt(a)||soldiersOf(st,b)-soldiersOf(st,a));
   const why=st.endReason==='points'?`${esc(st.players[st.winner]?.name||'')} reached ${st.target} points on ${DW().toLowerCase()} ${st.day-1}`:st.target&&st.maxDays&&st.day>st.maxDays?`Nobody reached ${st.target} by ${DW().toLowerCase()} ${st.maxDays}, so the top score won`:st.endReason==='surrender'?'The computer crews surrendered':st.endReason==='nohumans'?'Every player conceded or left':!st.maxDays||aliveUids(st).length<=1?'Last crew standing':`After ${st.maxDays} ${DW().toLowerCase()}s`;
   let h=`<div class="panel wrap-hero" style="--crew:${w?esc(crewColor(w)):'#888'}"><span class="eyebrow">${why}</span>${w?bust(charOf(w),crewColor(w),0):''}<h2>${w?esc(st.players[w].name)+' runs the block':'No crew left standing'}</h2>${w?`<p class="muted">${w===me?'That’s you. ':''}${cnt(w)} of ${st.corners.length} corners at the final bell.${(()=>{const r2=rank.find(u=>u!==w&&st.players[u].alive!==false);return r2&&cnt(r2)===cnt(w)?` Tied with ${esc(st.players[r2].name)} on corners, so it came down to kids on the street: ${soldiersOf(st,w)} to ${soldiersOf(st,r2)}.`:''})()}</p>`:''}</div>`;
@@ -1893,7 +1906,7 @@ function boardView(){
     if(st.status==='setup')sh=placePanel();
     else{sh=`<div class="stage-steps">${phaseBar()}</div>`+((myP().missed|0)>=MISS_LIMIT-1&&!hasOrder(me)?`<p class="warnline">You missed ${myP().missed} turns. Miss one more and the computer takes over.</p>`:'');if(isPlanning()&&!salesShowing()){ensureDraft();sh+=phasePanel()}else sh+=salesCard()}
     const selc=newsPill();
-    return h+`<div class="stage vm-${vm}">${scoreBar()}<div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()||nearStamp()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
+    return h+`<div class="stage vm-${vm}">${scoreBar()}<div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()||nearStamp()}${reactToasts()}${reactBtn()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
   else{h+=awayPanel();
     if(isPlanning()){ensureDraft();if(dayPhase==='shop')h+=salesCard();h+=phasePanel()}
     else h+=salesCard()+(salesPending()?'':introCard(false))}
@@ -1938,13 +1951,14 @@ function lobbyView(){
       <div class="field">${charSelect(pickChar,{},'pick-char')}</div>
       ${gm?`<div class="row"><div class="field"><label for="f-turn">Time per turn</label><select id="f-turn">${TURN_OPTS.filter(m=>lm==='lcs'||m<1440).map(m=>`<option value="${m}" ${m===tsel?'selected':''}>${fmtTurn(m)}</option>`).join('')}</select></div>${lm==='lcs'?'<p class="small muted lcsnote">No turn limit.<br>Last crew left wins.</p>':lm==='game'?lenSeg:''}</div>${lm==='lcs'?`<div class="field sdfield"><label>Sudden Death starts on turn</label><div class="seg sds" role="group" aria-label="Sudden Death starts">${SUDDEN_OPTS.map(v=>`<button data-act="lsd" data-v="${v}" aria-pressed="${lobbySudden===v}">${v||'Off'}</button>`).join('')}</div><span class="small muted">${lobbySudden?`From turn ${lobbySudden}, every crew loses its least-guarded corner each night, and one more every ${SD_RAMP} nights.`:'No Sudden Death. The game runs until one crew is left.'}</span></div>`:''}`
       :`<div class="row"><div class="field"><label for="f-time">Days end at</label><input id="f-time" type="time" value="${esc(formVals['f-time']||'20:00')}"></div>${slider}</div>`}
+      <div class="field rulesfield"><label>Rules</label><div class="seg rulesseg" role="group" aria-label="Rules"><button data-act="lbasic" data-v="1" aria-pressed="${lobbyBasic}">Basic</button><button data-act="lbasic" data-v="0" aria-pressed="${!lobbyBasic}">Full</button></div><span class="small muted">${lobbyBasic?'Great for a first game: no Dirty Tricks, Bank of Mom &amp; Dad, or Alliances.':'Everything on: Dirty Tricks, the Bank of Mom &amp; Dad, and Alliances.'}</span></div>
       <div class="row createrow"><button class="btn primary" data-act="create" ${me&&canWrite?'':'disabled'}>Open the ${lm==='campaign'?'campaign':'game'} lobby</button><button class="newstog ${lobbyNews?'on':''}" data-act="lnews" data-v="${lobbyNews?0:1}" aria-pressed="${lobbyNews}" title="A block-wide event every 5 turns">Market Days: <b>${lobbyNews?'On':'Off'}</b></button></div>
       ${me?'':'<p class="small muted">Connecting…</p>'}</div>`+how;
   }
   const ids=seatOrder(st),joined=!!st.players[realMe],host=st.hostId===realMe;
   let h=`<div class="panel"><span class="eyebrow">Lobby · ${ids.length}/6 crews</span><h2>Waiting for crews</h2>
     <div class="legend">${ids.map((u,k)=>{const cm=charMapFor(st.players)[u];return `<span>${avatar(cm,CHAR_BY[cm]?.color,26)}${esc(st.players[u].name)}${cm?` <span class="muted">“${CHAR_BY[cm].nick}”</span>`:''}${u===st.hostId?' (host)':''}${st.players[u].ctrl?' (test)':''}${st.players[u].bot?' (computer)':''}${u===realMe?' (you)':''}</span>`}).join('')}</div>
-    <p class="small muted">${st.news===false?'Market Days off · ':''}${st.mode==='game'?`${st.lcs||!st.maxDays?'Last Crew Standing':'Game'} · ${fmtTurn(Math.round((st.turnMs||300000)/60000))} per turn, recap included${st.lenSet?` · ${LEN_NAME[st.lenSet]}: first to ${targetFor(st.lenSet,Object.keys(st.players).length)} points`:st.maxDays?` · ${st.maxDays} turns`:` · until one crew is left${st.sudden?`, Sudden Death from turn ${st.sudden}`:''}`}.`:`Campaign · days end at ${esc(st.resolveLabel||'the daily deadline')} host time${st.maxDays?`, for ${st.maxDays} days`:', until one crew is left'}.`}</p>`;
+    <p class="small muted">${st.basic?'Basic rules · ':''}${st.news===false?'Market Days off · ':''}${st.mode==='game'?`${st.lcs||!st.maxDays?'Last Crew Standing':'Game'} · ${fmtTurn(Math.round((st.turnMs||300000)/60000))} per turn, recap included${st.lenSet?` · ${LEN_NAME[st.lenSet]}: first to ${targetFor(st.lenSet,Object.keys(st.players).length)} points`:st.maxDays?` · ${st.maxDays} turns`:` · until one crew is left${st.sudden?`, Sudden Death from turn ${st.sudden}`:''}`}.`:`Campaign · days end at ${esc(st.resolveLabel||'the daily deadline')} host time${st.maxDays?`, for ${st.maxDays} days`:', until one crew is left'}.`}</p>`;
   if(joined&&iPlayLobby())h+=lobbyPick?`<div class="field">${charSelect(charMapFor(st.players)[realMe],takenByOthers(realMe),'set-char')}<button class="linkbtn" data-act="lobby-pick">Done</button></div>`:`<div class="row"><button class="linkbtn" data-act="lobby-pick">Change your character</button></div>`;
   if(!joined&&me){const tk=takenByOthers(null);if(!pickChar||tk[pickChar])pickChar=(CHARS.find(c=>!tk[c.id])||CHARS[0]).id;
     h+=ids.length>=6?`<p>This lobby is full.</p>`:`<div class="field"><label>Pick your character</label>${charSelect(pickChar,tk,'pick-char')}</div><div class="row"><button class="btn primary" data-act="join" ${canWrite?'':'disabled'}>Join the game</button></div>`}
@@ -2015,10 +2029,14 @@ let pick={from:null,to:null},atkPop=null;
 const isPlanning=()=>{const ok=!!st&&st.status==='active'&&iPlay()&&!morningPending()&&!replay;if(ok){ensureDraft();syncPhase()}return ok};
 function baseAt(i){return (st.corners[i]?.s||0)+(draft.buy.soldiers?recAt(i):0)}
 function maxSend(from,skip){const used=draft.attacks.reduce((t,a,k)=>t+(k!==skip&&+a.from===+from?(a.n|0):0),0);return Math.max(0,Math.min(capToday(),baseAt(from)-1-used))}
+// Chance an attack of n takes a corner held by d, given the per-roll odds p and a retreat number.
+function takeOdds(n,d,p,retreat){if(d<=0)return 1;const r=Math.max(0,retreat|0),memo=new Map();const f=(a,b)=>{if(b<=0)return 1;if(a<=r||a<=0)return 0;const k=a*1000+b;if(memo.has(k))return memo.get(k);const v=p*f(a,b-1)+(1-p)*f(a-1,b);memo.set(k,v);return v};return f(n,d)}
+function popOdds(from,to){const t=st.corners[to];if(!t||!t.o||t.o===me)return null;const me_p=myP(),dp=st.players[t.o],myW=TIERS.weapon[me_p.weapon+draft.buy.weapon],aBk=bonusParts(st,me,from,false,me_p.rep+draft.buy.rep),dBk=bonusParts(st,t.o,to,true);return {p:roundOdds(myW.d,aBk.total,TIERS.weapon[dp.weapon].d,dBk.total,dBk.inter>0),d:t.s}}
+function suggestN(from,to,mx){const o=popOdds(from,to);if(!o)return Math.min(mx,3);for(let n=1;n<=mx;n++)if(takeOdds(n,o.d,o.p,0)>=.8)return n;return mx}
 function openPop(from,to){if(truckAt(st,to)){notice='An Ice Cream Truck is parked there today. No attacks on that intersection.';pick={from:null,to:null};return}
   if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&isFight(st,me,{to})&&fightsPlanned()>=atkToday()){const w=TIERS.whip[myP().whip+draft.buy.whip];notice=`Your ${w.n} only fits ${atkToday()} attacks a turn. Claiming an empty corner counts too. Upgrade your Rideshare for more.`;pick={from:null,to:null};return}
   if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&draft.attacks.length>=atkLimit(st)){notice=`Crossing guard: only ${atkLimit(st)} attacks today.`;pick={from:null,to:null};return}notice='';const k=draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to),mx=maxSend(from,k);
-  atkPop={from,to,k,n:k>=0?Math.min(draft.attacks[k].n,mx)||mx:mx,retreatAt:k>=0?draft.attacks[k].retreatAt||0:0};pick={from:null,to:null}}
+  atkPop={from,to,k,n:k>=0?Math.min(draft.attacks[k].n,mx)||mx:Math.max(1,suggestN(from,to,mx)),retreatAt:k>=0?draft.attacks[k].retreatAt||0:0,adv:k>=0&&(draft.attacks[k].retreatAt|0)>0};pick={from:null,to:null}}
 function popView(){
   const a=atkPop,t=st.corners[a.to],me_p=myP(),mx=maxSend(a.from,a.k),dp=t.o?st.players[t.o]:null;
   const myW=TIERS.weapon[me_p.weapon+draft.buy.weapon],myB=TIERS.rep[me_p.rep+draft.buy.rep].b+3*blockCount(st,me);
@@ -2033,7 +2051,9 @@ function popView(){
   if(dp&&!hitsAlly&&canAlly(st,me,t.o))h+=`<p class="small allyhint">${ALLY_SVG}Rather team up? ${offerFrom(st,t.o,me)?'<span class="muted">Your Alliance offer is waiting on them.</span>':`<button class="linkbtn" data-act="ally-propose" data-u="${esc(t.o)}">Propose an Alliance with ${esc(dp.name)}</button>`}</p>`;
   if(mx<1)h+=`<p class="bad">Not enough recruits at ${esc(label(st,a.from))}. One has to stay behind${draft.attacks.some((x,k)=>k!==a.k&&+x.from===+a.from)?', and your other attacks from here already use the rest':''}.</p>`;
   else{h+=`<div class="stepline"><span><strong>Send</strong> <span class="small muted">max ${mx} (Rideshare: ${capToday()} kids an attack)</span></span><div class="stepper"><button data-act="pop-n" data-d="-1" ${a.n>1?'':'disabled'} aria-label="Send one fewer">−</button><span class="n">${a.n}</span><button data-act="pop-n" data-d="1" ${a.n<mx?'':'disabled'} aria-label="Send one more">+</button><button data-act="pop-n" data-d="99" ${a.n<mx?'':'disabled'}>Max</button></div></div>`;
-    if(dp)h+=`<div class="stepline"><span><strong>Retreat when down to</strong> <span class="small muted">0 = fight to the end</span></span><div class="stepper"><button data-act="pop-r" data-d="-1" ${a.retreatAt>0?'':'disabled'} aria-label="Lower">−</button><span class="n">${a.retreatAt}</span><button data-act="pop-r" data-d="1" ${a.retreatAt<a.n-1?'':'disabled'} aria-label="Raise">+</button></div></div>`}
+    if(dp){const tk=takeOdds(a.n,t.s,odds,a.retreatAt);h+=`<p class="takeodds ${tk>=.65?'ok':tk>=.35?'':'bad'}">About <strong>${Math.round(tk*100)}%</strong> to take the corner with ${a.n}${tk>=.8&&a.n===suggestN(a.from,a.to,mx)&&a.k<0?' (suggested)':a.n===mx&&tk<.5?'. Not enough kids here for a safe bet.':''}</p>`}
+    if(dp&&!a.adv)h+=`<button class="linkbtn small advbtn" data-act="pop-adv">More options: retreat</button>`;
+    if(dp&&a.adv)h+=`<div class="stepline"><span><strong>Retreat when down to</strong> <span class="small muted">0 = fight to the end</span></span><div class="stepper"><button data-act="pop-r" data-d="-1" ${a.retreatAt>0?'':'disabled'} aria-label="Lower">−</button><span class="n">${a.retreatAt}</span><button data-act="pop-r" data-d="1" ${a.retreatAt<a.n-1?'':'disabled'} aria-label="Raise">+</button></div></div>`}
   h+=`<div class="row"><button class="btn ${hitsAlly?'danger':'primary'}" data-act="pop-ok" ${mx<1?'disabled':''}>${hitsAlly?'Attack anyway':a.k>=0?'Update attack':'Set attack'}</button><button class="btn" data-act="pop-cancel">Cancel</button>${a.k>=0?'<button class="linkbtn" data-act="pop-del">Remove attack</button>':''}</div></div>`;
   return h}
 let dayPhase='shop',phaseKey='',movePick=null,movePop=null;
@@ -2050,6 +2070,9 @@ const recUnplaced=()=>Math.max(0,draft.buy.soldiers-recPlaced());
 function recAt(i){return (draft.recruits[i]|0)+(recUnplaced()&&recruitDest()===+i?recUnplaced():0)}
 function trimRecruits(){let over=recPlaced()-draft.buy.soldiers;while(over>0){const k=Object.keys(draft.recruits).sort((a,b)=>draft.recruits[b]-draft.recruits[a])[0];if(k==null)break;draft.recruits[k]--;if(!draft.recruits[k])delete draft.recruits[k];over--}}
 function recruitSummary(){return cornersOf(st,me).filter(i=>recAt(i)>0).sort((x,y)=>recAt(y)-recAt(x)).map(i=>`${recAt(i)} at ${esc(labelS(st,i))}`).join(', ')}
+// Put every recruit being bought on whichever of your corners is thinnest at that moment.
+function spreadRecruits(){const mine=cornersOf(st,me);if(!mine.length)return;const out={};const at=i=>st.corners[i].s+(out[i]|0);
+  for(let k=0;k<draft.buy.soldiers;k++){const i=mine.slice().sort((a,b)=>at(a)-at(b)||a-b)[0];out[i]=(out[i]|0)+1}draft.recruits=out}
 function recruitDest(){const mine=cornersOf(st,me);return mine.sort((x,y)=>st.corners[y].s-st.corners[x].s)[0]}
 function sentFrom(i){return draft.attacks.reduce((t,a)=>t+(+a.from===+i?(a.n|0):0),0)}
 function moveMax(from){return Math.max(0,baseAt(from)-1-sentFrom(from))}
@@ -2068,12 +2091,13 @@ function tricksPanel(){const left=cashLeft(),t=draft.trick;
   return `<div class="tiles tricks">${Object.keys(TRICKS).map(k=>{const d=TRICKS[k],w=trickWait(st,me,k),ok=left>=d.c&&!w;return `<button class="tile trick ${w?'used':''}" data-act="trick-pick" data-k="${k}" ${ok?'':'disabled'}><span class="ti k-${k}">${TRICK_ICON[k]}</span><span class="tile-n">${d.n}</span><small>${d.b}</small><span class="tprice">${w===Infinity?'Used':w?`In ${w} turn${w>1?'s':''}`:d.per?`from $${d.c}`:priceTag(k)}</span></button>`}).join('')}</div>`}
 function shopPanel(){
   const p=myP(),b=draft.buy,bankOn=!!(p.loan||canBorrow(st,me));if(shopTab==='bank'&&!bankOn)shopTab='upgrades';const left=cashLeft(),rec=shopTab==='recruits',bank=shopTab==='bank',trk=shopTab==='tricks',upg=!rec&&!bank&&!trk;
-  let h=`<div class="panel"><div class="seg shoptabs" role="tablist" aria-label="Shop"><button role="tab" data-act="shoptab" data-t="upgrades" aria-pressed="${upg}" aria-selected="${upg}">Upgrades${['weapon','sugar','whip','rep'].some(c=>b[c])?' •':''}</button><button role="tab" data-act="shoptab" data-t="recruits" aria-pressed="${rec}" aria-selected="${rec}">Recruits${b.soldiers?` · ${b.soldiers}`:''}</button><button role="tab" data-act="shoptab" data-t="tricks" aria-pressed="${trk}" aria-selected="${trk}">Tricks${draft.trick?' •':''}</button>${bankOn?`<button role="tab" class="banktab" data-act="shoptab" data-t="bank" aria-pressed="${bank}" aria-selected="${bank}">Bank${draft.loan||draft.repay?' •':p.loan?` · ${p.loan.bars}/${bankCfg(st).meter}`:''}</button>`:''}</div>`;
+  let h=`<div class="panel"><div class="seg shoptabs" role="tablist" aria-label="Shop"><button role="tab" data-act="shoptab" data-t="upgrades" aria-pressed="${upg}" aria-selected="${upg}">Upgrades${['weapon','sugar','whip','rep'].some(c=>b[c])?' •':''}</button><button role="tab" data-act="shoptab" data-t="recruits" aria-pressed="${rec}" aria-selected="${rec}">Recruits${b.soldiers?` · ${b.soldiers}`:''}</button>${st.basic?'':`<button role="tab" data-act="shoptab" data-t="tricks" aria-pressed="${trk}" aria-selected="${trk}">Tricks${draft.trick?' •':''}</button>`}${bankOn?`<button role="tab" class="banktab" data-act="shoptab" data-t="bank" aria-pressed="${bank}" aria-selected="${bank}">Bank${draft.loan||draft.repay?' •':p.loan?` · ${p.loan.bars}/${bankCfg(st).meter}`:''}</button>`:''}</div>`;
   if(bank)h+=bankPanel();
   else if(trk)h+=tricksPanel();
   else if(!rec)h+=`<div class="tiles">${shopRow('weapon','Weapon')}${shopRow('sugar','Sugar')}${shopRow('whip','Rideshare')}${shopRow('rep','Street Cred')}</div>`;
   else h+=`<div class="recruit-box"><div class="row" style="justify-content:space-between"><span><strong>${b.soldiers}</strong> recruit${b.soldiers===1?'':'s'} · <span class="mono">$${recTotal(st,me,b.soldiers)}</span>${!ootOn(st)?'':(()=>{const on=soldiersOf(st,me)+b.soldiers,lk=Math.max(0,LOCALS-on),rc=recruitCost(st);return `<br><span class="small ${lk?'muted':'oot'}">${on} kids on the street · ${lk?`${lk} more local${lk===1?'':'s'} at $${rc}, then Out-of-Towners at $${rc*OOT_MULT}`:`now hiring Out-of-Towners: $${rc*OOT_MULT} each`}</span>`})()}</span>
-      <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><button data-act="sold" data-d="1" ${left>=recPrice(st,me,b.soldiers)?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=recTotal(st,me,b.soldiers+5)-recTotal(st,me,b.soldiers)?'':'disabled'}>+5</button></div></div>
+      <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><button data-act="sold" data-d="1" ${left>=recPrice(st,me,b.soldiers)?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=recTotal(st,me,b.soldiers+5)-recTotal(st,me,b.soldiers)?'':'disabled'}>+5</button><button data-act="rec-max" ${left>=recPrice(st,me,b.soldiers)?'':'disabled'}>Max</button></div></div>
+    <div class="row rec-quick"><button class="btn" data-act="rec-spread" ${b.soldiers?'':'disabled'}>Spread to my weakest corners</button></div>
     <div class="seg" role="group" aria-label="What a tap on your corner does"><button data-act="rmode" data-m="add" aria-pressed="${recMode==='add'}">Tap to add</button><button data-act="rmode" data-m="remove" aria-pressed="${recMode==='remove'}">Tap to remove</button></div>
     <p class="small oneline">${b.soldiers?`<button class="linkbtn" data-act="rec-clear">Clear</button> ${recruitSummary()}`:recMode==='add'?`Tap your corners on the map to recruit there.`:'Tap a yellow tag on the map to take one back.'}</p></div>`;
   const tot=`<div class="totals"><span>$${cashIn()} − $${spend()}${draft.loan&&canBorrow(st,me)?' <span class="small muted">(incl. loan)</span>':''}</span><span class="${left<0?'bad':'ok'}">$${left} left</span></div>`;
@@ -2526,8 +2550,13 @@ function applyZoomUi(){const z=document.querySelector('.zoomctl');if(z)z.classLi
 function pokeZoom(){zoomUiUntil=Date.now()+2800;applyZoomUi();clearTimeout(zoomT);zoomT=setTimeout(applyZoomUi,2850)}
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('.stage .rp-board'))pokeZoom()},true);
 document.addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.stage .rp-board'))pokeZoom()},{capture:true,passive:true});
-let lobbyMode='game',lobbyNews=true,lobbyLen='std',lobbySudden=80;
+let lobbyMode='game',lobbyNews=true,lobbyLen='std',lobbySudden=80,lobbyBasic=(()=>{try{return !localStorage.getItem('sc-played')}catch(e){return true}})();
 const SUDDEN_OPTS=[0,60,70,80,90,100];
+const REACTS=['Nice try 😏','Truce?','You’ll pay for that!','GG 🍋','Oops 😬','Watch your corners','Lemonade’s on me','😂'];
+let reacts={},reactSeen={},toasts=[],reactOpen=false,reactAt=0;
+function onReacts(q){const now=Date.now();q.docs.forEach(d=>{const r=d.data();if(!r||!st||r.gameId!==st.gameId)return;const k=d.id+':'+r.at;if(reactSeen[k])return;reactSeen[k]=1;if(now-r.at<20000&&REACTS[r.k]!=null){toasts.push({u:r.u,k:r.k,at:now});setTimeout(()=>{toasts=toasts.filter(t=>now!==t.at);render()},4200);render()}})}
+function reactToasts(){if(!toasts.length||!st)return'';return `<div class="rtoasts" aria-live="polite">${toasts.slice(-3).map(t=>{const p=st.players[t.u];if(!p)return'';return `<div class="rtoast" style="--c:${esc(crewColor(t.u))}">${avatar(charOf(t.u),crewColor(t.u),26)}<span><b>${esc((CHAR_BY[charOf(t.u)]||{}).name||p.name)}:</b> ${esc(REACTS[t.k])}</span></div>`}).join('')}</div>`}
+function reactBtn(){if(!st||st.status!=='active'||!iPlay())return'';return `<button class="reactbtn ${reactOpen?'on':''}" data-act="react-open" aria-label="Send a reaction" aria-expanded="${reactOpen}">💬</button>${reactOpen?`<div class="reactpick" role="menu">${REACTS.map((t,i)=>`<button role="menuitem" data-act="react" data-k="${i}">${esc(t)}</button>`).join('')}</div>`:''}`}
 let navOpen=false,lastAsp=null,lobbyPick=false;
 function setTab(t){if(t==='rules'&&tab!=='rules'){rMode='quick';rIdx=0}navOpen=false;notice="";if(replay&&t!=='board'){clearT();if(replay.live){replay=null}else replay=null}tab=t;try{localStorage.setItem('sc-tab',t)}catch(e){}render();window.scrollTo(0,0)}
 function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corners[y].s-st.corners[x].s);const others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me);
@@ -2575,6 +2604,7 @@ document.addEventListener('click',async e=>{
   if(act==='llen'){lobbyLen=el.dataset.l;return render()}
   if(act==='lsd'){lobbySudden=+el.dataset.v;return render()}
   if(act==='lnews'){lobbyNews=el.dataset.v==='1';return render()}
+  if(act==='lbasic'){lobbyBasic=el.dataset.v==='1';return render()}
   if(act==='news-t'){const on=st.news!==false;return save(()=>stateRef.update({news:!on}))}
   if(act==='lobby-pick'){lobbyPick=!lobbyPick;csIdx=null;csAt=0;return render()}
   if(act==='corner'){if(replay)return;const i=+el.dataset.i;
@@ -2612,6 +2642,10 @@ document.addEventListener('click',async e=>{
   if(act==='mvp-del'){restoreZoom();draft.move=null;movePop=null;dirty=true;return render()}
   if(act==='atk-edit'){ensureDraft();dayPhase='attack';const a=draft.attacks[+el.dataset.k];if(a){openPop(a.from,a.to)}return render()}
   if(act==='pop-cancel'){atkPop=null;restoreZoom();return render()}
+  if(act==='react-open'){reactOpen=!reactOpen;return render()}
+  if(act==='react'){reactOpen=false;const k=+el.dataset.k;if(Date.now()-reactAt<4000){notice='Easy there. One reaction every few seconds.';return render()}reactAt=Date.now();
+    db.doc('reacts/'+me).set({gameId:st.gameId,u:me,k,at:Date.now()}).catch(e=>console.warn(e));return render()}
+  if(act==='pop-adv'){if(atkPop)atkPop.adv=true;return render()}
   if(act==='pop-n'){const mx=maxSend(atkPop.from,atkPop.k),d=+el.dataset.d;atkPop.n=Math.max(1,Math.min(mx,d===99?mx:atkPop.n+d));if(atkPop.retreatAt>=atkPop.n)atkPop.retreatAt=Math.max(0,atkPop.n-1);return render()}
   if(act==='pop-r'){atkPop.retreatAt=Math.max(0,Math.min(atkPop.n-1,atkPop.retreatAt+(+el.dataset.d)));return render()}
   if(act==='pop-ok'){restoreZoom();const a={from:atkPop.from,to:atkPop.to,n:atkPop.n,retreatAt:st.corners[atkPop.to].o?atkPop.retreatAt:0};
@@ -2634,7 +2668,7 @@ document.addEventListener('click',async e=>{
     const gm=lobbyMode!=='campaign',turnMin=gm?Math.max(1,Math.min(lobbyMode==='lcs'?1440:720,parseInt((document.getElementById('f-turn')||{}).value,10)||5)):0;const tv=(document.getElementById('f-time')||{}).value||'20:00',[hh,mm]=tv.split(':').map(Number),min=hh*60+mm;
     const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:lobbyMode==='game'?LEN_BACKSTOP[lobbyLen]:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||20)/5)*5));
     const lab=new Date(2000,0,1,hh,mm).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
-    return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',sudden:lobbyMode==='lcs'?lobbySudden:0,lenSet:lobbyMode==='game'?lobbyLen:null,news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
+    return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',basic:!!lobbyBasic,sudden:lobbyMode==='lcs'?lobbySudden:0,lenSet:lobbyMode==='game'?lobbyLen:null,news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='join'){const name=CHAR_BY[pickChar].name+"'s Crew";
     return save(()=>stateRef.update({players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='pick-char'){pickChar=el.dataset.c;return render()}
@@ -2678,6 +2712,8 @@ document.addEventListener('click',async e=>{
   const d=+el.dataset.d;
   if(act==='pl'){const i=el.dataset.i,used=Object.values(draft.place).reduce((a,b)=>a+(b|0),0);draft.place[i]=Math.max(0,(draft.place[i]|0)+Math.min(d,START_SOLDIERS-used));dirty=true}
   if(act==='buy'){draft.buy[el.dataset.cat]=Math.max(0,draft.buy[el.dataset.cat]+d);dirty=true}
+  if(act==='rec-max'){let n=0;while(n<500&&cashLeft()>=recPrice(st,me,draft.buy.soldiers)){draft.buy.soldiers++;n++}spreadRecruits();dirty=true;return render()}
+  if(act==='rec-spread'){spreadRecruits();dirty=true;return render()}
   if(act==='sold'){draft.buy.soldiers=Math.max(0,draft.buy.soldiers+d);trimRecruits();dirty=true}
   if(act==='rmode'){recMode=el.dataset.m;return render()}
   if(act==='shoptab'){shopTab=el.dataset.t;trickPick=null;return render()}
@@ -2775,6 +2811,7 @@ window.addEventListener('resize',()=>{lastAsp=null;render()});
   stateRef.onSnapshot(s=>{st=s.exists?normalizeNames(JSON.parse(JSON.stringify(s.data()))):null;loaded=true;if(st&&sel!=null&&(!st.corners||sel>=st.corners.length))sel=null;if(!st||!st.players||!st.players[me]||(me!==realMe&&st.players[me].ctrl!==realMe))me=realMe;render();maybeResolve()},
     e=>{loaded=true;notice="Lost the connection to the board. Reload the page.";render()});
   db.doc('game/prev').onSnapshot(s=>{hasPrev=!!(s.exists&&s.data().state);render()},e=>{});
+  db.collection('reacts').onSnapshot(onReacts,e=>{});
   db.collection('orders').onSnapshot(q=>{const o={};q.docs.forEach(d=>o[d.id]=d.data());orders=o;if(!dirty)draftKey='';render();maybeResolve()},e=>console.warn(e));
   setInterval(()=>{renderHeader();maybeResolve()},30000);
   setInterval(()=>{if(!st||st.mode!=='game'||(st.status!=='setup'&&st.status!=='active'))return;const c=document.getElementById('turnclock');if(c){c.textContent=(st.paused?'⏸ ':'⏱ ')+clockText();c.classList.toggle('urgent',!st.paused&&st.nextResolveAt-Date.now()<30000)}if(!st.paused&&Date.now()>=st.nextResolveAt)maybeResolve()},1000);
