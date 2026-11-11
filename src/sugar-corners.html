@@ -716,7 +716,7 @@ const upCost=(s,t)=>{const e=evToday(s);return t?(e&&e.k==='garage'?Math.round(t
 const truckAt=(s,i)=>false;
 const atkLimit=s=>10;const SD_RAMP=5;
 const WHIP_ATK=[2,3,4,5];const atkLimFor=(s,u)=>WHIP_ATK[(s.players[u]||{}).whip|0]||2;
-const isFight=(s,u,a)=>{const t=s.corners[a.to];return !!(t&&t.o&&t.o!==u)};
+const isFight=(s,u,a)=>{const t=s.corners[a.to];return !!(t&&t.o!==u)};  // any corner you go after, empty or held, uses one of your Rideshare's attacks
 const TRICKS={stink:{n:'Stink Bomb',c:25,aim:'inter',b:'No sales for anyone at one intersection, you included.'},batch:{n:'Bad Batch',c:50,aim:'crew',b:'Swap a rival’s sugar for salt. −1 to their Street Cred for 3 turns.'},
   truck:{n:'Ice Cream Truck',c:60,aim:'inter',b:'No attacks on one intersection.'},party:{n:'Block Party',c:30,aim:'mine',b:'Your corners at one intersection sell triple.'}};
 const TRICK_RECHARGE=15;
@@ -1103,7 +1103,7 @@ function botOrders(s,u){
   const rAt=n=>style==='brawler'?0:style==='turtle'?Math.max(1,Math.floor(n/3)):Math.max(1,Math.floor(n/4));let nT=0,nR=0,combo=false;const lim=WHIP_ATK[p.whip+o.buy.whip]||2;
   for(const t of cands){if(nT>=maxAtk||o.attacks.length>=atkLimit(s))break;if(t.score<=0)break;
     const srcs=mine.slice().sort((a,b)=>avail[b]-avail[a]),src=srcs[0],can=Math.min(cap,avail[src]-1);if(can<1)break;
-    if(t.empty){const n=Math.min(can,2);o.attacks.push({from:src,to:t.i,n,retreatAt:0});avail[src]-=n;nT++;continue}
+    if(t.empty){if(nR>=lim)continue;nR++;const n=Math.min(can,2);o.attacks.push({from:src,to:t.i,n,retreatAt:0});avail[src]-=n;nT++;continue}
     if(t.need<=can){if(nR>=lim)continue;nR++;const n=Math.min(can,Math.ceil(t.need*1.15));o.attacks.push({from:src,to:t.i,n,retreatAt:rAt(n)});avail[src]-=n;nT++;continue}
     // too big for one vehicle: late in the game, gang up on a runaway leader from several corners at once (once a turn, not on Easy)
     if(lvl==='easy'||!late||!chase||combo||leader===u||s.corners[t.i].o!==focus)continue;combo=true;
@@ -1644,7 +1644,7 @@ const GUIDE=[
   {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty Tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>. Be warned: everyone sees who played it in the recap.'},
   {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market Day',b:'Something’s in the air. Every 5 turns a Market Day hits the whole block, like a Heat Wave or a Garage Sale. Nobody knows which until it hits.'},
   {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'Unlucky? You’re in last place, so Mom &amp; Dad will lend you $200, once. Dad wants $250 back. Pay it in $50 chunks from the <b>Bank</b> tab before his meter fills.'},
-  {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Your Rideshare sets how many attacks you get each turn. Dashed corners are empty, and claiming them is free. Attacks are optional.'},
+  {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Your Rideshare sets how many attacks you get each turn. Dashed corners are empty and free to claim, but each claim still uses an attack. Attacks are optional.'},
   {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'There’s strength in numbers. When you plan an attack on a rival, tap <b>Rather team up?</b> to offer a 5-turn Alliance. Your corners count together for Full Intersections and Blocks. Breaking it costs Street Cred.'},
   {id:'move',when:()=>planningNow()&&dayPhase==='move',t:'Shore up your defences',b:'Once a turn, tap one of your corners, then another, to move recruits between them. Moves happen after the fighting.'},
   {id:'send',when:()=>planningNow()&&dayPhase==='review',t:'Send your orders',b:'Check your list and tap ✕ to cancel anything. Then <b>Send</b>. Everyone plans at once, and the day plays out when the timer ends or every crew has sent.'}];
@@ -1882,7 +1882,7 @@ const isPlanning=()=>{const ok=!!st&&st.status==='active'&&iPlay()&&!morningPend
 function baseAt(i){return (st.corners[i]?.s||0)+(draft.buy.soldiers?recAt(i):0)}
 function maxSend(from,skip){const used=draft.attacks.reduce((t,a,k)=>t+(k!==skip&&+a.from===+from?(a.n|0):0),0);return Math.max(0,Math.min(capToday(),baseAt(from)-1-used))}
 function openPop(from,to){if(truckAt(st,to)){notice='An Ice Cream Truck is parked there today. No attacks on that intersection.';pick={from:null,to:null};return}
-  if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&isFight(st,me,{to})&&fightsPlanned()>=atkToday()){const w=TIERS.whip[myP().whip+draft.buy.whip];notice=`Your ${w.n} only fits ${atkToday()} attacks a turn. Upgrade your Rideshare for more. Claiming empty corners is free.`;pick={from:null,to:null};return}
+  if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&isFight(st,me,{to})&&fightsPlanned()>=atkToday()){const w=TIERS.whip[myP().whip+draft.buy.whip];notice=`Your ${w.n} only fits ${atkToday()} attacks a turn. Claiming an empty corner counts too. Upgrade your Rideshare for more.`;pick={from:null,to:null};return}
   if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&draft.attacks.length>=atkLimit(st)){notice=`Crossing guard: only ${atkLimit(st)} attacks today.`;pick={from:null,to:null};return}notice='';const k=draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to),mx=maxSend(from,k);
   atkPop={from,to,k,n:k>=0?Math.min(draft.attacks[k].n,mx)||mx:mx,retreatAt:k>=0?draft.attacks[k].retreatAt||0:0};pick={from:null,to:null}}
 function popView(){
@@ -2192,7 +2192,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
      +`<text x="186" y="146" class="rop sm">vs</text>`+rDie(234,140,5,TIERS.weapon[0].d,T,48)+`<text x="276" y="148" class="rtot lose">5</text><text x="250" y="30" class="rminus">−1</text>`),
    b:`<p>Both sides roll a number based on their weapon and bonuses. <strong>The higher total wins the roll</strong>; the loser loses one recruit in the fight. <strong>Ties roll again</strong>, unless the defender holds the Full Intersection.</p><p>Rolls repeat until one side is out, or the attacking crew hits their retreat number.</p>`},
   {t:'Sending a crew',art:SV(rRoads(320,190,[90,230],[95])+rDot(66,70,O,'9',18)+rArrow(90,70,200,70,O,true)+rCar(150,58,O,0)+rDot(254,70,T,'3',18)+`<g transform="translate(110,120)"><rect width="120" height="44" rx="12" fill="#fff" stroke="#141414" stroke-width="2.5"/><text x="60" y="17" class="rcap">send 4 · retreat at 2</text><text x="60" y="34" class="rcap muted2">1 always stays home</text></g>`),
-   b:`<p>Attack any corner from one of yours. Opposing crew stacked a corner? Upgrade your ride. Your <strong>Rideshare</strong> sets how many attacks you can make each turn (2 to 5) and how many recruits ride in each (4 to 10). Claiming an empty corner doesn't count as an attack.</p><p>How many you send is up to you. One recruit always stays back to hold down the fort. But can they hold off another attack all alone?</p><p>You don't need to carry all your lemons in one basket. Set a <strong>retreat</strong> number so <s>cowards</s> recruits come home instead of fighting to the last.</p>`},
+   b:`<p>Attack any corner from one of yours. Opposing crew stacked a corner? Upgrade your ride. Your <strong>Rideshare</strong> sets how many attacks you can make each turn (2 to 5) and how many recruits ride in each (4 to 10). Claiming an empty corner counts as an attack.</p><p>How many you send is up to you. One recruit always stays back to hold down the fort. But can they hold off another attack all alone?</p><p>You don't need to carry all your lemons in one basket. Set a <strong>retreat</strong> number so <s>cowards</s> recruits come home instead of fighting to the last.</p>`},
   {t:'Brawls',art:SV(rRoads(320,190,[160],[95])+rDot(184,72,P,'5',20)+rCar(88,72,O,0)+rArrow(104,72,156,72,O,true)+rCar(184,170,T,-90)+rArrow(184,154,184,100,T,true)+rCar(270,72,G,180)+rArrow(254,72,210,72,G,true)
      +`<g transform="translate(184,30)"><path d="M0 -18 l5 12 13 -5 -6 12 13 5 -13 5 6 12 -13 -5 -5 12 -5 -12 -13 5 6 -12 -13 -5 13 -5 -6 -12 13 5z" fill="#8e2bb0" stroke="#141414" stroke-width="2"/></g><text x="230" y="32" class="rcap" style="text-anchor:start">BRAWL!</text>`),
    b:`<p>Everyone rolls out at once. When several crews hit the same corner, it's a <strong>Brawl</strong>: all sides roll together.</p><p>The highest roll wins the round and <strong>everyone else loses one recruit</strong>. Crews tied for the top lose nothing, but a defender holding the Full Intersection wins ties outright. Last crew left standing takes or keeps the corner.</p>`},
