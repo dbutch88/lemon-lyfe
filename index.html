@@ -170,6 +170,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @media (max-width:400px){.brand{font-size:13px;padding:3px 8px 2px 6px;gap:5px}.brand svg{width:15px;height:15px}.brandrow .chip{padding:2px 6px;font-size:11.5px}.menubtn{padding:4px 8px;font-size:12.5px}}
 .brand{flex:none;display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-size:15px;letter-spacing:.02em;background:var(--lemon);color:var(--lemon-ink);padding:4px 11px 3px 8px;border-radius:8px;border:2px solid var(--lemon-ink);box-shadow:2px 2px 0 var(--lemon-ink)}
 .status{font-size:13px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sdchip .sdl{}@media (max-width:430px){.sdchip .sdl{display:none}}.sdchip{border-color:#d9412b;color:#b3301e;font-weight:600}.sdchip.on{background:#d9412b;color:#fff}
 .mkchip{display:inline-flex;align-items:center;gap:3px}
 @media (max-width:430px){.brandrow:has(.mkchip) .status{gap:4px}.brandrow:has(.mkchip) .chip{padding:2px 5px}}
 @container (max-height:380px){.bigstamp.market small{display:none!important}}.mkchip .mkn{display:none}
@@ -444,6 +445,7 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .mering{fill:none;stroke-width:3;pointer-events:none}@media (prefers-reduced-motion:no-preference){.mering{animation:mepulse 1.4s ease-in-out infinite}}@keyframes mepulse{50%{stroke-opacity:.25}}
 .lvlrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.lvlrow .seg{flex:1;max-width:240px}.lvlrow .seg button{min-height:32px;padding:3px 6px}
 .oot{color:var(--bad);font-weight:700}
+.sdfield{margin-top:8px}.seg.sds{display:flex;flex-wrap:wrap}.seg.sds button{flex:1 1 auto;min-height:34px;padding:0 6px;font-size:12.5px;white-space:nowrap}.sdfield .small{display:block;margin-top:4px}
 .lcsnote{flex:0 1 auto;align-self:flex-end;margin:0 0 4px;line-height:1.3}
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .tiles:has(.upc){grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -846,7 +848,7 @@ function streetText(s,e){return STREET[e.k]?STREET[e.k].b:''}
 const recruitCost=s=>{const e=evToday(s);return e&&e.k==='drive'?5:SOLDIER_COST};
 const upCost=(s,t)=>{const e=evToday(s);return t?(e&&e.k==='garage'?Math.round(t.c*.75):t.c):0};
 const truckAt=(s,i)=>false;
-const atkLimit=s=>10;
+const atkLimit=s=>10;const SD_RAMP=5;
 const WHIP_ATK=[2,3,4,5];const atkLimFor=(s,u)=>WHIP_ATK[(s.players[u]||{}).whip|0]||2;
 const isFight=(s,u,a)=>{const t=s.corners[a.to];return !!(t&&t.o&&t.o!==u)};
 const TRICKS={stink:{n:'Stink Bomb',c:25,aim:'inter',b:'No sales for anyone at one intersection, you included.'},batch:{n:'Bad Batch',c:50,aim:'crew',b:'Swap a rival’s sugar for salt. −1 to their Street Cred for 3 turns.'},
@@ -1157,7 +1159,7 @@ const ICONS={brawl:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .5l1
   loan:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L1.5 5h13zM2.5 6.5h11v1.5h-11zM3.5 9h2v4h-2zM7 9h2v4H7zM10.5 9h2v4h-2zM1.5 14h13v1.5h-13z" fill="currentColor"/></svg>',
   dad:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.5" r="6.5" fill="currentColor"/><path d="M4.5 6.5l2 1M11.5 6.5l-2 1M5.5 11.5q2.5-2 5 0" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>',
   out:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="currentColor" stroke-width="2"/></svg>'};
-const CATS={atk:{t:'Attack',pl:'Attacks',cls:'c-atk'},claim:{t:'Claim',pl:'Claims',cls:'c-claim'},skip:{t:'Called off',pl:'Called off',cls:'c-skip'},
+const CATS={sudden:{t:'Sudden Death',pl:'Sudden Death',cls:'c-out'},atk:{t:'Attack',pl:'Attacks',cls:'c-atk'},claim:{t:'Claim',pl:'Claims',cls:'c-claim'},skip:{t:'Called off',pl:'Called off',cls:'c-skip'},
   rec:{t:'Recruit',pl:'Recruits',cls:'c-rec'},up:{t:'Upgrade',pl:'Upgrades',cls:'c-up'},mv:{t:'Move',pl:'Moves',cls:'c-mv'},out:{t:'Knocked out',pl:'Knocked out',cls:'c-out'},brawl:{t:'Brawl',pl:'Brawls',cls:'c-brawl'},go:{t:'Roll out',pl:'Roll out',cls:'c-go'},loan:{t:'Bank of Mom & Dad',pl:'Bank of Mom & Dad',cls:'c-loan'},news:{t:'Market Day',pl:'Market Days',cls:'c-news'},trick:{t:'Dirty Trick',pl:'Dirty Tricks',cls:'c-trick'},ally:{t:'Alliance',pl:'Alliances',cls:'c-ally'},betray:{t:'Betrayal',pl:'Betrayals',cls:'c-betray'},cpu:{t:'Computer takes over',pl:'Computer takes over',cls:'c-cpu'},quiet:{t:'Gone quiet',pl:'Gone quiet',cls:'c-quiet'},dad:{t:'Grounded',pl:'Grounded',cls:'c-dad'},door:{t:'Dad’s at the door',pl:'Dad’s at the door',cls:'c-dad'}};
 ICONS.door=ICONS.dad;
 const catOf=ev=>ev.t==='dad'&&ev.kind==='door'?'door':ev.t==='ally'&&(ev.kind==='betray'||ev.kind==='broke')?'betray':ev.t==='brawl'?'brawl':ev.t==='go'?'go':ev.t==='atk'?(ev.res==='claim'?'claim':ev.res==='skip'?'skip':'atk'):(CATS[ev.t]?ev.t:'up');
@@ -1389,6 +1391,12 @@ function resolveDay(s0,ords){
       if(top()>=s.target){for(const u of order){const p=s.players[u];if(p.loan&&p.alive!==false)dadCollect(s,u,'The game is ending, and the loan came due.',L,E)}
         for(const u of order){const p=s.players[u];if(p.alive!==false&&!cornersOf(s,u).length){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx})}}
         if(top()>=s.target)s._won=true}}}
+  if(s.sudden&&!s.target&&s.day>=s.sudden){const al=aliveUids(s);if(al.length>1){
+    if(s.day===s.sudden){const tx=`Sudden Death! From now on, every crew loses its least-guarded corner each night, and one more every ${SD_RAMP} nights.`;L.push(tx);E.push({t:'sudden',kind:'start',text:tx})}
+    const nLose=1+Math.floor((s.day-s.sudden)/SD_RAMP),pick={};for(const u of al){const cs=cornersOf(s,u).map(i=>[i,s.corners[i].s,rng()]).sort((a,b)=>a[1]-b[1]||a[2]-b[2]);if(cs.length)pick[u]=cs.slice(0,nLose).map(x=>x[0])}
+    const hit=Object.keys(pick);if(hit.length&&hit.every(u=>pick[u].length>=cornersOf(s,u).length)){const keep=hit.slice().sort((a,b)=>soldiersOf(s,b)-soldiersOf(s,a))[0];pick[keep]=pick[keep].slice(0,cornersOf(s,keep).length-1);if(!pick[keep].length)delete pick[keep]}
+    for(const u of Object.keys(pick))for(const i of pick[u]){const k=s.corners[i].s;s.corners[i].o=null;s.corners[i].s=0;const tx=`Sudden Death: ${nm(u)} lost ${label(s,i)} and the ${k} kid${k===1?'':'s'} on it.`;L.push(tx);E.push({t:'sudden',u,text:tx,lost:[i],set:[[i,null,0]]});
+      if(!cornersOf(s,u).length&&s.players[u].alive!==false){s.players[u].alive=false;const t2=`${nm(u)} lost their last corner and is out.`;L.push(t2);E.push({t:'out',u,text:t2})}}}}
   s.log=[{day:s.day,lines:L,income,start,events:E},...(s.log||[])].slice(0,40);
   s.log.forEach((d,k)=>{if(k>=3){delete d.start;delete d.events}});
   s.lastResolvedDay=s.day;s.day++;
@@ -1514,6 +1522,7 @@ function renderHeader(){
   if(!st||st.status==='lobby'){s.innerHTML=st?`<span class="chip">Lobby</span>`:'';t.hidden=true;return}
   const alive=humansAlive(st),inN=alive.filter(hasOrder).length,p=myP();
   let bits=`<span class="chip">${st.status==='setup'?(st.mode==='game'?'Setup':'Setup day'):st.status==='over'?'Final':DW()+' '+st.day+(st.maxDays&&!st.target&&st.mode!=='game'?`<span class="of">/${st.maxDays}</span>`:'')}</span>`;
+  if(st.status==='active'&&st.sudden&&!st.target){const n=st.sudden-st.day;if(n<=0)bits+=`<span class="chip sdchip on" title="Sudden Death: every crew loses ${1+Math.floor((st.day-st.sudden)/SD_RAMP)} least-guarded corner${1+Math.floor((st.day-st.sudden)/SD_RAMP)>1?'s':''} tonight">⏳<span class="sdl"> Sudden Death</span></span>`;else if(n<=5)bits+=`<span class="chip sdchip" title="Sudden Death starts on turn ${st.sudden}">⏳<span class="sdl"> in</span> ${n}</span>`}
   if(st.status==='active'){const e=evToday(st),nx=nextMarket(st);
     if(e)bits+=`<span class="chip mkchip now k-${e.k}" title="Market Day today: ${esc(STREET[e.k].n)}" aria-label="Market Day today: ${esc(STREET[e.k].n)}"><span class="mki">${STREET_ICON[e.k]}</span><span class="mkl">Today</span></span>`;
     else if(nx){const n=nx.day-st.day;bits+=`<span class="chip mkchip ${n<=1?'soon':''}" title="Next Market Day: ${DW().toLowerCase()} ${nx.day}" aria-label="Next Market Day in ${n} turn${n>1?'s':''}">${MK_SVG}<span class="mkl">${n<=1?'Next':'in '+n}</span><span class="mkn">${n}</span></span>`}}
@@ -1758,7 +1767,7 @@ function boardSVG(){
 function focusOf(ev){if(!ev)return null;if(ev.t==='trick')return ev.it!=null?[ev.it*4,ev.it*4+1,ev.it*4+2,ev.it*4+3]:(ev.v?cornersOf(st,ev.v):null);if(ev.t==='news')return null;
   if(ev.t==='brawl')return [ev.to,...ev.sides.flatMap(x=>x.froms)];
   if(ev.t==='atk')return [...(ev.froms||[ev.from]),ev.to];
-  if(ev.t==='mv')return [ev.from,ev.to];if(ev.t==='rec')return ev.is||[ev.i];if(ev.t==='dad'&&ev.lost&&ev.lost.length)return ev.lost;return null}
+  if(ev.t==='mv')return [ev.from,ev.to];if(ev.t==='rec')return ev.is||[ev.i];if((ev.t==='dad'||ev.t==='sudden')&&ev.lost&&ev.lost.length)return ev.lost;return null}
 /* ---------- first-game guide ---------- */
 const GUIDE=[
   {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your corners have a dark outline. Tap them to stack your 20 recruits, or tap <b>Spread evenly</b> to share them out. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
@@ -1927,7 +1936,7 @@ function lobbyView(){
     const slider=`<div class="field lenfield"><label for="f-len">${lm==='campaign'?'Days':'Turns'} <span class="small muted">${LEN_MIN}–${lmax}</span> <output id="f-len-out" class="lenout">${len}</output></label><input id="f-len" type="range" min="${LEN_MIN}" max="${lmax}" step="5" value="${len}" aria-valuetext="${len} ${lm==='campaign'?'days':'turns'}"></div>`;
     return `<div class="panel"><div class="seg modes" role="tablist" aria-label="Type">${mb('game','Game')}${mb('lcs','Last Crew Standing')}</div>
       <div class="field">${charSelect(pickChar,{},'pick-char')}</div>
-      ${gm?`<div class="row"><div class="field"><label for="f-turn">Time per turn</label><select id="f-turn">${TURN_OPTS.filter(m=>lm==='lcs'||m<1440).map(m=>`<option value="${m}" ${m===tsel?'selected':''}>${fmtTurn(m)}</option>`).join('')}</select></div>${lm==='lcs'?'<p class="small muted lcsnote">No turn limit.<br>Last crew left wins.</p>':lm==='game'?lenSeg:''}</div>`
+      ${gm?`<div class="row"><div class="field"><label for="f-turn">Time per turn</label><select id="f-turn">${TURN_OPTS.filter(m=>lm==='lcs'||m<1440).map(m=>`<option value="${m}" ${m===tsel?'selected':''}>${fmtTurn(m)}</option>`).join('')}</select></div>${lm==='lcs'?'<p class="small muted lcsnote">No turn limit.<br>Last crew left wins.</p>':lm==='game'?lenSeg:''}</div>${lm==='lcs'?`<div class="field sdfield"><label>Sudden Death starts on turn</label><div class="seg sds" role="group" aria-label="Sudden Death starts">${SUDDEN_OPTS.map(v=>`<button data-act="lsd" data-v="${v}" aria-pressed="${lobbySudden===v}">${v||'Off'}</button>`).join('')}</div><span class="small muted">${lobbySudden?`From turn ${lobbySudden}, every crew loses its least-guarded corner each night, and one more every ${SD_RAMP} nights.`:'No Sudden Death. The game runs until one crew is left.'}</span></div>`:''}`
       :`<div class="row"><div class="field"><label for="f-time">Days end at</label><input id="f-time" type="time" value="${esc(formVals['f-time']||'20:00')}"></div>${slider}</div>`}
       <div class="row createrow"><button class="btn primary" data-act="create" ${me&&canWrite?'':'disabled'}>Open the ${lm==='campaign'?'campaign':'game'} lobby</button><button class="newstog ${lobbyNews?'on':''}" data-act="lnews" data-v="${lobbyNews?0:1}" aria-pressed="${lobbyNews}" title="A block-wide event every 5 turns">Market Days: <b>${lobbyNews?'On':'Off'}</b></button></div>
       ${me?'':'<p class="small muted">Connecting…</p>'}</div>`+how;
@@ -1935,7 +1944,7 @@ function lobbyView(){
   const ids=seatOrder(st),joined=!!st.players[realMe],host=st.hostId===realMe;
   let h=`<div class="panel"><span class="eyebrow">Lobby · ${ids.length}/6 crews</span><h2>Waiting for crews</h2>
     <div class="legend">${ids.map((u,k)=>{const cm=charMapFor(st.players)[u];return `<span>${avatar(cm,CHAR_BY[cm]?.color,26)}${esc(st.players[u].name)}${cm?` <span class="muted">“${CHAR_BY[cm].nick}”</span>`:''}${u===st.hostId?' (host)':''}${st.players[u].ctrl?' (test)':''}${st.players[u].bot?' (computer)':''}${u===realMe?' (you)':''}</span>`}).join('')}</div>
-    <p class="small muted">${st.news===false?'Market Days off · ':''}${st.mode==='game'?`${st.lcs||!st.maxDays?'Last Crew Standing':'Game'} · ${fmtTurn(Math.round((st.turnMs||300000)/60000))} per turn, recap included${st.lenSet?` · ${LEN_NAME[st.lenSet]}: first to ${targetFor(st.lenSet,Object.keys(st.players).length)} points`:st.maxDays?` · ${st.maxDays} turns`:' · until one crew is left'}.`:`Campaign · days end at ${esc(st.resolveLabel||'the daily deadline')} host time${st.maxDays?`, for ${st.maxDays} days`:', until one crew is left'}.`}</p>`;
+    <p class="small muted">${st.news===false?'Market Days off · ':''}${st.mode==='game'?`${st.lcs||!st.maxDays?'Last Crew Standing':'Game'} · ${fmtTurn(Math.round((st.turnMs||300000)/60000))} per turn, recap included${st.lenSet?` · ${LEN_NAME[st.lenSet]}: first to ${targetFor(st.lenSet,Object.keys(st.players).length)} points`:st.maxDays?` · ${st.maxDays} turns`:` · until one crew is left${st.sudden?`, Sudden Death from turn ${st.sudden}`:''}`}.`:`Campaign · days end at ${esc(st.resolveLabel||'the daily deadline')} host time${st.maxDays?`, for ${st.maxDays} days`:', until one crew is left'}.`}</p>`;
   if(joined&&iPlayLobby())h+=lobbyPick?`<div class="field">${charSelect(charMapFor(st.players)[realMe],takenByOthers(realMe),'set-char')}<button class="linkbtn" data-act="lobby-pick">Done</button></div>`:`<div class="row"><button class="linkbtn" data-act="lobby-pick">Change your character</button></div>`;
   if(!joined&&me){const tk=takenByOthers(null);if(!pickChar||tk[pickChar])pickChar=(CHARS.find(c=>!tk[c.id])||CHARS[0]).id;
     h+=ids.length>=6?`<p>This lobby is full.</p>`:`<div class="field"><label>Pick your character</label>${charSelect(pickChar,tk,'pick-char')}</div><div class="row"><button class="btn primary" data-act="join" ${canWrite?'':'disabled'}>Join the game</button></div>`}
@@ -2334,7 +2343,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
        +`<circle cx="142" cy="46" r="6" fill="${O}" stroke="#fff" stroke-width="2"/><path d="M142 40 V18" stroke="#141414" stroke-width="2"/><path d="M142 18 h16 l-4 5 4 5 h-16z" fill="#f7d538" stroke="#141414" stroke-width="1.5"/></g><text x="86" y="176" class="rcap">First to the target</text>`
      +[['mateo',196,58],['priya',284,58],['kenji',196,146],['liam',284,146]].map(([id,x,y])=>`<g opacity=".55">${avAt(id,40,x,y)}</g><path d="M${x-11} ${y-11} l22 22 M${x+11} ${y-11} l-22 22" stroke="#d9412b" stroke-width="4" stroke-linecap="round"/>`).join('')
      +avAt('zuri',70,240,104)+`<path d="M220 66 l4 -20 10 11 6 -15 6 15 10 -11 4 20z" fill="#f7d538" stroke="#141414" stroke-width="2.5" stroke-linejoin="round"/><text x="240" y="182" class="rcap">Last Crew Standing</text>`),
-   b:`<p><strong>Game:</strong> first to the target score wins. <strong>Standard</strong> is first to ${LEN_PTS.std[1]}, <strong>Long</strong> ${LEN_PTS.long[1]}, <strong>XL</strong> ${LEN_PTS.xl[1]} (${LEN_PTS.std[0]}, ${LEN_PTS.long[0]}, and ${LEN_PTS.xl[0]} with 3 crews). If nobody gets there by turn ${LEN_BACKSTOP.std} (${LEN_BACKSTOP.xl} for XL), the top score wins.</p><p><strong>Last Crew Standing:</strong> no target, no turn limit. Last crew with corners wins.</p><p><strong>Timing:</strong> Play a quick game or take your time. Turns can run from 1 minute to 12 hours, and a turn ends early once every crew sends orders.</p>`},
+   b:`<p><strong>Game:</strong> first to the target score wins. <strong>Standard</strong> is first to ${LEN_PTS.std[1]}, <strong>Long</strong> ${LEN_PTS.long[1]}, <strong>XL</strong> ${LEN_PTS.xl[1]} (${LEN_PTS.std[0]}, ${LEN_PTS.long[0]}, and ${LEN_PTS.xl[0]} with 3 crews). If nobody gets there by turn ${LEN_BACKSTOP.std} (${LEN_BACKSTOP.xl} for XL), the top score wins.</p><p><strong>Last Crew Standing:</strong> no target, no turn limit. Last crew with corners wins.</p><p><strong>Sudden Death:</strong> in Last Crew Standing, the host can pick a turn (60 to 100) when it kicks in. From then on, every crew loses its least-guarded corner each night, and one more every ${SD_RAMP} nights, until one crew is left.</p><p><strong>Timing:</strong> Play a quick game or take your time. Turns can run from 1 minute to 12 hours, and a turn ends early once every crew sends orders.</p>`},
   {t:'Dirty Tricks',art:`<div class="rnews big">${Object.keys(TRICKS).map(k=>`<div><span class="ni k-${k}">${TRICK_ICON[k]}</span><b>${TRICKS[k].n} <span class="rpx">${priceTag(k)}</span></b><small>${TRICKS[k].b}</small></div>`).join('')}</div>`,
    b:`<p>Buy one trick per turn in the <strong>Shop</strong>'s Tricks tab, then tap the map to aim it. It hits that same turn. <strong>Each trick is available for each crew once per game</strong> (in Last Crew Standing, it recharges ${TRICK_RECHARGE} turns after use).</p><p>Be warned. Everyone sees who played the Dirty Trick in the recap. Expect retribution.</p>`},
   {t:'Market Days',art:`<div class="rnews big">${Object.keys(STREET).map(k=>`<div><span class="ni k-${k}">${STREET_ICON[k]}</span><b>${STREET[k].n}</b><small>${STREET[k].b}</small></div>`).join('')}</div>`,
@@ -2517,7 +2526,8 @@ function applyZoomUi(){const z=document.querySelector('.zoomctl');if(z)z.classLi
 function pokeZoom(){zoomUiUntil=Date.now()+2800;applyZoomUi();clearTimeout(zoomT);zoomT=setTimeout(applyZoomUi,2850)}
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('.stage .rp-board'))pokeZoom()},true);
 document.addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.stage .rp-board'))pokeZoom()},{capture:true,passive:true});
-let lobbyMode='game',lobbyNews=true,lobbyLen='std';
+let lobbyMode='game',lobbyNews=true,lobbyLen='std',lobbySudden=80;
+const SUDDEN_OPTS=[0,60,70,80,90,100];
 let navOpen=false,lastAsp=null,lobbyPick=false;
 function setTab(t){if(t==='rules'&&tab!=='rules'){rMode='quick';rIdx=0}navOpen=false;notice="";if(replay&&t!=='board'){clearT();if(replay.live){replay=null}else replay=null}tab=t;try{localStorage.setItem('sc-tab',t)}catch(e){}render();window.scrollTo(0,0)}
 function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corners[y].s-st.corners[x].s);const others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me);
@@ -2563,6 +2573,7 @@ document.addEventListener('click',async e=>{
   if(act==='rgo'){const i=+el.dataset.i;if(i===rIdx)return;rDir=i>rIdx?1:-1;rIdx=i;rAt=Date.now();return render()}
   if(act==='lmode'){lobbyMode=el.dataset.m;return render()}
   if(act==='llen'){lobbyLen=el.dataset.l;return render()}
+  if(act==='lsd'){lobbySudden=+el.dataset.v;return render()}
   if(act==='lnews'){lobbyNews=el.dataset.v==='1';return render()}
   if(act==='news-t'){const on=st.news!==false;return save(()=>stateRef.update({news:!on}))}
   if(act==='lobby-pick'){lobbyPick=!lobbyPick;csIdx=null;csAt=0;return render()}
@@ -2623,7 +2634,7 @@ document.addEventListener('click',async e=>{
     const gm=lobbyMode!=='campaign',turnMin=gm?Math.max(1,Math.min(lobbyMode==='lcs'?1440:720,parseInt((document.getElementById('f-turn')||{}).value,10)||5)):0;const tv=(document.getElementById('f-time')||{}).value||'20:00',[hh,mm]=tv.split(':').map(Number),min=hh*60+mm;
     const lenEl=document.getElementById('f-len'),days=lobbyMode==='lcs'?0:lobbyMode==='game'?LEN_BACKSTOP[lobbyLen]:Math.max(LEN_MIN,Math.min(lobbyMode==='campaign'?CAMP_MAX:LEN_MAX,Math.round((parseInt(lenEl&&lenEl.value,10)||20)/5)*5));
     const lab=new Date(2000,0,1,hh,mm).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
-    return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',lenSet:lobbyMode==='game'?lobbyLen:null,news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
+    return save(()=>stateRef.set({gameId:Math.random().toString(36).slice(2,10),status:'lobby',hostId:me,mode:gm?'game':'campaign',lcs:lobbyMode==='lcs',sudden:lobbyMode==='lcs'?lobbySudden:0,lenSet:lobbyMode==='game'?lobbyLen:null,news:lobbyNews,turnMs:turnMin*60000,resolveMin:min,resolveLabel:lab,maxDays:days,createdAt:Date.now(),players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='join'){const name=CHAR_BY[pickChar].name+"'s Crew";
     return save(()=>stateRef.update({players:{[me]:{name,seat:Date.now(),char:pickChar}}}))}
   if(act==='pick-char'){pickChar=el.dataset.c;return render()}
