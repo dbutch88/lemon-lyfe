@@ -33,7 +33,9 @@ window.LL=(()=>{
       listen:(p,cb,err)=>F.onSnapshot(ref(p),s=>cb(val(s)),err),
       list:async p=>(await F.getDocs(col(p))).docs.map(d=>({id:d.id,obj:JSON.parse(d.data().j)})),
       listenCol:(p,cb,err)=>F.onSnapshot(col(p),q=>cb(q.docs.map(d=>({id:d.id,obj:JSON.parse(d.data().j)}))),err),
-      txn:(p,fn)=>F.runTransaction(fs,async t=>{const s=await t.get(ref(p));const r=fn(val(s));if(r.write!==undefined)t.set(ref(p),wrap(r.write));return r.ret})};
+      txn:(p,fn)=>F.runTransaction(fs,async t=>{const s=await t.get(ref(p));const r=fn(val(s));if(r.write!==undefined)t.set(ref(p),wrap(r.write));return r.ret}),
+      /* access code: Firestore rules only let this device in once members/<uid> holds the right code */
+      member:k=>F.setDoc(F.doc(fs,'members',uid),{k,t:Date.now()})};
   }
   function mockRaw(){
     let id=store.get('llmock-uid');if(!id||qs.has('fresh')){id='m'+Math.random().toString(36).slice(2,9);if(!qs.has('fresh'))store.set('llmock-uid',id)}
@@ -116,18 +118,48 @@ window.LL=(()=>{
   .llland h2{font-family:var(--display,inherit);font-size:30px;margin:4px 0 6px}
   .llland .row .btn{flex:1}
   .llcode{flex:1;min-width:0;font:inherit;font-family:var(--mono,monospace);font-size:20px;letter-spacing:.12em;text-transform:uppercase;padding:10px 12px;border:2px solid var(--line,#ccc);border-radius:12px;background:var(--surface,#fff);color:var(--ink,#111)}
-  .llmsg{color:var(--bad,#c2372f);font-weight:700;margin:10px 0 0}`;
+  .llmsg{color:var(--bad,#c2372f);font-weight:700;margin:10px 0 0}
+  #ll-acc{text-transform:none;letter-spacing:.02em}
+  .llland .row .btn[data-ll="acc"]{flex:0 0 auto;padding-inline:22px}`;
   document.head.appendChild(css);
+
+  /* ---------- access code (friends-only testing) ---------- */
+  const ACC='ll-access';
+  const denied=e=>/permission/i.test(String(e&&(e.code||e.message)||''));
+  function gate(){
+    return new Promise(resolve=>{
+      const app=document.getElementById('app');
+      const draw=(msg='')=>{app.innerHTML=`<div class="panel llland">
+        <h2>Lemon Lyfe</h2><p class="muted">This game is in testing. Enter the access code you were given.</p>
+        <div class="field"><label for="ll-acc">Access code</label><div class="row" style="flex-wrap:nowrap"><input id="ll-acc" class="llcode" autocomplete="off" autocapitalize="none" spellcheck="false"><button class="btn primary" data-ll="acc">Enter</button></div></div>
+        ${msg?`<p class="llmsg" role="status">${esc(msg)}</p>`:''}</div>`;const i=document.getElementById('ll-acc');if(i)i.focus()};
+      draw();
+      let busy=false;
+      const tryKey=async()=>{if(busy)return;const k=(document.getElementById('ll-acc').value||'').trim();if(!k)return draw('Type the access code.');
+        busy=true;try{await raw.member(k);store.set(ACC,k);off();resolve()}
+        catch(e){busy=false;if(denied(e))draw("That code didn't work. Check it and try again.");else draw('Could not check the code. Check your connection and try again.')}};
+      const onClick=e=>{if(e.target.closest('[data-ll="acc"]'))tryKey()};
+      const onKey=e=>{if(e.key==='Enter'&&e.target.id==='ll-acc')tryKey()};
+      const off=()=>{app.removeEventListener('click',onClick);app.removeEventListener('keydown',onKey)};
+      app.addEventListener('click',onClick);app.addEventListener('keydown',onKey);
+    });
+  }
+  async function admit(){
+    const k=store.get(ACC);
+    if(k){try{await raw.member(k);return}catch(e){if(!denied(e))throw e;try{localStorage.removeItem(ACC)}catch(x){}}}
+    await gate();
+  }
 
   async function connect(){
     raw=MOCK?mockRaw():await firebaseRaw();
+    if(!MOCK)await admit();
     if(!code)await landing();else store.set(LAST,code);
     return{db:makeDb(raw),uid};
   }
   function fail(e){const app=document.getElementById('app'),c=String(e&&(e.code||e.message)||'');
     const msg=/network|offline|unavailable/i.test(c)?'Check your internet connection and reload the page.'
       :/admin-restricted|operation-not-allowed/i.test(c)?'Guest sign-in is switched off in Firebase (Authentication → Sign-in method → Anonymous).'
-      :/permission/i.test(c)?'The database rules are blocking the game. Check the Firestore rules were published.'
+      :/permission/i.test(c)?(store.get(ACC)?'Your access code no longer works. Reload the page to enter the new one.':'The database rules are blocking the game. Check the Firestore rules were published.')
       :/not set up/i.test(c)?'This copy of the game is not connected to a database yet.':'Something went wrong. Reload the page to try again.';
     if(app)app.innerHTML=`<div class="panel"><h2>Can't reach the game</h2><p class="muted">${esc(msg)}</p><p class="small muted">${esc(c)}</p></div>`}
   return{connect,fail,inviteHTML,code:()=>code};
