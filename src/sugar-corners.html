@@ -855,7 +855,7 @@ function attack(s,u,a,rng,L,E){
 /* ---------- characters ---------- */
 const CHARS=[
   {id:'zuri',iris:'#3b2314',name:'Zuri',nick:'Zest',color:'#e4572e',skin:'#6b4226',hair:'#1c1310',bio:'Science-fair champ. Swears her recipe is chemically perfect.'},
-  {id:'mateo',iris:'#4a2a14',name:'Mateo',nick:'Pips',color:'#2a9d8f',skin:'#b97a50',hair:'#2a1a12',bio:'Keeps the books, knows every price on the street and never forgets a debt.'},
+  {id:'mateo',iris:'#4a2a14',name:'Mateo',nick:'Pips',color:'#2a9d8f',skin:'#b97a50',hair:'#2a1a12',bio:'Keeps the books, knows every price on the street, and never forgets a debt.'},
   {id:'priya',iris:'#3a1d10',name:'Priya',nick:'Turbo',color:'#d29a06',skin:'#9a6038',hair:'#1b1110',bio:'Fastest bike in the neighbourhood. Gets lemonade anywhere in under a minute.'},
   {id:'kenji',iris:'#2b1d12',name:'Kenji',nick:'Sunshine',color:'#7b5ea7',skin:'#f0c8a0',hair:'#151515',bio:'Hasn’t smiled since kindergarten. Has never lost a staring contest.'},
   {id:'amira',iris:'#4a2f1c',name:'Amira',nick:'Fizz',color:'#d6457f',skin:'#d5a070',hair:'#2f5f7a',brow:'#3a2416',bio:'Calm, sharp, and three moves ahead. Brings snacks to every standoff.'},
@@ -1624,7 +1624,7 @@ function focusOf(ev){if(!ev)return null;if(ev.t==='trick')return ev.it!=null?[ev
 /* ---------- first-game guide ---------- */
 const GUIDE=[
   {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your corners have a dark outline. Tap them to stack your 20 recruits, or tap <b>Spread evenly</b> to share them out. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
-  {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every day starts with a recap of last night. Tap <b>Next</b> to watch each attack, Brawl and move play out, or skip ahead.'},
+  {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every day starts with a recap of last night. Tap <b>Next</b> to watch each attack, Brawl, and move play out, or skip ahead.'},
   {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Start your day by rolling for cash. Multiply your roll by the corners you hold. More corners, more money.'},
   {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'Gear up',b:'Upgrades last all game. <b>Weapons</b> set your fight roll, <b>Sugar</b> your sales roll, <b>Mom’s Whip</b> how many recruits you can send, and <b>Street Cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
   {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Each local recruit costs $10. Tap your corners on the map to drop them there, one per tap, or switch to <b>Tap to remove</b> to take one back. Recruits arrive before any fighting, so you can recruit to and attack from the same corner.'},
@@ -2138,7 +2138,7 @@ let introSeen=false;try{introSeen=localStorage.getItem('sc-intro')==='1'}catch(e
 function introCard(always){
   if(introSeen&&!always)return'';
   return `<div class="panel intro"><span class="eyebrow">New to the neighbourhood?</span><h2>Run the most corners in town.</h2>
-    <p>Every crew runs lemonade stands on street corners. Each day you buy gear, bring in recruits and send them to take other crews' corners.</p>
+    <p>Every crew runs lemonade stands on street corners. Each day you buy gear, bring in recruits, and send them to take other crews' corners.</p>
     <p class="small muted">More corners means more money. More money means better weapons, a bigger Mom's Whip, and more Street Cred.</p>
     <div class="row"><button class="btn primary" data-act="tab" data-tab="rules">Read the rules</button>${always?'':'<button class="btn" data-act="intro-done">Got it</button>'}</div></div>`}
 let rIdx=0,rDir=1,rAt=0;
@@ -2195,7 +2195,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
        +`<circle cx="142" cy="46" r="6" fill="${O}" stroke="#fff" stroke-width="2"/><path d="M142 40 V18" stroke="#141414" stroke-width="2"/><path d="M142 18 h16 l-4 5 4 5 h-16z" fill="#f7d538" stroke="#141414" stroke-width="1.5"/></g><text x="86" y="176" class="rcap">First to the target</text>`
      +[['mateo',196,58],['priya',284,58],['kenji',196,146],['liam',284,146]].map(([id,x,y])=>`<g opacity=".55">${avAt(id,40,x,y)}</g><path d="M${x-11} ${y-11} l22 22 M${x+11} ${y-11} l-22 22" stroke="#d9412b" stroke-width="4" stroke-linecap="round"/>`).join('')
      +avAt('zuri',70,240,104)+`<path d="M220 66 l4 -20 10 11 6 -15 6 15 10 -11 4 20z" fill="#f7d538" stroke="#141414" stroke-width="2.5" stroke-linejoin="round"/><text x="240" y="182" class="rcap">Last Crew Standing</text>`),
-   b:`<p><strong>Game:</strong> first to the target score wins. <strong>Standard</strong> is first to ${LEN_PTS.std[1]}, <strong>Long</strong> ${LEN_PTS.long[1]}, <strong>XL</strong> ${LEN_PTS.xl[1]} (${LEN_PTS.std[0]}, ${LEN_PTS.long[0]} and ${LEN_PTS.xl[0]} with 3 crews). If nobody gets there by turn ${LEN_BACKSTOP.std} (${LEN_BACKSTOP.xl} for XL), the top score wins.</p><p><strong>Last Crew Standing:</strong> no target, no turn limit. Last crew with corners wins.</p><p><strong>Timing:</strong> Play a quick game or take your time. Turns can run from 1 minute to 12 hours, and a turn ends early once every crew sends orders.</p>`},
+   b:`<p><strong>Game:</strong> first to the target score wins. <strong>Standard</strong> is first to ${LEN_PTS.std[1]}, <strong>Long</strong> ${LEN_PTS.long[1]}, <strong>XL</strong> ${LEN_PTS.xl[1]} (${LEN_PTS.std[0]}, ${LEN_PTS.long[0]}, and ${LEN_PTS.xl[0]} with 3 crews). If nobody gets there by turn ${LEN_BACKSTOP.std} (${LEN_BACKSTOP.xl} for XL), the top score wins.</p><p><strong>Last Crew Standing:</strong> no target, no turn limit. Last crew with corners wins.</p><p><strong>Timing:</strong> Play a quick game or take your time. Turns can run from 1 minute to 12 hours, and a turn ends early once every crew sends orders.</p>`},
   {t:'Dirty Tricks',art:`<div class="rnews big">${Object.keys(TRICKS).map(k=>`<div><span class="ni k-${k}">${TRICK_ICON[k]}</span><b>${TRICKS[k].n} <span class="rpx">${priceTag(k)}</span></b><small>${TRICKS[k].b}</small></div>`).join('')}</div>`,
    b:`<p>Buy one trick per turn in the <strong>Shop</strong>'s Tricks tab, then tap the map to aim it. It hits that same turn. <strong>Each trick is available for each crew once per game</strong> (in Last Crew Standing, it recharges ${TRICK_RECHARGE} turns after use).</p><p>Be warned. Everyone sees who played the Dirty Trick in the recap. Expect retribution.</p>`},
   {t:'Market Days',art:`<div class="rnews big">${Object.keys(STREET).map(k=>`<div><span class="ni k-${k}">${STREET_ICON[k]}</span><b>${STREET[k].n}</b><small>${STREET[k].b}</small></div>`).join('')}</div>`,
@@ -2224,7 +2224,7 @@ function rulesIndex(){const all=ruleCards();
 function rulesView(){if(rMode==='index')return rulesIndex();
   const cards=deckCards(),n=cards.length;rIdx=Math.max(0,Math.min(n-1,rIdx));const c=cards[rIdx],el=Date.now()-rAt,anim=rAt&&el<700,quick=rMode==='quick';
   return `<div class="rdeck"><div class="rcard ${anim?(rDir>0?'in-r':'in-l'):''}" style="--dl:-${anim?el:0}ms" data-rswipe="1">
-    <div class="rart">${c.art}</div><div class="rtext"><span class="eyebrow">${quick?'Quick start':'How to play'} · ${rIdx+1} of ${n}<button class="linkbtn rtopicsbtn" data-act="rulesmode" data-m="index">All topics</button></span><h2>${c.t}</h2>${c.b}${quick&&rIdx===n-1?'<button class="small rready" data-act="rulesmode" data-m="index"><span><b>That’s enough to play.</b> Learn Alliances, tricks, Market Days and the bank as you go, or tap here to see <b>all the rules</b>.</span><span class="rready-go" aria-hidden="true">›</span></button>':''}</div></div>
+    <div class="rart">${c.art}</div><div class="rtext"><span class="eyebrow">${quick?'Quick start':'How to play'} · ${rIdx+1} of ${n}<button class="linkbtn rtopicsbtn" data-act="rulesmode" data-m="index">All topics</button></span><h2>${c.t}</h2>${c.b}${quick&&rIdx===n-1?'<button class="small rready" data-act="rulesmode" data-m="index"><span><b>That’s enough to play.</b> Learn Alliances, tricks, Market Days, and the bank as you go, or tap here to see <b>all the rules</b>.</span><span class="rready-go" aria-hidden="true">›</span></button>':''}</div></div>
     <div class="rdots ${n>10?'many':''}" role="tablist" aria-label="Rule cards">${cards.map((x,i)=>`<button class="${i===rIdx?'on':''}" data-act="rgo" data-i="${i}" aria-label="${esc(x.t)}" aria-selected="${i===rIdx}"></button>`).join('')}</div>
     <div class="rbtns"><button class="btn" data-act="rstep" data-d="-1" ${rIdx?'':'disabled'}>Back</button>${rIdx<n-1?'<button class="btn primary" data-act="rstep" data-d="1">Next</button>':quick?'<button class="btn primary" data-act="tab" data-tab="board">Start playing</button>':'<button class="btn primary" data-act="rulesmode" data-m="index">All topics</button>'}</div></div>`}
 
@@ -2257,10 +2257,10 @@ const SHOW_TIPS=[
   ['Retreat','Don’t carry all your lemons in one basket. Set a retreat number so recruits come home before a fight goes bad.'],
   ['Hold the fort','One recruit always stays back to hold down the fort. But can they hold off another attack all alone?'],
   ['Market Days','Want some extra kick to that lemonade? Every 5 turns a Market Day hits the whole block.'],
-  ['Dirty Tricks','Stink Bombs, Bad Batches, Ice Cream Trucks and Block Parties. Each one once a game. Expect retribution.'],
+  ['Dirty Tricks','Stink Bombs, Bad Batches, Ice Cream Trucks, and Block Parties. Each one once a game. Expect retribution.'],
   ['Bank of Mom & Dad','Feeling the heat? Last place can borrow $200 from Mom & Dad. Dad wants $250 back before his meter fills.'],
   ['Alliances','There’s strength in numbers. Team up for 5 turns and your corners count together for Full Intersections and Blocks.'],
-  ['Street Cred','Loyalty matters, and the streets don’t forget. Betray an ally and you can sink to Snitch, Rat or even Traitor.'],
+  ['Street Cred','Loyalty matters, and the streets don’t forget. Betray an ally and you can sink to Snitch, Rat, or even Traitor.'],
   ['Lemon trees','Keep an eye on the orchard. Sometimes a lemon drops.']];
 let showAt=0,showOff=0;
 function showItems(){const crews=Object.keys(st.players).map(u=>st.players[u]).sort((a,b)=>(a.seat||0)-(b.seat||0)),out=[];let t=Math.floor(hash(st.gameId||'')%SHOW_TIPS.length);
