@@ -1878,7 +1878,7 @@ function boardView(){
     let sh='';
     if(st.status==='setup')sh=placePanel();
     else{sh=`<div class="stage-steps">${phaseBar()}</div>`+((myP().missed|0)>=MISS_LIMIT-1&&!hasOrder(me)?`<p class="warnline">You missed ${myP().missed} turns. Miss one more and the computer takes over.</p>`:'');if(isPlanning()&&!salesShowing()){ensureDraft();sh+=phasePanel()}else sh+=salesCard()}
-    const selc=sel!=null&&st.corners[sel]?`<div class="selchip">${selLine()}</div>`:newsPill();
+    const selc=newsPill();
     return h+`<div class="stage vm-${vm}">${scoreBar()}<div class="rp-board">${boardSVG()}${selc}${coach()}${mkStamp()||mkSoon()||nearStamp()}${vmBoardBtn()}</div><div class="stage-sheet">${vmSheetBtn()}${sh}</div></div>`+(atkPop&&isPlanning()?popView():'')+(movePop&&isPlanning()?movePopView():'')+endgameSheet()}
   else{h+=awayPanel();
     if(isPlanning()){ensureDraft();if(dayPhase==='shop')h+=salesCard();h+=phasePanel()}
