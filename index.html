@@ -751,9 +751,10 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 .rtag.w{fill:#fff;font-size:11px}
 .rcoin{text-anchor:middle;dominant-baseline:central;font-family:var(--display);font-size:12px;fill:#2e2600}
 .rbig{text-anchor:middle;dominant-baseline:central;font-family:var(--display);font-size:34px;fill:#141414}
+.upc.c .tile-l{white-space:nowrap;letter-spacing:.01em;font-size:9.5px;justify-content:center}
 .ladders{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;align-self:stretch}
 .ladder{display:flex;flex-direction:column-reverse;gap:4px;align-items:stretch;justify-content:flex-start}
-.ladder b{order:99;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5b685d;margin-top:2px}
+.ladder b{order:99;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;color:#5b685d;margin-top:2px}
 .rung{display:flex;flex-direction:column;align-items:center;border:2px solid #141414;border-radius:8px;background:#f7d538;padding:3px 2px;line-height:1.1}
 .rung.base{background:#fff}
 .rung em{font-style:normal;font-family:var(--display);font-size:14px;color:#141414}
@@ -820,7 +821,7 @@ const TIERS={
   weapon:[{n:'Fists',d:6,c:0},{n:'Slingshot',d:8,c:150},{n:'Water gun',d:10,c:200},{n:'Beebee gun',d:12,c:300}],
   sugar:[{n:'Sweetener',d:6,c:0},{n:'Diner Sugar Packets',d:8,c:150},{n:'Agave',d:10,c:200},{n:'Raw Cane Sugar',d:12,c:300}],
   whip:[{n:'Sedan',cap:4,c:0},{n:'SUV',cap:6,c:150},{n:'Minivan',cap:8,c:200},{n:'Van',cap:10,c:300}],
-  rep:[{n:'No rep',b:0,c:0},{n:'Charity Case',b:1,c:100},{n:'Connected',b:2,c:200},{n:'Local Legend',b:3,c:300},{n:'Mogul',b:4,c:400},{n:'Kingpin',b:5,c:500}]
+  rep:[{n:'No street cred',b:0,c:0},{n:'Charity Case',b:1,c:100},{n:'Connected',b:2,c:200},{n:'Local Legend',b:3,c:300},{n:'Mogul',b:4,c:400},{n:'Kingpin',b:5,c:500}]
 };
 const CREW_COLORS=['#e4572e','#2a9d8f','#d29a06','#7b5ea7','#3a86c8','#d6457f'];
 const COLOR_NAME={'#e4572e':'red','#2a9d8f':'teal','#d29a06':'gold','#7b5ea7':'purple','#3a86c8':'blue','#d6457f':'pink'};
@@ -909,7 +910,7 @@ function bonusParts(s,u,corner,defending,repLvl){const p=s.players[u],rep=TIERS.
 function soloView(s,u){const v=s.players[u].ally,P=Object.assign({},s.players,{[u]:Object.assign({},s.players[u],{ally:null})});if(v&&P[v])P[v]=Object.assign({},P[v],{ally:null});return Object.assign({},s,{players:P})}
 function bonusChips(bk,total){
   if(!bk)return total?`<span class="bchip ${total<0?'neg':''}">Bonus ${fmtB(total)}</span>`:'<span class="bchip none">No bonus</span>';
-  const out=[];if(bk.rep)out.push(`<span class="bchip ${bk.rep<0?'neg':''}">${bk.rep<0?esc(TIERS.rep[bk.rep]?.n||'Rep')+' '+fmtB(bk.rep):'Rep +'+bk.rep}</span>`);{const ab=bk.ab|0,ob=bk.block-ab;if(ob)out.push(`<span class="bchip blk">Block${ob>3?'s':''} +${ob}</span>`);if(ab)out.push(`<span class="bchip ally">${ALLY_SVG}Ally block${ab>3?'s':''} +${ab}</span>`)}if(bk.inter)out.push(bk.ai?`<span class="bchip ally">${ALLY_SVG}Ally intersection +1</span>`:`<span class="bchip int">Intersection +${bk.inter}</span>`);if(bk.salt)out.push(`<span class="bchip salt">🧂 Salty ${fmtB(bk.salt)}</span>`);
+  const out=[];if(bk.rep)out.push(`<span class="bchip ${bk.rep<0?'neg':''}">${bk.rep<0?esc(TIERS.rep[bk.rep]?.n||'Street cred')+' '+fmtB(bk.rep):'Street cred +'+bk.rep}</span>`);{const ab=bk.ab|0,ob=bk.block-ab;if(ob)out.push(`<span class="bchip blk">Block${ob>3?'s':''} +${ob}</span>`);if(ab)out.push(`<span class="bchip ally">${ALLY_SVG}Ally block${ab>3?'s':''} +${ab}</span>`)}if(bk.inter)out.push(bk.ai?`<span class="bchip ally">${ALLY_SVG}Ally intersection +1</span>`:`<span class="bchip int">Intersection +${bk.inter}</span>`);if(bk.salt)out.push(`<span class="bchip salt">🧂 Salty ${fmtB(bk.salt)}</span>`);
   return out.join('')||'<span class="bchip none">No bonus</span>'}
 function roundOdds(aD,aB,dD,dB,dTies){let w=0,l=0;for(let x=1;x<=aD;x++)for(let y=1;y<=dD;y++){if(x+aB>y+dB)w++;else if(x+aB<y+dB||dTies)l++}return w+l?w/(w+l):.5}
 function blockCount(s,u){return blockList(s,u).length}
@@ -1268,7 +1269,7 @@ function resolveAttacks(s,ords,order,rng,L,E){
   for(const T of Object.keys(groups).map(Number)){const d=s.corners[T].o;if(!d)continue;for(const u of Object.keys(groups[T])){if(allyOf(s,u)!==d)continue;if(activeAlly(s,u)===d)betray.add(u);else offs.add(u)}}
   for(const u of offs){if(betray.has(u)||!allyOf(s,u))continue;const v=allyOf(s,u);clearAlly(s,u);const tx=`${nm(u)} hit ${nm(v)} before their alliance started, so the deal is off.`;L.push(tx);E.push({t:'ally',kind:'off',u,v,text:tx})}
   const betV={};betray.forEach(u=>betV[u]=s.players[u].ally);
-  for(const u of betray){const v=betV[u];clearAlly(s,u);const p=s.players[u];p.rep=Math.max(-3,(p.rep|0)-1);const tx=`${nm(u)} attacked their ally ${nm(v)}. Alliance broken; ${nm(u)} drops to ${TIERS.rep[p.rep].n} rep.`;L.push(tx);E.push({t:'ally',kind:'betray',u,v,text:tx})}
+  for(const u of betray){const v=betV[u];clearAlly(s,u);const p=s.players[u];p.rep=Math.max(-3,(p.rep|0)-1);const tx=`${nm(u)} attacked their ally ${nm(v)}. Alliance broken; ${nm(u)} drops to ${TIERS.rep[p.rep].n} street cred.`;L.push(tx);E.push({t:'ally',kind:'betray',u,v,text:tx})}
   const crews=Object.keys(sent);
   if(crews.length){const tx=`${crews.length} crew${crews.length>1?'s':''} rolled out: ${crews.map(u=>`${nm(u)} sent ${sent[u]}`).join(', ')}.`;
     L.push(tx);E.push({t:'go',text:tx,crews:crews.map(u=>[u,sent[u]]),set:Object.keys(departed).map(Number).map(i=>[i,s.corners[i].o,s.corners[i].s])})}
@@ -1338,7 +1339,7 @@ function resolveDay(s0,ords){
     for(const u of order){const o=ords[u];if(!o){L.push(`${nm(u)} sat the day out.`);continue}
       const p=s.players[u],b=o.buy||{};
       if(o.proposeTo&&isCpu(p)&&canAlly(s,u,o.proposeTo)&&!offerFrom(s,o.proposeTo,u)){const q=s.players[o.proposeTo];q.offers=q.offers||{};q.offers[u]=s.day;const tx=`${nm(u)} offered ${nm(o.proposeTo)} an alliance.`;L.push(tx);E.push({t:'ally',kind:'offer',u,v:o.proposeTo,text:tx})}
-      if(o.breakAlly&&allyOf(s,u)){const v=allyOf(s,u);clearAlly(s,u);p.rep=Math.max(-3,(p.rep|0)-1);const tx=`${nm(u)} broke the alliance with ${nm(v)} and dropped to ${TIERS.rep[p.rep].n} rep.`;L.push(tx);E.push({t:'ally',kind:'broke',u,v,text:tx})}
+      if(o.breakAlly&&allyOf(s,u)){const v=allyOf(s,u);clearAlly(s,u);p.rep=Math.max(-3,(p.rep|0)-1);const tx=`${nm(u)} broke the alliance with ${nm(v)} and dropped to ${TIERS.rep[p.rep].n} street cred.`;L.push(tx);E.push({t:'ally',kind:'broke',u,v,text:tx})}
       if(o.loan&&canBorrow(s,u)){p.cash+=LOAN_AMT;p.loan={owe:LOAN_OWE,bars:0,day:s.day};p.loanUsed=true;const tx=`${nm(u)} borrowed $${LOAN_AMT} from the Bank of Mom & Dad and owes $${LOAN_OWE}.`;L.push(tx);E.push({t:'loan',kind:'borrow',u,text:tx})}
       const rp=Math.floor((o.repay|0)/LOAN_STEP)*LOAN_STEP;
       if(rp>0&&p.loan){const amt=Math.min(rp,p.loan.owe,Math.floor(p.cash/LOAN_STEP)*LOAN_STEP);
@@ -1759,13 +1760,13 @@ const GUIDE=[
   {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your 10 corners have a dark outline. Tap them to stack your 20 recruits. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
   {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every turn starts with a recap. Tap <b>Next</b> to watch each attack, brawl and move play out, or skip ahead.'},
   {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Roll for sales. You earn the roll × the corners you hold.'},
-  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'The shop',b:'Upgrades last all game: <b>Weapon</b> sets your fight roll, <b>Sugar</b> your sales roll, <b>Whip</b> how many ride per attack, <b>Rep</b> adds to every roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
+  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'The shop',b:'Upgrades last all game: <b>Weapon</b> sets your fight roll, <b>Sugar</b> your sales roll, <b>Whip</b> how many ride per attack, <b>Street cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
   {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Tap your corners on the map to drop recruits there, one per tap. Switch to <b>Tap to remove</b> to take one back.'},
   {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>, and everyone sees who did it in the recap.'},
   {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market day',b:'Every 5 turns the whole block gets a market day, like a heat wave or a garage sale. You get a heads-up 3 turns before, but nobody knows what it is until it hits.'},
   {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'You’re in last place, so Mom &amp; Dad will lend you $200, once. Check the <b>Bank</b> tab, and pay back $250 before Dad’s meter fills.'},
   {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Plan attacks',b:'Tap a corner to hit, then one of yours to attack from (either order). Dashed corners are empty and free to claim. Attacks are optional.'},
-  {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'Tap any rival corner and hit <b>Ally?</b> to offer a 5-turn alliance. Allies share intersection and block bonuses. Breaking one costs rep.'},
+  {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'Tap any rival corner and hit <b>Ally?</b> to offer a 5-turn alliance. Allies share intersection and block bonuses. Breaking one costs street cred.'},
   {id:'move',when:()=>planningNow()&&dayPhase==='move',t:'One move a turn',b:'Tap one of your corners, then another, to shift recruits between them. Moves happen after the fighting.'},
   {id:'send',when:()=>planningNow()&&dayPhase==='review',t:'Send your orders',b:'Check your list and tap ✕ to cancel anything. Then <b>Send</b>. The turn plays out when the timer ends or every crew has sent.'}];
 const guideMem={};
@@ -1963,7 +1964,7 @@ function dadSheet(){const p=myP();if(!p||!p.loan||!iPlay()||st.status!=='active'
 const offerSeenMem={};
 function offerSheet(){if(!iPlay()||st.status!=='active')return'';const from=Object.keys((myP().offers)||{}).find(f=>offerFrom(st,me,f)&&canAlly(st,me,f)&&!offerSeenMem[st.gameId+me+f+st.day]);if(!from)return'';const q=st.players[from];
   return `<div class="scrim"></div><div class="sheet allysheet" role="dialog" aria-modal="true" aria-labelledby="al-t">${avatar(charOf(from),q.color,72)}<h2 id="al-t">${esc(q.name)} wants an alliance</h2>
-    <p>For ${ALLY_TURNS} turns starting next turn, your corners count together for intersections and blocks. Attacking each other breaks it, and whoever breaks it drops a rep level.</p><p class="small muted">Brawls stay every crew for itself. ${ALLY_CAP-(myP().allyCount|0)} of ${ALLY_CAP} alliances left this game.</p>
+    <p>For ${ALLY_TURNS} turns starting next turn, your corners count together for intersections and blocks. Attacking each other breaks it, and whoever breaks it drops a street cred level.</p><p class="small muted">Brawls stay every crew for itself. ${ALLY_CAP-(myP().allyCount|0)} of ${ALLY_CAP} alliances left this game.</p>
     <div class="row"><button class="btn primary" data-act="ally-accept" data-u="${esc(from)}">Shake on it</button><button class="btn" data-act="ally-decline" data-u="${esc(from)}">No deal</button><button class="linkbtn" data-act="ally-later" data-u="${esc(from)}">Decide later</button></div></div>`}
 function endgameSheet(){const p=myP();if(!p||st.status!=='active'||morningPending()||replay)return'';
   const ds=dadSheet();if(ds)return ds;
@@ -2010,7 +2011,7 @@ function popView(){
   const side=(title,name,line2,color,extra)=>`<div class="side" style="border-color:${esc(color)}"><span class="eyebrow">${title}</span><strong>${name}</strong><span class="muted">${line2}</span>${extra?`<div class="chips" style="margin-top:6px">${extra}</div>`:''}</div>`;
   const aBk=bonusParts(st,me,a.from,false,me_p.rep+draft.buy.rep),dBk=dp?bonusParts(st,t.o,a.to,true):null,odds=dp?roundOdds(myW.d,aBk.total,TIERS.weapon[dp.weapon].d,dBk.total,dBk.inter>0):1;
   const hitsAlly=!!(t.o&&t.o===allyOf(st,me)),allyAct=hitsAlly&&activeAlly(st,me)===t.o;
-  let h=`<div class="scrim" data-act="pop-cancel"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pop-t">${hitsAlly?`<p class="allywarn"><strong>${esc(dp.name)} is your ally.</strong> ${allyAct?`Attacking breaks the alliance and drops your rep a level (to ${esc(TIERS.rep[Math.max(-3,me_p.rep-1)].n)}).`:'Attacking now calls the deal off before it starts.'}</p>`:''}
+  let h=`<div class="scrim" data-act="pop-cancel"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pop-t">${hitsAlly?`<p class="allywarn"><strong>${esc(dp.name)} is your ally.</strong> ${allyAct?`Attacking breaks the alliance and drops your street cred a level (to ${esc(TIERS.rep[Math.max(-3,me_p.rep-1)].n)}).`:'Attacking now calls the deal off before it starts.'}</p>`:''}
   <span class="eyebrow">${a.k>=0?'Edit attack':'Plan an attack'}</span><h2 id="pop-t">${esc(labelS(st,a.from))} → ${esc(labelS(st,a.to))}</h2>
   <div class="matchup">${side('From',esc(label(st,a.from)),`${baseAt(a.from)} here · ${esc(myW.n)} 1–${myW.d}`,crewColor(me),bonusChips(aBk,aBk.total))}<span class="vs">VS</span>
   ${dp?side('Target',esc(dp.name),`${t.s} defending · ${esc(TIERS.weapon[dp.weapon].n)} 1–${TIERS.weapon[dp.weapon].d}`,dp.color,bonusChips(dBk,dBk.total)):side('Target','Empty corner','No fight needed','var(--line)')}</div>
@@ -2056,7 +2057,7 @@ function shopPanel(){
   let h=`<div class="panel"><div class="seg shoptabs" role="tablist" aria-label="Shop"><button role="tab" data-act="shoptab" data-t="upgrades" aria-pressed="${upg}" aria-selected="${upg}">Upgrades${['weapon','sugar','whip','rep'].some(c=>b[c])?' •':''}</button><button role="tab" data-act="shoptab" data-t="recruits" aria-pressed="${rec}" aria-selected="${rec}">Recruits${b.soldiers?` · ${b.soldiers}`:''}</button><button role="tab" data-act="shoptab" data-t="tricks" aria-pressed="${trk}" aria-selected="${trk}">Tricks${draft.trick?' •':''}</button>${bankOn?`<button role="tab" class="banktab" data-act="shoptab" data-t="bank" aria-pressed="${bank}" aria-selected="${bank}">Bank${draft.loan||draft.repay?' •':p.loan?` · ${p.loan.bars}/${bankCfg(st).meter}`:''}</button>`:''}</div>`;
   if(bank)h+=bankPanel();
   else if(trk)h+=tricksPanel();
-  else if(!rec)h+=`<div class="tiles">${shopRow('weapon','Weapon')}${shopRow('sugar','Sugar')}${shopRow('whip','Whip')}${shopRow('rep','Rep')}</div>`;
+  else if(!rec)h+=`<div class="tiles">${shopRow('weapon','Weapon')}${shopRow('sugar','Sugar')}${shopRow('whip','Whip')}${shopRow('rep','Street cred')}</div>`;
   else h+=`<div class="recruit-box"><div class="row" style="justify-content:space-between"><span><strong>${b.soldiers}</strong> recruit${b.soldiers===1?'':'s'} · <span class="mono">$${recTotal(st,me,b.soldiers)}</span>${!ootOn(st)?'':(()=>{const on=soldiersOf(st,me)+b.soldiers,lk=Math.max(0,LOCALS-on),rc=recruitCost(st);return `<br><span class="small ${lk?'muted':'oot'}">${on} kids on the street · ${lk?`${lk} more local${lk===1?'':'s'} at $${rc}, then out-of-towners at $${rc*OOT_MULT}`:`now hiring out-of-towners: $${rc*OOT_MULT} each`}</span>`})()}</span>
       <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><button data-act="sold" data-d="1" ${left>=recPrice(st,me,b.soldiers)?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=recTotal(st,me,b.soldiers+5)-recTotal(st,me,b.soldiers)?'':'disabled'}>+5</button></div></div>
     <div class="seg" role="group" aria-label="What a tap on your corner does"><button data-act="rmode" data-m="add" aria-pressed="${recMode==='add'}">Tap to add</button><button data-act="rmode" data-m="remove" aria-pressed="${recMode==='remove'}">Tap to remove</button></div>
@@ -2135,7 +2136,7 @@ function movePopView(){
 function reviewPanel(){
   const p=myP(),b=draft.buy,left=cashLeft(),sent=hasOrder(me),ok=sent&&!dirty;
   const nu=['weapon','sugar','whip','rep'].reduce((t,c)=>t+(b[c]|0),0),shop=[nu?`${nu} upgrade${nu>1?'s':''}`:'',b.soldiers?`${b.soldiers} recruit${b.soldiers>1?'s':''}`:'',draft.loan&&canBorrow(st,me)?'$'+LOAN_AMT+' loan':'',draft.repay?'repay $'+draft.repay:''].filter(Boolean).join(', ')||'Nothing';
-  const CN={weapon:'Weapon',sugar:'Sugar',whip:'Whip',rep:'Rep'},items=[];
+  const CN={weapon:'Weapon',sugar:'Sugar',whip:'Whip',rep:'Street cred'},items=[];
   ['weapon','sugar','whip','rep'].forEach(c=>{if(b[c])items.push(ochip(`${CN[c]}: ${esc(TIERS[c][p[c]+b[c]].n)}`,`data-act="go-shop" data-t="upgrades"`,`data-act="del-up" data-cat="${c}"`,CN[c]+' upgrade'))});
   if(b.soldiers)items.push(ochip(`<b>${b.soldiers}</b> recruit${b.soldiers>1?'s':''}`,'data-act="go-shop" data-t="recruits"','data-act="rec-clear"','recruits'));
   if(draft.trick)items.push(ochip(`${TRICK_ICON[draft.trick.k]} ${TRICKS[draft.trick.k].n} → ${esc(trickLabel(draft.trick))}`,'data-act="go-shop" data-t="tricks"','data-act="del-trick"','trick'));
@@ -2300,7 +2301,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
    b:`<p><strong>Roll</strong> for cash after watching last night's recap. <strong>Shop</strong> for upgrades and recruits. Plan <strong>attacks</strong> and <strong>move</strong> recruits across town. Then <strong>send</strong>.</p><p>Everyone plans at once. The turn plays out when time's up or everyone has sent orders.</p>`},
   {t:'Making money',art:SV(rDie(48,90,5,6,'#f7d538',64)+`<text x="104" y="100" class="rop">×</text>`+Array.from({length:12},(_,k)=>rDot(136+(k%4)*22,62+Math.floor(k/4)*26,O,'',9)).join('')+`<text x="169" y="150" class="rcap">12 corners</text><text x="226" y="100" class="rop">=</text><text x="316" y="100" class="rmoney" style="text-anchor:end;font-size:28px">$60</text>`),
    b:`<p>Each turn you roll for <strong>sales</strong> and multiply by the corners you hold. More corners, more money.</p><p>Better sugar makes better product. Upgrade your sugar to get bigger rolls.</p>`},
-  {t:'The shop',art:`<div class="ladders">${[['Weapon','weapon',t=>'d'+t.d],['Sugar','sugar',t=>'d'+t.d],['Whip','whip',t=>t.cap+' seats'],['Rep','rep',t=>'+'+t.b]].map(([n,c,f])=>`<div class="ladder"><b>${n}</b>${TIERS[c].map((t,i)=>`<span class="rung ${i?'':'base'}"><em>${f(t)}</em><small>${i?'$'+t.c:'start'}</small></span>`).join('')}</div>`).join('')}</div>`,
+  {t:'The shop',art:`<div class="ladders">${[['Weapon','weapon',t=>'1–'+t.d],['Sugar','sugar',t=>'1–'+t.d],['Whip','whip',t=>t.cap+' seats'],['Street cred','rep',t=>'+'+t.b]].map(([n,c,f])=>`<div class="ladder"><b>${n}</b>${TIERS[c].map((t,i)=>`<span class="rung ${i?'':'base'}"><em>${f(t)}</em><small>${i?'$'+t.c:'start'}</small></span>`).join('')}</div>`).join('')}</div>`,
    b:`<p>Upgrades go up one level at a time and last all game. <strong>Weapons</strong> set your fight roll (1–6 up to 1–12), <strong>sugar</strong> your sales roll, <strong>whips</strong> how many recruits you can send per attack, and <strong>street cred</strong> adds to every fight roll.</p>`},
   {t:'Recruits',art:SV(rRoads(320,190,[160],[95])+rDot(124,60,O,'5',18)+`<g transform="translate(140,26)"><rect width="40" height="20" rx="10" fill="#f7d538" stroke="#2e2600" stroke-width="2"/><text x="20" y="11" class="rtag">+3</text></g>`+rDot(196,130,O,'2',18)+`<g transform="translate(212,96)"><rect width="40" height="20" rx="10" fill="#f7d538" stroke="#2e2600" stroke-width="2"/><text x="20" y="11" class="rtag">+1</text></g>`+`<circle cx="60" cy="150" r="22" fill="#f7d538" stroke="#141414" stroke-width="3"/><text x="60" y="152" class="rcoin">$10</text><path d="M84 150 Q110 150 112 82" stroke="#141414" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`),
    b:`<p>Each local recruit costs <strong>$10</strong>. Tap your corners to place them; tap again for more.</p><p>Recruits arrive before any fighting, so you can recruit and attack from the same corner the same turn.</p><p>Your first <strong>${LOCALS} kids</strong> on the street are locals. Past that, new recruits are <strong>out-of-towners</strong>: they cost triple. Somebody has to cover their bus fare. Lose kids in a fight and you’re back to hiring locals.</p>`},
@@ -2382,8 +2383,8 @@ const SHOW_TIPS=[
   ['Market days','Every 5 turns something hits the whole block. You get a heads-up 3 turns before, but not what it is.'],
   ['Dirty tricks','Stink bombs, bad batches, ice-cream trucks and block parties. Each one once a game, and everyone sees who did it.'],
   ['Bank of Mom & Dad','Last place can borrow $200. Pay back $250 before Dad’s meter fills, or he comes to collect.'],
-  ['Alliances','Team up for 5 turns to share intersection and block bonuses. Breaking one costs you rep.'],
-  ['Rep','Rep adds to every fight roll. Betray an ally and you can sink to Snitch, Rat or even Traitor.'],
+  ['Alliances','Team up for 5 turns to share intersection and block bonuses. Breaking one costs you street cred.'],
+  ['Street cred','Street cred adds to every fight roll. Betray an ally and you can sink to Snitch, Rat or even Traitor.'],
   ['Lemon trees','Keep an eye on the orchard. Sometimes a lemon drops.']];
 let showAt=0,showOff=0;
 function showItems(){const crews=Object.keys(st.players).map(u=>st.players[u]).sort((a,b)=>(a.seat||0)-(b.seat||0)),out=[];let t=Math.floor(hash(st.gameId||'')%SHOW_TIPS.length);
@@ -2438,7 +2439,7 @@ function shopRow(cat,name){const p=myP(),k=draft.buy[cat],own=TIERS[cat][p[cat]]
     <span class="upc-now">${!buying&&!next?'Top of the line':`Now: ${esc(own.n)} · ${UPS[cat](own)}`}</span></div>`}
 function dayOrders(){
   const p=myP(),mine=cornersOf(st,me),others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me),left=cashLeft(),cap=capToday(),b=draft.buy;
-  let h=`<div class="panel"><h2>Shop</h2><div class="shop">${shopRow('weapon','Weapons')}${shopRow('sugar','Sugar')}${shopRow('whip','Whip')}${shopRow('rep','Rep')}
+  let h=`<div class="panel"><h2>Shop</h2><div class="shop">${shopRow('weapon','Weapons')}${shopRow('sugar','Sugar')}${shopRow('whip','Whip')}${shopRow('rep','Street cred')}
     <div class="shop-row"><div class="shop-name"><span class="eyebrow">Recruits</span><strong>Recruits</strong> <span class="mono small">$${SOLDIER_COST} each</span></div><div class="shop-next">Arrive before any fighting</div>
     <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><span class="n">${b.soldiers}</span><button data-act="sold" data-d="1" ${left>=10?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=50?'':'disabled'}>+5</button></div></div></div>`;
   if(b.soldiers)h+=`<div class="field"><label for="recruitsTo">Send recruits to</label><select id="recruitsTo" data-f="recruitsTo">${cornerOptions(mine,draft.recruitsTo??mine.slice().sort((x,y)=>st.corners[y].s-st.corners[x].s)[0])}</select></div>`;
@@ -2464,7 +2465,7 @@ let crewPickOpen=false;
 function allyBox(u){if(!st||st.status!=='active'||!me||u===me||!iPlay())return'';const p=myP(),q=st.players[u];if(!p||!q||q.alive===false)return'';ensureDraft();
   const mine=allyOf(st,me);
   if(mine===u){const act=activeAlly(st,me)===u,left=p.allyUntil-st.day+1;
-    return `<div class="allybox on"><span>${ALLY_SVG}<strong>Allied</strong> · ${act?`${left} turn${left>1?'s':''} left`:'starts next turn'}</span>${draft&&draft.breakAlly?`<span class="small bad">Breaking when this turn resolves. You'll drop to ${esc(TIERS.rep[Math.max(-3,p.rep-1)].n)} rep.</span><button class="btn" data-act="ally-break">Keep the alliance</button>`:`<button class="linkbtn danger-link" data-act="ally-break">Break alliance…</button>`}</div>`}
+    return `<div class="allybox on"><span>${ALLY_SVG}<strong>Allied</strong> · ${act?`${left} turn${left>1?'s':''} left`:'starts next turn'}</span>${draft&&draft.breakAlly?`<span class="small bad">Breaking when this turn resolves. You'll drop to ${esc(TIERS.rep[Math.max(-3,p.rep-1)].n)} street cred.</span><button class="btn" data-act="ally-break">Keep the alliance</button>`:`<button class="linkbtn danger-link" data-act="ally-break">Break alliance…</button>`}</div>`}
   if(mine)return'';
   if(offerFrom(st,me,u)&&canAlly(st,me,u))return `<div class="allybox ask"><span>${ALLY_SVG}<strong>${esc(q.name)} wants an alliance</strong></span><div class="row"><button class="btn primary" data-act="ally-accept" data-u="${esc(u)}">Accept</button><button class="btn" data-act="ally-decline" data-u="${esc(u)}">Decline</button></div></div>`;
   if(!canAlly(st,me,u))return'';
@@ -2477,7 +2478,7 @@ function crewsView(){
     return `<div class="crew ${p.alive===false?'out':''}" style="border-left-color:${esc(p.color)}"><div class="row" style="justify-content:space-between"><div class="crewhead">${avatar(charOf(u),p.color,44)}<div class="who"><h3>${esc(p.name)}${u===me?' (you)':''}</h3>${CHAR_BY[charOf(u)]?`<span class="small muted">${CHAR_BY[charOf(u)].name} “${CHAR_BY[charOf(u)].nick}”</span>`:''}${u===me&&iPlay()?'<button class="linkbtn" style="padding-left:0;text-align:left" data-act="crew-pick">Change character</button>':''}</div></div>
     <span class="small ${p.alive===false?'bad':hasOrder(u)?'ok':'muted'}">${p.alive===false?'Out':p.cpu==='conceded'?'Conceded · computer':p.cpu==='idle'?'Away · computer':p.bot?'Computer':st.status==='over'?'':hasOrder(u)?'Orders in':'Thinking…'}</span></div>
     ${allyBox(u)}${u!==me&&p.alive!==false&&(st.status==='active'||st.status==='over')?`<button class="scoutbtn" data-act="scout" data-u="${esc(u)}">${adSeen('scout-'+u)||!adsOn()?'🔍 Scouting report':'🔒 Scouting report <small>· watch an ad</small>'}</button>`:''}<dl class="stats"><dt>Corners</dt><dd>${cornersOf(st,u).length}</dd><dt>Recruits</dt><dd>${soldiersOf(st,u)}</dd><dt>Cash</dt><dd>$${p.cash}</dd>
-    <dt>Weapons</dt><dd>${esc(w.n)} 1–${w.d}</dd><dt>Sugar</dt><dd>${esc(s.n)} 1–${s.d}</dd><dt>Whip</dt><dd>${esc(v.n)} · ${v.cap}</dd><dt>Rep</dt><dd class="${r.b<0?'bad':''}">${esc(r.n)} ${repStr(r.b)}</dd><dt>Intersections</dt><dd>${fullInters(st,u)} full (+1 defense each)</dd><dt>Blocks</dt><dd>${blockCount(st,u)} (+${3*blockCount(st,u)})</dd>${saltyLeft(st,u)?`<dt>Salty</dt><dd class="bad">−1 on fights · ${saltyLeft(st,u)} turn${saltyLeft(st,u)>1?'s':''} left</dd>`:''}${allyOf(st,u)?`<dt>Ally</dt><dd>${esc(st.players[allyOf(st,u)].name)}${activeAlly(st,u)?` · ${st.players[u].allyUntil-st.day+1} turn${st.players[u].allyUntil-st.day?'s':''} left`:' · starts next turn'}</dd>`:''}${p.loan?`<dt>Dad meter</dt><dd class="${dadStage(p.loan,bankCfg(st).meter)>=3?'bad':''}">${p.loan.bars}/${bankCfg(st).meter} · owes $${p.loan.owe}</dd>`:''}</dl></div>`}).join('')+`</div>`;
+    <dt>Weapons</dt><dd>${esc(w.n)} 1–${w.d}</dd><dt>Sugar</dt><dd>${esc(s.n)} 1–${s.d}</dd><dt>Whip</dt><dd>${esc(v.n)} · ${v.cap}</dd><dt>Street cred</dt><dd class="${r.b<0?'bad':''}">${esc(r.n)} ${repStr(r.b)}</dd><dt>Intersections</dt><dd>${fullInters(st,u)} full (+1 defense each)</dd><dt>Blocks</dt><dd>${blockCount(st,u)} (+${3*blockCount(st,u)})</dd>${saltyLeft(st,u)?`<dt>Salty</dt><dd class="bad">−1 on fights · ${saltyLeft(st,u)} turn${saltyLeft(st,u)>1?'s':''} left</dd>`:''}${allyOf(st,u)?`<dt>Ally</dt><dd>${esc(st.players[allyOf(st,u)].name)}${activeAlly(st,u)?` · ${st.players[u].allyUntil-st.day+1} turn${st.players[u].allyUntil-st.day?'s':''} left`:' · starts next turn'}</dd>`:''}${p.loan?`<dt>Dad meter</dt><dd class="${dadStage(p.loan,bankCfg(st).meter)>=3?'bad':''}">${p.loan.bars}/${bankCfg(st).meter} · owes $${p.loan.owe}</dd>`:''}</dl></div>`}).join('')+`</div>`;
   h+=scoutSheet();
   if(crewPickOpen&&iPlay())h=`<div class="panel"><span class="eyebrow">Change character</span>${charSelect(charOf(me),takenByOthers(me),'set-char')}<div class="row"><button class="btn" data-act="crew-pick">Done</button></div></div>`+h;
   return h;
