@@ -453,6 +453,9 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .reactpick{position:absolute;left:10px;bottom:62px;z-index:8;display:flex;flex-wrap:wrap;gap:6px;max-width:min(320px,calc(100% - 20px));background:var(--surface);border:2px solid #141414;border-radius:14px;padding:8px;box-shadow:3px 3px 0 #141414}
 .reactpick button{font:inherit;font-size:13px;font-weight:600;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 10px;cursor:pointer}
 .reactpick button:active{background:#f7d538}
+.reactto{display:flex;align-items:center;gap:6px;width:100%;flex-wrap:wrap;padding-bottom:6px;margin-bottom:2px;border-bottom:1px solid var(--line)}
+.reactto button[aria-pressed="true"]{background:#f7d538;border-color:#141414;color:#141414}
+.reactto .rt-only{font-weight:700}.reactto .rt-crew{padding:2px;border-radius:50%;line-height:0}.reactto .rt-crew[aria-pressed="true"]{box-shadow:0 0 0 2px var(--c)}
 .rtoasts{position:absolute;left:10px;top:10px;z-index:7;display:flex;flex-direction:column;gap:6px;max-width:calc(100% - 20px);pointer-events:none}
 .rtoast{display:flex;align-items:center;gap:6px;background:var(--surface);color:var(--ink);border:2px solid var(--c);border-radius:999px;padding:3px 12px 3px 3px;font-size:14px;box-shadow:2px 2px 0 rgba(0,0,0,.25);animation:rtIn .25s ease-out}
 @keyframes rtIn{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
@@ -2553,10 +2556,10 @@ document.addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.st
 let lobbyMode='game',lobbyNews=true,lobbyLen='std',lobbySudden=80,lobbyBasic=(()=>{try{return !localStorage.getItem('sc-played')}catch(e){return true}})();
 const SUDDEN_OPTS=[0,60,70,80,90,100];
 const REACTS=['Nice try 😏','Truce?','You’ll pay for that!','GG 🍋','Oops 😬','Watch your corners','Lemonade’s on me','😂'];
-let reacts={},reactSeen={},toasts=[],reactOpen=false,reactAt=0;
-function onReacts(q){const now=Date.now();q.docs.forEach(d=>{const r=d.data();if(!r||!st||r.gameId!==st.gameId)return;const k=d.id+':'+r.at;if(reactSeen[k])return;reactSeen[k]=1;if(now-r.at<20000&&REACTS[r.k]!=null){toasts.push({u:r.u,k:r.k,at:now});setTimeout(()=>{toasts=toasts.filter(t=>now!==t.at);render()},4200);render()}})}
-function reactToasts(){if(!toasts.length||!st)return'';return `<div class="rtoasts" aria-live="polite">${toasts.slice(-3).map(t=>{const p=st.players[t.u];if(!p)return'';return `<div class="rtoast" style="--c:${esc(crewColor(t.u))}">${avatar(charOf(t.u),crewColor(t.u),26)}<span><b>${esc((CHAR_BY[charOf(t.u)]||{}).name||p.name)}:</b> ${esc(REACTS[t.k])}</span></div>`}).join('')}</div>`}
-function reactBtn(){if(!st||st.status!=='active'||!iPlay())return'';return `<button class="reactbtn ${reactOpen?'on':''}" data-act="react-open" aria-label="Send a reaction" aria-expanded="${reactOpen}">💬</button>${reactOpen?`<div class="reactpick" role="menu">${REACTS.map((t,i)=>`<button role="menuitem" data-act="react" data-k="${i}">${esc(t)}</button>`).join('')}</div>`:''}`}
+let reacts={},reactSeen={},toasts=[],reactOpen=false,reactAt=0,reactTo='';
+function onReacts(q){const now=Date.now();q.docs.forEach(d=>{const r=d.data();if(!r||!st||r.gameId!==st.gameId)return;const k=d.id+':'+r.at;if(reactSeen[k])return;reactSeen[k]=1;if(r.to&&r.to!==me&&r.u!==me)return;if(now-r.at<20000&&REACTS[r.k]!=null){toasts.push({u:r.u,k:r.k,to:r.to||'',at:now});setTimeout(()=>{toasts=toasts.filter(t=>now!==t.at);render()},4200);render()}})}
+function reactToasts(){if(!toasts.length||!st)return'';return `<div class="rtoasts" aria-live="polite">${toasts.slice(-3).map(t=>{const p=st.players[t.u];if(!p)return'';return `<div class="rtoast" style="--c:${esc(crewColor(t.u))}">${avatar(charOf(t.u),crewColor(t.u),26)}<span><b>${t.u===me&&t.to?'You':esc((CHAR_BY[charOf(t.u)]||{}).name||p.name)}${t.to?` → ${t.to===me?'you':esc((CHAR_BY[charOf(t.to)]||{}).name||(st.players[t.to]||{}).name||'')}`:''}:</b> ${esc(REACTS[t.k])}</span></div>`}).join('')}</div>`}
+function reactBtn(){if(!st||st.status!=='active'||!iPlay())return'';return `<button class="reactbtn ${reactOpen?'on':''}" data-act="react-open" aria-label="Send a reaction" aria-expanded="${reactOpen}">💬</button>${reactOpen?`<div class="reactpick" role="menu"><div class="reactto" role="group" aria-label="Send to"><span class="small muted">To</span><button data-act="react-to" data-u="" aria-pressed="${!reactTo}">Everyone</button>${aliveUids(st).filter(u=>u!==me).map(u=>`<button class="rt-crew" data-act="react-to" data-u="${esc(u)}" aria-pressed="${reactTo===u}" aria-label="Only ${esc(st.players[u].name)}" style="--c:${esc(crewColor(u))}">${avatar(charOf(u),crewColor(u),24)}</button>`).join('')}${reactTo&&st.players[reactTo]?`<span class="small rt-only">Only ${esc((CHAR_BY[charOf(reactTo)]||{}).name||st.players[reactTo].name)} sees it</span>`:''}</div>${REACTS.map((t,i)=>`<button role="menuitem" data-act="react" data-k="${i}">${esc(t)}</button>`).join('')}</div>`:''}`}
 let navOpen=false,lastAsp=null,lobbyPick=false;
 function setTab(t){if(t==='rules'&&tab!=='rules'){rMode='quick';rIdx=0}navOpen=false;notice="";if(replay&&t!=='board'){clearT();if(replay.live){replay=null}else replay=null}tab=t;try{localStorage.setItem('sc-tab',t)}catch(e){}render();window.scrollTo(0,0)}
 function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corners[y].s-st.corners[x].s);const others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me);
@@ -2642,9 +2645,10 @@ document.addEventListener('click',async e=>{
   if(act==='mvp-del'){restoreZoom();draft.move=null;movePop=null;dirty=true;return render()}
   if(act==='atk-edit'){ensureDraft();dayPhase='attack';const a=draft.attacks[+el.dataset.k];if(a){openPop(a.from,a.to)}return render()}
   if(act==='pop-cancel'){atkPop=null;restoreZoom();return render()}
-  if(act==='react-open'){reactOpen=!reactOpen;return render()}
+  if(act==='react-open'){reactOpen=!reactOpen;if(reactTo&&!(st.players[reactTo]&&st.players[reactTo].alive!==false))reactTo='';return render()}
+  if(act==='react-to'){reactTo=el.dataset.u||'';return render()}
   if(act==='react'){reactOpen=false;const k=+el.dataset.k;if(Date.now()-reactAt<4000){notice='Easy there. One reaction every few seconds.';return render()}reactAt=Date.now();
-    db.doc('reacts/'+me).set({gameId:st.gameId,u:me,k,at:Date.now()}).catch(e=>console.warn(e));return render()}
+    db.doc('reacts/'+me).set({gameId:st.gameId,u:me,to:reactTo||null,k,at:Date.now()}).catch(e=>console.warn(e));return render()}
   if(act==='pop-adv'){if(atkPop)atkPop.adv=true;return render()}
   if(act==='pop-n'){const mx=maxSend(atkPop.from,atkPop.k),d=+el.dataset.d;atkPop.n=Math.max(1,Math.min(mx,d===99?mx:atkPop.n+d));if(atkPop.retreatAt>=atkPop.n)atkPop.retreatAt=Math.max(0,atkPop.n-1);return render()}
   if(act==='pop-r'){atkPop.retreatAt=Math.max(0,Math.min(atkPop.n-1,atkPop.retreatAt+(+el.dataset.d)));return render()}
