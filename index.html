@@ -820,9 +820,9 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 <script>
 const TIERS={
   weapon:[{n:'Fists',d:6,c:0},{n:'Slingshot',d:8,c:150},{n:'Water Gun',d:10,c:200},{n:'BB Gun',d:12,c:300}],
-  sugar:[{n:'Sweetener',d:6,c:0},{n:'Diner Sugar Packets',d:8,c:150},{n:'Agave',d:10,c:200},{n:'Raw Cane Sugar',d:12,c:300}],
+  sugar:[{n:'Sweetener',d:6,c:0},{n:'Diner Sugar Packets',d:8,c:100},{n:'Agave',d:10,c:150},{n:'Raw Cane Sugar',d:12,c:200}],
   whip:[{n:'Sedan',cap:4,c:0},{n:'SUV',cap:6,c:150},{n:'Minivan',cap:8,c:200},{n:'Van',cap:10,c:300}],
-  rep:[{n:'No Street Cred',b:0,c:0},{n:'Charity Case',b:1,c:100},{n:'Connected',b:2,c:200},{n:'Local Legend',b:3,c:300},{n:'Mogul',b:4,c:400},{n:'Kingpin',b:5,c:500}]
+  rep:[{n:'No Street Cred',b:0,c:0},{n:'Charity Case',b:1,c:150},{n:'Connected',b:2,c:300},{n:'Local Legend',b:3,c:450}]
 };
 const CREW_COLORS=['#e4572e','#2a9d8f','#d29a06','#7b5ea7','#3a86c8','#d6457f'];
 const COLOR_NAME={'#e4572e':'red','#2a9d8f':'teal','#d29a06':'gold','#7b5ea7':'purple','#3a86c8':'blue','#d6457f':'pink'};
@@ -847,8 +847,10 @@ const recruitCost=s=>{const e=evToday(s);return e&&e.k==='drive'?5:SOLDIER_COST}
 const upCost=(s,t)=>{const e=evToday(s);return t?(e&&e.k==='garage'?Math.round(t.c*.75):t.c):0};
 const truckAt=(s,i)=>false;
 const atkLimit=s=>10;
-const TRICKS={stink:{n:'Stink Bomb',c:40,aim:'inter',b:'No sales for anyone at one intersection, you included.'},batch:{n:'Bad Batch',c:60,aim:'crew',b:'Swap a rival’s sugar for salt. −1 to their Street Cred for 3 turns.'},
-  truck:{n:'Ice Cream Truck',c:60,aim:'inter',b:'No attacks on one intersection.'},party:{n:'Block Party',c:50,aim:'mine',b:'Your corners at one intersection sell triple.'}};
+const WHIP_ATK=[2,3,4,5];const atkLimFor=(s,u)=>WHIP_ATK[(s.players[u]||{}).whip|0]||2;
+const isFight=(s,u,a)=>{const t=s.corners[a.to];return !!(t&&t.o&&t.o!==u)};
+const TRICKS={stink:{n:'Stink Bomb',c:25,aim:'inter',b:'No sales for anyone at one intersection, you included.'},batch:{n:'Bad Batch',c:50,aim:'crew',b:'Swap a rival’s sugar for salt. −1 to their Street Cred for 3 turns.'},
+  truck:{n:'Ice Cream Truck',c:60,aim:'inter',b:'No attacks on one intersection.'},party:{n:'Block Party',c:30,aim:'mine',b:'Your corners at one intersection sell triple.'}};
 const TRICK_RECHARGE=15;
 const TRICK_ICON={stink:'💨',batch:'🧂',truck:'🍦',party:'★'};
 function trickPrice(s,t){if(!t||!TRICKS[t.k])return 0;const d=TRICKS[t.k];return d.per&&t.v?Math.max(d.c,d.per*cornersOf(s,t.v).length):d.c}
@@ -998,7 +1000,7 @@ const CHAR_BY=Object.fromEntries(CHARS.map(c=>[c.id,c]));
 function charMapFor(players){const m={},used=new Set();if(!players)return m;const ids=Object.keys(players).sort((a,b)=>(players[a].seat||0)-(players[b].seat||0));
   ids.forEach(u=>{const c=players[u].char;if(c&&CHAR_BY[c]&&!used.has(c)){m[u]=c;used.add(c)}});
   ids.forEach(u=>{if(!m[u]){const f=CHARS.find(c=>!used.has(c.id));if(f){m[u]=f.id;used.add(f.id)}}});return m}
-function normalizeNames(s){if(!s||!s.players)return s;const m=charMapFor(s.players);Object.keys(s.players).forEach(u=>{if(m[u])s.players[u].name=CHAR_BY[m[u]].name+"'s Crew"});return s}
+function normalizeNames(s){if(!s||!s.players)return s;Object.values(s.players).forEach(p=>{if(p&&p.rep>TIERS.rep.length-1)p.rep=TIERS.rep.length-1});const m=charMapFor(s.players);Object.keys(s.players).forEach(u=>{if(m[u])s.players[u].name=CHAR_BY[m[u]].name+"'s Crew"});return s}
 const charOf=u=>st&&st.players?charMapFor(st.players)[u]:null;
 /* ---------- cartoon character art (full body) ---------- */
 const INK='#141414';
@@ -1217,7 +1219,7 @@ function botOrders(s,u){
   if(!myAlly&&alive.length>=ALLY_MIN&&rng()<(P.ally||(style==='turtle'||style==='builder'?.16:.1))){const c=alive.filter(v=>v!==u&&v!==leader&&canAlly(s,u,v)&&!offerFrom(s,v,u)).sort((a,b)=>Math.abs(cnt(a)-cnt(u))-Math.abs(cnt(b)-cnt(u)));if(c.length)o.proposeTo=c[0]}
   const stab=act&&(style==='snake'?rng()<P.betray:(rng()<P.betray||(s.day===p.allyUntil&&rng()<P.betray*4)));
   // targets
-  const cap=TIERS.whip[p.whip+o.buy.whip].cap,myDie=TIERS.weapon[p.weapon+o.buy.weapon].d,myB=TIERS.rep[Math.min(5,p.rep+o.buy.rep)].b+3*blockCount(s,u)-(saltyLeft(s,u)?1:0);
+  const cap=TIERS.whip[p.whip+o.buy.whip].cap,myDie=TIERS.weapon[p.weapon+o.buy.weapon].d,myB=TIERS.rep[Math.min(TIERS.rep.length-1,p.rep+o.buy.rep)].b+3*blockCount(s,u)-(saltyLeft(s,u)?1:0);
   const smallAdj=small?(style==='turtle'?1.5:style==='hustler'?.7:1):1;
   const full=ootOn(s)&&soldiersOf(s,u)>=LOCALS-8,fullAdj=full?(style==='turtle'?1.8:1.3):1;
   const aggr=(P.hoard?(late?1.4:P.aggr):P.aggr*(late?1.3:1))*smallAdj*fullAdj*(style==='turtle'&&late?1.35:1)*(lvl==='easy'?.7:lvl==='hard'?1.15:1);
@@ -1230,17 +1232,17 @@ function botOrders(s,u){
     if(sleepy||pr<(lvl==='easy'?.35:.12))continue;const loss=c.s*(1-pr)/pr,need=Math.ceil((loss+1.5+.7*Math.sqrt(c.s/pr))*(lvl==='easy'?1.25:1));
     cands.push({i,empty:false,need,loss,score:value*aggr*2-loss*.3})}
   cands.sort((a,b)=>b.score-a.score);
-  const rAt=n=>style==='brawler'?0:style==='turtle'?Math.max(1,Math.floor(n/3)):Math.max(1,Math.floor(n/4));let nT=0,combo=false;
+  const rAt=n=>style==='brawler'?0:style==='turtle'?Math.max(1,Math.floor(n/3)):Math.max(1,Math.floor(n/4));let nT=0,nR=0,combo=false;const lim=WHIP_ATK[p.whip+o.buy.whip]||2;
   for(const t of cands){if(nT>=maxAtk||o.attacks.length>=atkLimit(s))break;if(t.score<=0)break;
     const srcs=mine.slice().sort((a,b)=>avail[b]-avail[a]),src=srcs[0],can=Math.min(cap,avail[src]-1);if(can<1)break;
     if(t.empty){const n=Math.min(can,2);o.attacks.push({from:src,to:t.i,n,retreatAt:0});avail[src]-=n;nT++;continue}
-    if(t.need<=can){const n=Math.min(can,Math.ceil(t.need*1.15));o.attacks.push({from:src,to:t.i,n,retreatAt:rAt(n)});avail[src]-=n;nT++;continue}
+    if(t.need<=can){if(nR>=lim)continue;nR++;const n=Math.min(can,Math.ceil(t.need*1.15));o.attacks.push({from:src,to:t.i,n,retreatAt:rAt(n)});avail[src]-=n;nT++;continue}
     // too big for one vehicle: late in the game, gang up on a runaway leader from several corners at once (once a turn, not on Easy)
     if(lvl==='easy'||!late||!chase||combo||leader===u||s.corners[t.i].o!==focus)continue;combo=true;
     let left=Math.ceil(t.need*1.15);const parts=[];
-    for(const si of srcs){if(left<=0||o.attacks.length+parts.length>=atkLimit(s))break;const k=Math.min(cap,avail[si]-1,left);if(k>=2){parts.push([si,k]);left-=k}}
+    for(const si of srcs){if(left<=0||o.attacks.length+parts.length>=atkLimit(s)||nR+parts.length>=lim)break;const k=Math.min(cap,avail[si]-1,left);if(k>=2){parts.push([si,k]);left-=k}}
     if(left>0||parts.length>4)continue;
-    const tot=parts.reduce((a,x)=>a+x[1],0);parts.forEach(([si,k])=>{o.attacks.push({from:si,to:t.i,n:k,retreatAt:rAt(tot)});avail[si]-=k});nT++}
+    const tot=parts.reduce((a,x)=>a+x[1],0);nR+=parts.length;parts.forEach(([si,k])=>{o.attacks.push({from:si,to:t.i,n:k,retreatAt:rAt(tot)});avail[si]-=k});nT++}
   const after=mine.slice().sort((a,b)=>avail[b]-avail[a]);
   if(after.length>1){const from=after[0],to=after[after.length-1];
     if(style==='turtle'&&!late&&!full){const n=Math.floor((avail[from]-avail[to])/2);if(n>0)o.move={from,to,n}}
@@ -1254,7 +1256,7 @@ function sendHome(s,u,froms,n){
 function resolveAttacks(s,ords,order,rng,L,E){
   const nm=u=>s.players[u]?.name||'?',lab=i=>label(s,i),groups={},departed={},sent={};
   for(const u of order){const p=s.players[u],cap=TIERS.whip[p.whip].cap;
-    for(const a of (ords[u]?.attacks||[]).slice(0,atkLimit(s))){
+    for(const a of (()=>{let k=0;return (ords[u]?.attacks||[]).slice(0,atkLimit(s)).filter(a=>!isFight(s,u,a)||k++<atkLimFor(s,u))})()){
       const from=s.corners[a.from],to=s.corners[a.to];if(!from||!to)continue;
       const skip=tx=>{L.push(tx);E.push({t:'atk',u,from:a.from,to:a.to,text:tx,res:'skip',set:[]})};
       if(from.o!==u){skip(`${nm(u)} called off an attack from ${lab(a.from)} because they no longer hold it.`);continue}
@@ -1442,6 +1444,8 @@ function spend(){const p=myP();let t=0;for(const cat of ['weapon','sugar','whip'
 const cashIn=()=>myP().cash+(draft.loan&&canBorrow(st,me)?LOAN_AMT:0)-(draft.repay|0);
 const cashLeft=()=>cashIn()-spend();
 const capToday=()=>TIERS.whip[myP().whip+draft.buy.whip].cap;
+const atkToday=()=>WHIP_ATK[myP().whip+draft.buy.whip]||2;
+const fightsPlanned=skip=>draft.attacks.filter((a,k)=>k!==skip&&isFight(st,me,a)).length;
 function clockText(){if(!st||!st.nextResolveAt)return'';const ms=Math.max(0,st.paused?(st.pauseLeft||0):st.nextResolveAt-Date.now()),t=Math.ceil(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=t%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`}
 function countdown(){if(!st||!st.nextResolveAt)return'';if(st.paused)return 'clock paused';const ms=st.nextResolveAt-Date.now();if(ms<=0)return'resolving now';if(st.mode==='game')return 'resolves in '+clockText();
   const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return `resolves in ${h?h+'h ':''}${m}m`}
@@ -1760,12 +1764,12 @@ const GUIDE=[
   {id:'place',when:()=>st.status==='setup'&&iPlay(),t:'Set up your crew',b:'Your corners have a dark outline. Tap them to stack your 20 recruits, or tap <b>Spread evenly</b> to share them out. Pinch to zoom and drag to look around. Anything you don’t place gets spread evenly.'},
   {id:'recap',when:()=>!!replay&&replay.live,t:'Last night on the block',b:'Every day starts with a recap of last night. Tap <b>Next</b> to watch each attack, Brawl, and move play out, or skip ahead.'},
   {id:'sales',when:()=>st.status==='active'&&iPlay()&&!replay&&salesPending(),t:'Payday',b:'Start your day by rolling for cash. Multiply your roll by the corners you hold. More corners, more money.'},
-  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'Gear up',b:'Upgrades last all game. <b>Weapons</b> set your fight roll, <b>Sugar</b> your sales roll, <b>Mom’s Whip</b> how many recruits you can send, and <b>Street Cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
+  {id:'shop',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='upgrades',t:'Gear up',b:'Upgrades last all game. <b>Weapons</b> set your fight roll, <b>Sugar</b> your sales roll, <b>Rideshare</b> how many attacks you can make, and <b>Street Cred</b> adds to every fight roll. Tap <b>Recruits</b> to hire more, or <b>Tricks</b> to mess with rivals.'},
   {id:'recruits',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='recruits',t:'Hire recruits',b:'Each local recruit costs $10. Tap your corners on the map to drop them there, one per tap, or switch to <b>Tap to remove</b> to take one back. Recruits arrive before any fighting, so you can recruit to and attack from the same corner.'},
   {id:'tricks',when:()=>planningNow()&&dayPhase==='shop'&&shopTab==='tricks',t:'Dirty Tricks',b:'Buy one trick a turn and tap the map to aim it. Each trick works <b>once per game</b>. Be warned: everyone sees who played it in the recap.'},
   {id:'news',when:()=>planningNow()&&!!evToday(st)&&sel==null,t:'Market Day',b:'Something’s in the air. Every 5 turns a Market Day hits the whole block, like a Heat Wave or a Garage Sale. Nobody knows which until it hits.'},
   {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'Unlucky? You’re in last place, so Mom &amp; Dad will lend you $200, once. Dad wants $250 back. Pay it in $50 chunks from the <b>Bank</b> tab before his meter fills.'},
-  {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Dashed corners are empty and free to claim. Attacks are optional.'},
+  {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Your Rideshare sets how many attacks you get each turn. Dashed corners are empty, and claiming them is free. Attacks are optional.'},
   {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'There’s strength in numbers. When you plan an attack on a rival, tap <b>Rather team up?</b> to offer a 5-turn Alliance. Your corners count together for Full Intersections and Blocks. Breaking it costs Street Cred.'},
   {id:'move',when:()=>planningNow()&&dayPhase==='move',t:'Shore up your defences',b:'Once a turn, tap one of your corners, then another, to move recruits between them. Moves happen after the fighting.'},
   {id:'send',when:()=>planningNow()&&dayPhase==='review',t:'Send your orders',b:'Check your list and tap ✕ to cancel anything. Then <b>Send</b>. Everyone plans at once, and the day plays out when the timer ends or every crew has sent.'}];
@@ -2003,6 +2007,7 @@ const isPlanning=()=>{const ok=!!st&&st.status==='active'&&iPlay()&&!morningPend
 function baseAt(i){return (st.corners[i]?.s||0)+(draft.buy.soldiers?recAt(i):0)}
 function maxSend(from,skip){const used=draft.attacks.reduce((t,a,k)=>t+(k!==skip&&+a.from===+from?(a.n|0):0),0);return Math.max(0,Math.min(capToday(),baseAt(from)-1-used))}
 function openPop(from,to){if(truckAt(st,to)){notice='An Ice Cream Truck is parked there today. No attacks on that intersection.';pick={from:null,to:null};return}
+  if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&isFight(st,me,{to})&&fightsPlanned()>=atkToday()){const w=TIERS.whip[myP().whip+draft.buy.whip];notice=`Your ${w.n} only fits ${atkToday()} attacks a turn. Upgrade your Rideshare for more. Claiming empty corners is free.`;pick={from:null,to:null};return}
   if(draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to)<0&&draft.attacks.length>=atkLimit(st)){notice=`Crossing guard: only ${atkLimit(st)} attacks today.`;pick={from:null,to:null};return}notice='';const k=draft.attacks.findIndex(a=>+a.from===+from&&+a.to===+to),mx=maxSend(from,k);
   atkPop={from,to,k,n:k>=0?Math.min(draft.attacks[k].n,mx)||mx:mx,retreatAt:k>=0?draft.attacks[k].retreatAt||0:0};pick={from:null,to:null}}
 function popView(){
@@ -2018,7 +2023,7 @@ function popView(){
   ${dp?`<div class="odds"><span>1–${myW.d}${fmtB(aBk.total)} vs 1–${TIERS.weapon[dp.weapon].d}${fmtB(dBk.total)}</span><span class="${odds>=.5?'ok':'bad'}"><strong>You win ${Math.round(odds*100)}% of rolls</strong>${dBk&&dBk.inter?' · they win ties':''}</span></div>`:''}`;
   if(dp&&!hitsAlly&&canAlly(st,me,t.o))h+=`<p class="small allyhint">${ALLY_SVG}Rather team up? ${offerFrom(st,t.o,me)?'<span class="muted">Your Alliance offer is waiting on them.</span>':`<button class="linkbtn" data-act="ally-propose" data-u="${esc(t.o)}">Propose an Alliance with ${esc(dp.name)}</button>`}</p>`;
   if(mx<1)h+=`<p class="bad">Not enough recruits at ${esc(label(st,a.from))}. One has to stay behind${draft.attacks.some((x,k)=>k!==a.k&&+x.from===+a.from)?', and your other attacks from here already use the rest':''}.</p>`;
-  else{h+=`<div class="stepline"><span><strong>Send</strong> <span class="small muted">max ${mx} (Mom's Whip holds ${capToday()})</span></span><div class="stepper"><button data-act="pop-n" data-d="-1" ${a.n>1?'':'disabled'} aria-label="Send one fewer">−</button><span class="n">${a.n}</span><button data-act="pop-n" data-d="1" ${a.n<mx?'':'disabled'} aria-label="Send one more">+</button><button data-act="pop-n" data-d="99" ${a.n<mx?'':'disabled'}>Max</button></div></div>`;
+  else{h+=`<div class="stepline"><span><strong>Send</strong> <span class="small muted">max ${mx} (Rideshare: ${capToday()} kids an attack)</span></span><div class="stepper"><button data-act="pop-n" data-d="-1" ${a.n>1?'':'disabled'} aria-label="Send one fewer">−</button><span class="n">${a.n}</span><button data-act="pop-n" data-d="1" ${a.n<mx?'':'disabled'} aria-label="Send one more">+</button><button data-act="pop-n" data-d="99" ${a.n<mx?'':'disabled'}>Max</button></div></div>`;
     if(dp)h+=`<div class="stepline"><span><strong>Retreat when down to</strong> <span class="small muted">0 = fight to the end</span></span><div class="stepper"><button data-act="pop-r" data-d="-1" ${a.retreatAt>0?'':'disabled'} aria-label="Lower">−</button><span class="n">${a.retreatAt}</span><button data-act="pop-r" data-d="1" ${a.retreatAt<a.n-1?'':'disabled'} aria-label="Raise">+</button></div></div>`}
   h+=`<div class="row"><button class="btn ${hitsAlly?'danger':'primary'}" data-act="pop-ok" ${mx<1?'disabled':''}>${hitsAlly?'Attack anyway':a.k>=0?'Update attack':'Set attack'}</button><button class="btn" data-act="pop-cancel">Cancel</button>${a.k>=0?'<button class="linkbtn" data-act="pop-del">Remove attack</button>':''}</div></div>`;
   return h}
@@ -2057,7 +2062,7 @@ function shopPanel(){
   let h=`<div class="panel"><div class="seg shoptabs" role="tablist" aria-label="Shop"><button role="tab" data-act="shoptab" data-t="upgrades" aria-pressed="${upg}" aria-selected="${upg}">Upgrades${['weapon','sugar','whip','rep'].some(c=>b[c])?' •':''}</button><button role="tab" data-act="shoptab" data-t="recruits" aria-pressed="${rec}" aria-selected="${rec}">Recruits${b.soldiers?` · ${b.soldiers}`:''}</button><button role="tab" data-act="shoptab" data-t="tricks" aria-pressed="${trk}" aria-selected="${trk}">Tricks${draft.trick?' •':''}</button>${bankOn?`<button role="tab" class="banktab" data-act="shoptab" data-t="bank" aria-pressed="${bank}" aria-selected="${bank}">Bank${draft.loan||draft.repay?' •':p.loan?` · ${p.loan.bars}/${bankCfg(st).meter}`:''}</button>`:''}</div>`;
   if(bank)h+=bankPanel();
   else if(trk)h+=tricksPanel();
-  else if(!rec)h+=`<div class="tiles">${shopRow('weapon','Weapon')}${shopRow('sugar','Sugar')}${shopRow('whip',"Mom's Whip")}${shopRow('rep','Street Cred')}</div>`;
+  else if(!rec)h+=`<div class="tiles">${shopRow('weapon','Weapon')}${shopRow('sugar','Sugar')}${shopRow('whip','Rideshare')}${shopRow('rep','Street Cred')}</div>`;
   else h+=`<div class="recruit-box"><div class="row" style="justify-content:space-between"><span><strong>${b.soldiers}</strong> recruit${b.soldiers===1?'':'s'} · <span class="mono">$${recTotal(st,me,b.soldiers)}</span>${!ootOn(st)?'':(()=>{const on=soldiersOf(st,me)+b.soldiers,lk=Math.max(0,LOCALS-on),rc=recruitCost(st);return `<br><span class="small ${lk?'muted':'oot'}">${on} kids on the street · ${lk?`${lk} more local${lk===1?'':'s'} at $${rc}, then Out-of-Towners at $${rc*OOT_MULT}`:`now hiring Out-of-Towners: $${rc*OOT_MULT} each`}</span>`})()}</span>
       <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><button data-act="sold" data-d="1" ${left>=recPrice(st,me,b.soldiers)?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=recTotal(st,me,b.soldiers+5)-recTotal(st,me,b.soldiers)?'':'disabled'}>+5</button></div></div>
     <div class="seg" role="group" aria-label="What a tap on your corner does"><button data-act="rmode" data-m="add" aria-pressed="${recMode==='add'}">Tap to add</button><button data-act="rmode" data-m="remove" aria-pressed="${recMode==='remove'}">Tap to remove</button></div>
@@ -2136,7 +2141,7 @@ function movePopView(){
 function reviewPanel(){
   const p=myP(),b=draft.buy,left=cashLeft(),sent=hasOrder(me),ok=sent&&!dirty;
   const nu=['weapon','sugar','whip','rep'].reduce((t,c)=>t+(b[c]|0),0),shop=[nu?`${nu} upgrade${nu>1?'s':''}`:'',b.soldiers?`${b.soldiers} recruit${b.soldiers>1?'s':''}`:'',draft.loan&&canBorrow(st,me)?'$'+LOAN_AMT+' loan':'',draft.repay?'repay $'+draft.repay:''].filter(Boolean).join(', ')||'Nothing';
-  const CN={weapon:'Weapon',sugar:'Sugar',whip:"Mom's Whip",rep:'Street Cred'},items=[];
+  const CN={weapon:'Weapon',sugar:'Sugar',whip:'Rideshare',rep:'Street Cred'},items=[];
   ['weapon','sugar','whip','rep'].forEach(c=>{if(b[c])items.push(ochip(`${CN[c]}: ${esc(TIERS[c][p[c]+b[c]].n)}`,`data-act="go-shop" data-t="upgrades"`,`data-act="del-up" data-cat="${c}"`,CN[c]+' upgrade'))});
   if(b.soldiers)items.push(ochip(`<b>${b.soldiers}</b> recruit${b.soldiers>1?'s':''}`,'data-act="go-shop" data-t="recruits"','data-act="rec-clear"','recruits'));
   if(draft.trick)items.push(ochip(`${TRICK_ICON[draft.trick.k]} ${TRICKS[draft.trick.k].n} → ${esc(trickLabel(draft.trick))}`,'data-act="go-shop" data-t="tricks"','data-act="del-trick"','trick'));
@@ -2273,7 +2278,7 @@ function introCard(always){
   if(introSeen&&!always)return'';
   return `<div class="panel intro"><span class="eyebrow">New to the neighbourhood?</span><h2>Run the most corners in town.</h2>
     <p>Every crew runs lemonade stands on street corners. Each day you buy gear, bring in recruits, and send them to take other crews' corners.</p>
-    <p class="small muted">More corners means more money. More money means better weapons, a bigger Mom's Whip, and more Street Cred.</p>
+    <p class="small muted">More corners means more money. More money means better weapons, a bigger Rideshare, and more Street Cred.</p>
     <div class="row"><button class="btn primary" data-act="tab" data-tab="rules">Read the rules</button>${always?'':'<button class="btn" data-act="intro-done">Got it</button>'}</div></div>`}
 let rIdx=0,rDir=1,rAt=0;
 const RCOL=['#e4572e','#2a9d8f','#d29a06','#7b5ea7','#d6457f','#3a86c8'];
@@ -2303,8 +2308,8 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
   {t:'Making money',art:SV([[TIERS.sugar[0],5,52],[TIERS.sugar[1],8,138]].map(([t,v,y],i)=>`<text x="10" y="${y-6}" class="rcap" style="text-anchor:start;font-size:10.5px">${i?'Upgrade to':'Start with'}</text><text x="10" y="${y+9}" class="rcap" style="text-anchor:start;font-size:10px;fill:#5b685d">${t.n}</text>`
      +rDie(142,y,v,t.d,i?'#2c8a4f':'#f7d538',44)+`<text x="182" y="${y}" class="rop sm">×</text>`+Array.from({length:12},(_,k)=>rDot(199+(k%4)*12,y-12+Math.floor(k/4)*12,O,'',5)).join('')+`<text x="217" y="${y+28}" class="rcap" style="font-size:10px">12 corners</text><text x="253" y="${y}" class="rop sm">=</text><text x="268" y="${y}" class="rmoney" style="text-anchor:start;font-size:26px">$${v*12}</text>`).join('')+`<path d="M142 80 v24" stroke="#2c8a4f" stroke-width="3" stroke-dasharray="4 3"/><path d="M136 98 l6 7 l6 -7" fill="none" stroke="#2c8a4f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`),
    b:`<p>More corners, more money. Each turn you roll for <strong>sales</strong>. Multiply your roll by the corners you hold.</p><p>Better sugar makes better product. Upgrade your sugar to get bigger rolls.</p>`},
-  {t:'The shop',art:`<div class="ladders">${[['Weapon','weapon',t=>'1–'+t.d],['Sugar','sugar',t=>'1–'+t.d],["Mom's Whip",'whip',t=>t.cap+' seats'],['Street Cred','rep',t=>'+'+t.b]].map(([n,c,f])=>`<div class="ladder"><b>${n}</b>${TIERS[c].filter(t=>c!=='rep'||t.b>=0).map((t,i)=>`<span class="rung ${i?'':'base'}"><i>${esc(t.n)}</i><em>${f(t)}</em><small>${i?'$'+t.c:'start'}</small></span>`).join('')}</div>`).join('')}</div>`,
-   b:`<p>Upgrades go up one level at a time and last all game. <strong>Weapons</strong> set your fight roll (1–6 up to 1–12), <strong>sugar</strong> your sales roll, <strong>Mom's Whip</strong> how many recruits you can send per attack, and <strong>Street Cred</strong> adds to every fight roll.</p>`},
+  {t:'The shop',art:`<div class="ladders">${[['Weapon','weapon',t=>'1–'+t.d],['Sugar','sugar',t=>'1–'+t.d],['Rideshare','whip',(t,i)=>`${WHIP_ATK[i]} × ${t.cap}`],['Street Cred','rep',t=>'+'+t.b]].map(([n,c,f])=>`<div class="ladder"><b>${n}</b>${TIERS[c].filter(t=>c!=='rep'||t.b>=0).map((t,i)=>`<span class="rung ${i?'':'base'}"><i>${esc(t.n)}</i><em>${f(t,i)}</em><small>${i?'$'+t.c:'start'}</small></span>`).join('')}</div>`).join('')}</div>`,
+   b:`<p>Upgrades go up one level at a time and last all game. <strong>Weapons</strong> set your fight roll (1–6 up to 1–12), <strong>sugar</strong> your sales roll, <strong>Rideshare</strong> how many attacks you can make and how many recruits ride in each, and <strong>Street Cred</strong> adds to every fight roll.</p>`},
   {t:'Recruits',art:SV(rRoads(320,190,[160],[95])+rDot(124,60,O,'5',18)+`<g transform="translate(140,26)"><rect width="40" height="20" rx="10" fill="#f7d538" stroke="#2e2600" stroke-width="2"/><text x="20" y="11" class="rtag">+3</text></g>`+rDot(196,130,O,'2',18)+`<g transform="translate(212,96)"><rect width="40" height="20" rx="10" fill="#f7d538" stroke="#2e2600" stroke-width="2"/><text x="20" y="11" class="rtag">+1</text></g>`+`<circle cx="60" cy="150" r="22" fill="#f7d538" stroke="#141414" stroke-width="3"/><text x="60" y="150" class="rcoin">$10</text><path d="M84 150 Q110 150 112 82" stroke="#141414" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`),
    b:`<p>Each local recruit costs <strong>$10</strong>. Tap your corners to place them; tap again for more.</p><p>Recruits arrive before any fighting, so you can recruit to and attack from the same corner in the same turn.</p><p>Your first <strong>${LOCALS} kids</strong> on the street are locals. Past that, new recruits are <strong>Out-of-Towners</strong>: they cost triple. Somebody has to cover their bus fare. Lose kids in a fight and you’re back to hiring locals.</p>`},
   {t:'Fighting',art:SV(rDot(70,64,O,'6',20)+rCar(110,64,O,0)+rArrow(130,64,186,64,O,true)+rDot(250,64,T,'4',20)
@@ -2312,7 +2317,7 @@ function ruleCards(){const O=RCOL[0],T=RCOL[1],G=RCOL[2],P=RCOL[3],K=RCOL[4],B=R
      +`<text x="186" y="146" class="rop sm">vs</text>`+rDie(234,140,5,TIERS.weapon[0].d,T,48)+`<text x="276" y="148" class="rtot lose">5</text><text x="250" y="30" class="rminus">−1</text>`),
    b:`<p>Both sides roll a number based on their weapon and bonuses. <strong>The higher total wins the roll</strong>; the loser loses one recruit in the fight. <strong>Ties roll again</strong>, unless the defender holds the Full Intersection.</p><p>Rolls repeat until one side is out, or the attacking crew hits their retreat number.</p>`},
   {t:'Sending a crew',art:SV(rRoads(320,190,[90,230],[95])+rDot(66,70,O,'9',18)+rArrow(90,70,200,70,O,true)+rCar(150,58,O,0)+rDot(254,70,T,'3',18)+`<g transform="translate(110,120)"><rect width="120" height="44" rx="12" fill="#fff" stroke="#141414" stroke-width="2.5"/><text x="60" y="17" class="rcap">send 4 · retreat at 2</text><text x="60" y="34" class="rcap muted2">1 always stays home</text></g>`),
-   b:`<p>Attack any corner from one of yours. Opposing crew stacked a corner? Upgrade your ride. <strong>Mom's Whip</strong> sets how many recruits you can send (4 to 10).</p><p>How many you send is up to you. One recruit always stays back to hold down the fort. But can they hold off another attack all alone?</p><p>You don't need to carry all your lemons in one basket. Set a <strong>retreat</strong> number so <s>cowards</s> recruits come home instead of fighting to the last.</p>`},
+   b:`<p>Attack any corner from one of yours. Opposing crew stacked a corner? Upgrade your ride. Your <strong>Rideshare</strong> sets how many attacks you can make each turn (2 to 5) and how many recruits ride in each (4 to 10). Claiming an empty corner doesn't count as an attack.</p><p>How many you send is up to you. One recruit always stays back to hold down the fort. But can they hold off another attack all alone?</p><p>You don't need to carry all your lemons in one basket. Set a <strong>retreat</strong> number so <s>cowards</s> recruits come home instead of fighting to the last.</p>`},
   {t:'Brawls',art:SV(rRoads(320,190,[160],[95])+rDot(184,72,P,'5',20)+rCar(88,72,O,0)+rArrow(104,72,156,72,O,true)+rCar(184,170,T,-90)+rArrow(184,154,184,100,T,true)+rCar(270,72,G,180)+rArrow(254,72,210,72,G,true)
      +`<g transform="translate(184,30)"><path d="M0 -18 l5 12 13 -5 -6 12 13 5 -13 5 6 12 -13 -5 -5 12 -5 -12 -13 5 6 -12 -13 -5 13 -5 -6 -12 13 5z" fill="#8e2bb0" stroke="#141414" stroke-width="2"/></g><text x="230" y="32" class="rcap" style="text-anchor:start">BRAWL!</text>`),
    b:`<p>Everyone rolls out at once. When several crews hit the same corner, it's a <strong>Brawl</strong>: all sides roll together.</p><p>The highest roll wins the round and <strong>everyone else loses one recruit</strong>. Crews tied for the top lose nothing, but a defender holding the Full Intersection wins ties outright. Last crew left standing takes or keeps the corner.</p>`},
@@ -2386,7 +2391,7 @@ const SHOW_TIPS=[
   ['Blocks','Hold a 2×2 group of intersections (16 corners) for +3 on every fight roll, anywhere on the board.'],
   ['Tiebreak','Two crews hit the target the same night? The higher score wins. Still tied? Most kids on the street.'],
   ['Out-of-towners','Your first 50 kids are locals at $10. After that, recruits come from out of town and cost triple. Somebody has to cover their bus fare.'],
-  ['Mom’s Whip','Opposing crew stacked a corner? Upgrade your ride. Mom’s Whip sets how many recruits you can send.'],
+  ['Rideshare','Opposing crew stacked a corner? Upgrade your ride. Your Rideshare sets how many attacks you can make each turn, and how many kids ride in each.'],
   ['Recruits','New recruits arrive before any fighting, so you can recruit to and attack from the same corner.'],
   ['Retreat','Don’t carry all your lemons in one basket. Set a retreat number so recruits come home before a fight goes bad.'],
   ['Hold the fort','One recruit always stays back to hold down the fort. But can they hold off another attack all alone?'],
@@ -2436,25 +2441,25 @@ function setupOrders(){
   return `<div class="panel"><h2>Place your crew on the board</h2><p class="muted">Tap your corners on the map to add recruits. You have ${left} of ${START_SOLDIERS} left to place.</p>
   <div class="row"><button class="btn primary" data-act="tab" data-tab="board">Go to the board</button></div></div>`}
 // Upgrade cards lead with what you'd be buying; what you have now is the small print.
-const UPV={weapon:t=>`Fights roll 1–${t.d}`,sugar:t=>`Sales roll 1–${t.d}`,whip:t=>`${t.cap} kids per attack`,rep:t=>`${repStr(t.b)} on every fight`};
-const UPS={weapon:t=>`1–${t.d}`,sugar:t=>`1–${t.d}`,whip:t=>`${t.cap} seats`,rep:t=>repStr(t.b)};
+const UPV={weapon:t=>`Fights roll 1–${t.d}`,sugar:t=>`Sales roll 1–${t.d}`,whip:t=>`${WHIP_ATK[TIERS.whip.indexOf(t)]} attacks × ${t.cap} kids`,rep:t=>`${repStr(t.b)} on every fight`};
+const UPS={weapon:t=>`1–${t.d}`,sugar:t=>`1–${t.d}`,whip:t=>`${WHIP_ATK[TIERS.whip.indexOf(t)]}×${t.cap}`,rep:t=>repStr(t.b)};
 function shopRow(cat,name){const p=myP(),k=draft.buy[cat],own=TIERS[cat][p[cat]],buying=k?TIERS[cat][p[cat]+k]:null,next=TIERS[cat][p[cat]+k+1],left=cashLeft(),show=buying||next||own,cost=next?upCost(st,next):0;
   const kick=buying?'<span class="upc-tag ok">✓ Buying</span>':next?'<span class="upc-tag">Upgrade to</span>':'<span class="upc-tag max">Maxed</span>';
-  if(vm!=='panel')return `<div class="tile upc c ${k?'bought':''} ${!buying&&!next?'maxed':''}"><span class="tile-l">${name}</span><span class="upc-tag ${buying?'ok':!next?'max':''}">${buying?'✓ Buying':next?'Next':'Maxed'}</span><span class="tile-v">${cat==='whip'?show.cap:UPS[cat](show)}</span><span class="tile-n" title="${esc(show.n)}">${esc(show.n)}</span>
+  if(vm!=='panel')return `<div class="tile upc c ${k?'bought':''} ${!buying&&!next?'maxed':''}"><span class="tile-l">${name}</span><span class="upc-tag ${buying?'ok':!next?'max':''}">${buying?'✓ Buying':next?'Next':'Maxed'}</span><span class="tile-v">${UPS[cat](show)}</span><span class="tile-n" title="${esc(show.n)}">${esc(show.n)}</span>
     ${next?`<button class="tile-b" data-act="buy" data-cat="${cat}" data-d="1" ${cost<=left?'':'disabled'} aria-label="${buying?'Also buy':'Buy'} ${esc(next.n)} for $${cost}">${buying?'+ ':''}$${cost}${cost<next.c?' 🏷':''}</button>`:''}
-    ${k?`<button class="tile-u" data-act="buy" data-cat="${cat}" data-d="-1" aria-label="Undo ${name} upgrade">Undo</button>`:''}<span class="upc-now">Now ${cat==='whip'?own.cap:UPS[cat](own)}</span></div>`;
+    ${k?`<button class="tile-u" data-act="buy" data-cat="${cat}" data-d="-1" aria-label="Undo ${name} upgrade">Undo</button>`:''}<span class="upc-now">Now ${UPS[cat](own)}</span></div>`;
   return `<div class="tile upc ${k?'bought':''} ${!buying&&!next?'maxed':''}"><span class="tile-l">${name} ${kick}</span><span class="upc-n">${esc(show.n)}</span><span class="upc-v">${UPV[cat](show)}</span>
     ${next?`<button class="tile-b" data-act="buy" data-cat="${cat}" data-d="1" ${cost<=left?'':'disabled'} aria-label="${buying?'Also buy':'Buy'} ${esc(next.n)} for $${cost}">${buying?`+ ${esc(next.n)} · $${cost}`:`Buy · $${cost}`}${cost<next.c?' 🏷':''}</button>`:''}
     ${k?`<button class="tile-u" data-act="buy" data-cat="${cat}" data-d="-1" aria-label="Undo ${name} upgrade">Undo</button>`:''}
     <span class="upc-now">${!buying&&!next?'Top of the line':`Now: ${esc(own.n)} · ${UPS[cat](own)}`}</span></div>`}
 function dayOrders(){
   const p=myP(),mine=cornersOf(st,me),others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me),left=cashLeft(),cap=capToday(),b=draft.buy;
-  let h=`<div class="panel"><h2>Shop</h2><div class="shop">${shopRow('weapon','Weapons')}${shopRow('sugar','Sugar')}${shopRow('whip',"Mom's Whip")}${shopRow('rep','Street Cred')}
+  let h=`<div class="panel"><h2>Shop</h2><div class="shop">${shopRow('weapon','Weapons')}${shopRow('sugar','Sugar')}${shopRow('whip','Rideshare')}${shopRow('rep','Street Cred')}
     <div class="shop-row"><div class="shop-name"><span class="eyebrow">Recruits</span><strong>Recruits</strong> <span class="mono small">$${SOLDIER_COST} each</span></div><div class="shop-next">Arrive before any fighting</div>
     <div class="stepper"><button data-act="sold" data-d="-1" ${b.soldiers?'':'disabled'} aria-label="One fewer">−</button><span class="n">${b.soldiers}</span><button data-act="sold" data-d="1" ${left>=10?'':'disabled'} aria-label="One more">+</button><button data-act="sold" data-d="5" ${left>=50?'':'disabled'}>+5</button></div></div></div>`;
   if(b.soldiers)h+=`<div class="field"><label for="recruitsTo">Send recruits to</label><select id="recruitsTo" data-f="recruitsTo">${cornerOptions(mine,draft.recruitsTo??mine.slice().sort((x,y)=>st.corners[y].s-st.corners[x].s)[0])}</select></div>`;
   h+=`<div class="totals"><span>Cash $${p.cash} − spend $${spend()}</span><span class="${left<0?'bad':'ok'}">$${left} left</span></div></div>`;
-  h+=`<div class="panel"><h2>Attacks</h2><p class="small muted">Mom's Whip fits ${cap} per attack. One recruit always stays behind. Attacks run in turns with the other crews, so a corner can change hands before your attack lands.</p>`;
+  h+=`<div class="panel"><h2>Attacks</h2><p class="small muted">Your Rideshare fits ${atkToday()} attacks of ${cap} kids. One recruit always stays behind. Attacks run in turns with the other crews, so a corner can change hands before your attack lands.</p>`;
   draft.attacks.forEach((a,k)=>{const fs=st.corners[a.from]?.s||0,extra=(b.soldiers&&+draft.recruitsTo===+a.from)?b.soldiers:0,max=Math.max(1,Math.min(cap,fs+extra-1));
     h+=`<div class="attack"><div class="head"><strong>Attack ${k+1}</strong><button class="linkbtn" data-act="atk-del" data-k="${k}">Remove</button></div>
     <div class="row"><div class="field"><label for="atk-${k}-from">From</label><select id="atk-${k}-from" data-f="atk-from" data-k="${k}">${cornerOptions(mine,a.from)}</select></div>
@@ -2488,7 +2493,7 @@ function crewsView(){
     return `<div class="crew ${p.alive===false?'out':''}" style="border-left-color:${esc(p.color)}"><div class="row" style="justify-content:space-between"><div class="crewhead">${avatar(charOf(u),p.color,44)}<div class="who"><h3>${esc(p.name)}${u===me?' (you)':''}</h3>${CHAR_BY[charOf(u)]?`<span class="small muted">${CHAR_BY[charOf(u)].name} “${CHAR_BY[charOf(u)].nick}”</span>`:''}${u===me&&iPlay()?'<button class="linkbtn" style="padding-left:0;text-align:left" data-act="crew-pick">Change character</button>':''}</div></div>
     <span class="small ${p.alive===false?'bad':hasOrder(u)?'ok':'muted'}">${p.alive===false?'Out':p.cpu==='conceded'?'Conceded · computer':p.cpu==='idle'?'Away · computer':p.bot?'Computer':st.status==='over'?'':hasOrder(u)?'Orders in':'Thinking…'}</span></div>
     ${allyBox(u)}${u!==me&&p.alive!==false&&(st.status==='active'||st.status==='over')?`<button class="scoutbtn" data-act="scout" data-u="${esc(u)}">${adSeen('scout-'+u)||!adsOn()?'🔍 Scouting report':'🔒 Scouting report <small>· watch an ad</small>'}</button>`:''}<dl class="stats"><dt>Corners</dt><dd>${cornersOf(st,u).length}</dd><dt>Recruits</dt><dd>${soldiersOf(st,u)}</dd><dt>Cash</dt><dd>$${p.cash}</dd>
-    <dt>Weapons</dt><dd>${esc(w.n)} 1–${w.d}</dd><dt>Sugar</dt><dd>${esc(s.n)} 1–${s.d}</dd><dt>Mom's Whip</dt><dd>${esc(v.n)} · ${v.cap}</dd><dt>Street Cred</dt><dd class="${r.b<0?'bad':''}">${esc(r.n)} ${repStr(r.b)}</dd><dt>Intersections</dt><dd>${fullInters(st,u)} full (+1 defense each)</dd><dt>Blocks</dt><dd>${blockCount(st,u)} (+${3*blockCount(st,u)})</dd>${saltyLeft(st,u)?`<dt>Salty</dt><dd class="bad">−1 on fights · ${saltyLeft(st,u)} turn${saltyLeft(st,u)>1?'s':''} left</dd>`:''}${allyOf(st,u)?`<dt>Ally</dt><dd>${esc(st.players[allyOf(st,u)].name)}${activeAlly(st,u)?` · ${st.players[u].allyUntil-st.day+1} turn${st.players[u].allyUntil-st.day?'s':''} left`:' · starts next turn'}</dd>`:''}${p.loan?`<dt>Dad Meter</dt><dd class="${dadStage(p.loan,bankCfg(st).meter)>=3?'bad':''}">${p.loan.bars}/${bankCfg(st).meter} · owes $${p.loan.owe}</dd>`:''}</dl></div>`}).join('')+`</div>`;
+    <dt>Weapons</dt><dd>${esc(w.n)} 1–${w.d}</dd><dt>Sugar</dt><dd>${esc(s.n)} 1–${s.d}</dd><dt>Rideshare</dt><dd>${esc(v.n)} · ${WHIP_ATK[p.whip]} × ${v.cap}</dd><dt>Street Cred</dt><dd class="${r.b<0?'bad':''}">${esc(r.n)} ${repStr(r.b)}</dd><dt>Intersections</dt><dd>${fullInters(st,u)} full (+1 defense each)</dd><dt>Blocks</dt><dd>${blockCount(st,u)} (+${3*blockCount(st,u)})</dd>${saltyLeft(st,u)?`<dt>Salty</dt><dd class="bad">−1 on fights · ${saltyLeft(st,u)} turn${saltyLeft(st,u)>1?'s':''} left</dd>`:''}${allyOf(st,u)?`<dt>Ally</dt><dd>${esc(st.players[allyOf(st,u)].name)}${activeAlly(st,u)?` · ${st.players[u].allyUntil-st.day+1} turn${st.players[u].allyUntil-st.day?'s':''} left`:' · starts next turn'}</dd>`:''}${p.loan?`<dt>Dad Meter</dt><dd class="${dadStage(p.loan,bankCfg(st).meter)>=3?'bad':''}">${p.loan.bars}/${bankCfg(st).meter} · owes $${p.loan.owe}</dd>`:''}</dl></div>`}).join('')+`</div>`;
   h+=scoutSheet();
   if(crewPickOpen&&iPlay())h=`<div class="panel"><span class="eyebrow">Change character</span>${charSelect(charOf(me),takenByOthers(me),'set-char')}<div class="row"><button class="btn" data-act="crew-pick">Done</button></div></div>`+h;
   return h;
