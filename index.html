@@ -2890,7 +2890,7 @@ function tutCard(){if(TUT)return'';return tutDone()?`<div class="row" style="jus
 function tutState(){
   const lob={gameId:'tutorial-1',status:'lobby',hostId:me,mode:'game',lcs:false,basic:true,sudden:0,lenSet:'std',news:false,turnMs:864e5,resolveMin:1200,maxDays:LEN_BACKSTOP.std,createdAt:Date.now(),tut:true,botLevel:'easy',
     players:{[me]:{name:"Zuri's Crew",seat:1,char:'zuri'},tbot:{name:"Mateo's Crew",seat:2,bot:true,style:'turtle',char:'mateo'}}};
-  const ns=Object.assign(startFrom(lob),{paused:true});ns.players[me].cash=350;return ns}
+  return Object.assign(startFrom(lob),{paused:true})}
 let tutI=0,tutAt=0,tutSeenI=-1;const tutM={};
 const tq=s=>document.querySelector(s),tqLast=s=>{const l=document.querySelectorAll(s);return l[l.length-1]||null};
 const tCorner=i=>i==null?null:document.querySelector(`.rp-board [data-act="corner"][data-i="${i}"]`);
@@ -2908,11 +2908,9 @@ const TSTEPS=[
   {id:'ps',el:()=>tq('[data-act="submit"]'),done:()=>st.status!=='setup'||hasOrder(me),t:'Whatever you don’t place gets spread across your other corners. <b>Tap Send Placement to finish.</b> Everyone places at the same time.'},
   {id:'w1',done:()=>st.status==='active'&&!!tq('[data-act="roll-sales"]'),t:'Mateo’s Crew is setting up too…'},
   {id:'roll',el:()=>tq('[data-act="roll-sales"]'),done:()=>!tq('[data-act="roll-sales"]'),t:'<b>Payday!</b> Every turn starts by rolling for sales. You earn your roll × the corners you hold. <b>Tap Roll for sales.</b>'},
-  {id:'sold',el:()=>tq('[data-act="sales-done"]'),done:()=>!tq('[data-act="sales-done"]')&&!rollAnim,t:'A 6! That’s 6 × 10 corners = $60. Practice games start you with $350, so you’ve got $410 to spend. <b>Tap Start planning.</b>'},
+  {id:'sold',el:()=>tq('[data-act="sales-done"]'),done:()=>!tq('[data-act="sales-done"]')&&!rollAnim,t:'A 6! That’s 6 × 10 corners = $60, plus the $100 you started with. <b>Tap Start planning.</b>'},
   {id:'buy',el:()=>tq('[data-act="buy"][data-cat="weapon"][data-d="1"]'),done:()=>(tDraft().buy.weapon|0)>0,t:'This is the <b>Shop</b>. Upgrades last all game. <b>Buy a Slingshot</b>: in fights you’ll roll 1–8 instead of 1–6.'},
-  {id:'sug',el:()=>tq('[data-act="buy"][data-cat="sugar"][data-d="1"]'),done:()=>(tDraft().buy.sugar|0)>0,t:'<b>Sugar</b> makes your lemonade sweeter, so you roll a bigger die for sales. <b>Buy Diner Sugar Packets</b> to roll 1–8 instead of 1–6.'},
-  {id:'rep',el:()=>tq('[data-act="buy"][data-cat="rep"][data-d="1"]'),done:()=>(tDraft().buy.rep|0)>0,t:'<b>Street Cred</b> adds a bonus to every fight roll your crew makes. <b>Buy Charity Case</b> for +1.'},
-  {id:'wh',el:()=>tq('[data-act="buy"][data-cat="whip"][data-d="1"]')?.closest('.tile, .upg, li, .row')||tq('[data-act="buy"][data-cat="whip"][data-d="1"]'),t:'Your <b>Rideshare</b> sets how many attacks you can launch each turn and how many kids fit in each. We’ll come back to that one.',next:'Okay'},
+  {id:'wh',el:()=>tq('[data-act="buy"][data-cat="whip"][data-d="1"]')?.closest('.tile, .upg, li, .row')||tq('[data-act="buy"][data-cat="whip"][data-d="1"]'),t:'There’s more in the Shop. <b>Sugar</b> grows your sales rolls, your <b>Rideshare</b> sets how many attacks you can launch and how many kids fit in each, and <b>Street Cred</b> adds a bonus to your fight rolls. We’ll come back to those.',next:'Okay'},
   {id:'rtab',el:()=>tq('[data-act="shoptab"][data-t="recruits"]'),done:()=>shopTab==='recruits',t:'You have $10 left, enough for one more kid. <b>Tap Recruits.</b>'},
   {id:'rec',el:()=>tCorner(tutM.B),done:()=>(tDraft().buy.soldiers|0)>=1,t:'Recruits cost $10 each and arrive before any fighting. <b>Tap this corner</b> to hire one there.'},
   {id:'toatk',el:()=>tqLast('[data-act="phase"][data-p="attack"]'),done:()=>dayPhase==='attack',t:'Alright, we’re geared up and our corners are locked down. Let’s move on to the Attack Phase. <b>Tap Next: Attack.</b>'},
@@ -2921,7 +2919,7 @@ const TSTEPS=[
   {id:'cok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=1,t:'Mateo might go for the same corner. Let’s send 3 kids to claim it. <b>Tap Set Attack</b> when you’re ready.'},
   {id:'hx',el:()=>tCorner(tutX()),done:()=>pick.to===tutM.X||!!atkPop,t:'Now take a corner from Mateo. <b>Tap his corner.</b>'},
   {id:'ha',el:()=>tCorner(tutA2()),done:()=>!!atkPop,t:'<b>Attack from this corner</b> of yours. It has the most kids.'},
-  {id:'hm',el:()=>tq('.sheet .matchup'),t:'Here’s the matchup. On the left, your kids at this corner and your Slingshot (1–8). On the right, Mateo’s defenders with Fists (1–6). The chips show bonuses, like your +1 Street Cred.',next:'Next'},
+  {id:'hm',el:()=>tq('.sheet .matchup'),t:'Here’s the matchup. On the left, your kids at this corner and your Slingshot (1–8). On the right, Mateo’s defenders with Fists (1–6). The chips show any bonuses.',next:'Next'},
   {id:'hd',el:()=>tq('.sheet .odds'),t:'Fights are dice roll-offs, one kid at a time. The higher roll wins and ties go to the defender. This shows how often you win a single roll.',next:'Next'},
   {id:'hn',enter:()=>{tutM.n0=atkPop?atkPop.n:0},el:()=>tq('.sheet .stepline .stepper'),done:()=>!!atkPop&&atkPop.n!==tutM.n0,t:()=>{const up=!tq('[data-act="pop-n"][data-d="1"]:disabled');return 'This is how many kids you’re sending. At least one stays behind to hold your corner, and your Rideshare caps each attack. '+(up?'Odds look good, but let’s make sure. <b>Tap + to send one more.</b>':'You don’t need everyone to win this. <b>Tap − to keep one more at home.</b>')}},
   {id:'hok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=2,t:()=>(atkPop&&atkPop.n>tutM.n0?'See how your chance to take the corner went up?':'Your chance to take the corner barely moved, and that kid stays home to defend.')+' <b>Tap Set Attack.</b>'},
@@ -2946,6 +2944,8 @@ const TSTEPS=[
   {id:'tt',el:()=>tq('[data-act="shoptab"][data-t="tricks"]'),done:()=>shopTab==='tricks',t:'Now put that money to work. <b>Tap Tricks.</b>'},
   {id:'tp',el:()=>tq('[data-act="trick-pick"][data-k="batch"]'),done:()=>trickPick==='batch'||!!tDraft().trick,t:'Mateo’s Crew wins every fight. A <b>Bad Batch</b> swaps their sugar for salt: −1 Street Cred for 3 turns. <b>Tap Bad Batch.</b>'},
   {id:'ta',el:()=>tCorner(tC(2,2)),done:()=>!!tDraft().trick,t:'<b>Tap any of Mateo’s corners</b> to aim it at his crew.'},
+  {id:'ut2',el:()=>tq('[data-act="shoptab"][data-t="upgrades"]'),done:()=>shopTab==='upgrades',t:'Mom &amp; Dad want their $250 back, so let’s boost sales. <b>Tap Upgrades.</b>'},
+  {id:'sug',el:()=>tq('[data-act="buy"][data-cat="sugar"][data-d="1"]'),done:()=>(tDraft().buy.sugar|0)>0,t:'<b>Sugar</b> makes your lemonade sweeter, so you roll a bigger die for sales. <b>Buy Diner Sugar Packets</b> to roll 1–8 instead of 1–6.'},
   {id:'rt2',el:()=>tq('[data-act="shoptab"][data-t="recruits"]'),done:()=>shopTab==='recruits',t:'Spend the rest on muscle. <b>Tap Recruits.</b>'},
   {id:'rm',el:()=>tq('[data-act="rec-max"]'),done:()=>(tDraft().buy.soldiers|0)>0,t:'<b>Tap Max</b> to hire as many as you can afford. They go to your weakest corners.'},
   {id:'so',el:()=>tq('[data-act="score-open"]'),done:()=>scoreOpen,t:'You can’t beat Mateo alone. <b>Tap the scores.</b>'},
@@ -2957,7 +2957,8 @@ const TSTEPS=[
   {id:'rpb',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay,t:'<b>Keep tapping.</b> Watch for the loan, the salt and Priya’s answer.'},
   {id:'ab',el:()=>tq('.rp-board'),t:'Priya said yes! See the two-colour dashed intersections? You and Priya hold all four corners of each between you, so each one is an <b>Ally Intersection: +1 point</b> for both of you. Share a whole Block and it’s +3.',next:'Nice'},
   {id:'ff2',enter:()=>tutJump(tutCh3),t:'<b>⏩ Fast forward to Turn 10.</b> You paid Mom &amp; Dad back before Dad’s Meter filled. The salt slowed Mateo down, Priya kept your flank safe, and you’ve clawed your way to the top. One more push wins it.',next:'Let’s finish this'},
-  {id:'wh3',el:()=>tq('[data-act="buy"][data-cat="whip"][data-d="1"]'),done:()=>(tDraft().buy.whip|0)>0,t:'Remember the Rideshare? Yours is still a Sedan: 2 attacks a turn, up to 4 kids each. <b>Upgrade to an SUV</b> for 3 attacks of up to 6.'},
+  {id:'wh3',el:()=>tq('[data-act="buy"][data-cat="whip"][data-d="1"]'),done:()=>(tDraft().buy.whip|0)>0,t:'You’ve saved up $300 for the final push. Remember the Rideshare? Yours is still a Sedan: 2 attacks a turn, up to 4 kids each. <b>Upgrade to an SUV</b> for 3 attacks of up to 6.'},
+  {id:'rep3',el:()=>tq('[data-act="buy"][data-cat="rep"][data-d="1"]'),done:()=>(tDraft().buy.rep|0)>0,t:'Last one: <b>Street Cred</b> adds a bonus to every fight roll your crew makes. <b>Buy Charity Case</b> for +1.'},
   {id:'ta3',el:()=>tqLast('[data-act="phase"][data-p="attack"]'),done:()=>dayPhase==='attack',t:'Now you can hit harder. <b>Tap Next: Attack.</b>'},
   {id:'hx3',el:()=>tCorner(tutM.T),done:()=>pick.to===tutM.T||!!atkPop,t:'You hold 3 corners of this intersection. Mateo has just 1 kid on the last one. <b>Tap it.</b>'},
   {id:'ha3',el:()=>tCorner(tutM.F),done:()=>!!atkPop,t:'<b>Attack from here.</b>'},
@@ -2991,7 +2992,7 @@ function tutCh2(s){
   s.nextResolveAt=Date.now()+864e5;return s}
 function tutCh3(s){
   Object.assign(s,{day:10});
-  Object.assign(s.players[me],{cash:200,loan:null,loanUsed:true,weapon:2,rep:2,whip:0,sugar:1});
+  Object.assign(s.players[me],{cash:300,loan:null,loanUsed:true,weapon:2,rep:0,whip:0,sugar:1});
   const T=tC(6,1),mine=[[tC(4,0),4],[tC(4,1),4],[tC(4,2),3],[tC(4,3),4],[tC(5,0),4],[tC(5,1),5],[tC(6,0),3],[tC(6,2),5],[tC(6,3),6]];
   const flex=[tC(2,2),tC(2,0),tC(1,2),tC(1,3),tC(2,3),tC(2,1),tC(1,0),tC(1,1),tC(3,2),tC(3,0)];
   const rest={tbot:[[tC(0,0),4],[tC(0,1),3],[tC(0,2),3],[tC(0,3),4],[tC(1,0),3],[tC(1,1),3],[tC(1,2),2],[tC(1,3),2],[tC(2,0),2],[tC(2,2),2],[T,1]],
