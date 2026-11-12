@@ -1807,7 +1807,10 @@ function boardSVG(){
     let vh=Math.max(170,Math.min(pv.vh,maxView(W,H,asp))),vw=vh*asp;
     const fit=(c,size,max)=>size>=max?(max-size)/2:Math.max(0,Math.min(max-size,c-size/2));
     vb=`${fit(pv.cx,vw,W).toFixed(1)} ${fit(pv.cy,vh,H).toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`;boardDims={W,H}}
-  if(replay){const f=focusOf(ev),full=vb;
+  if(replay){const f=focusOf(ev);
+    {const bx=document.querySelector('.rp-board'),asp=bx&&bx.clientHeight>40?(bx.clientWidth)/(bx.clientHeight):W/H;
+      if(asp>W/H){const vw=H*asp;vb=`${((W-vw)/2).toFixed(1)} 0 ${vw.toFixed(1)} ${H}`}else{const vh=W/asp;vb=`0 ${((H-vh)/2).toFixed(1)} ${W} ${vh.toFixed(1)}`}}
+    const full=vb;
     if(f&&f.length){const ps=f.filter(i=>i!=null&&B[i]).map(pos);if(ev&&(ev.t==='atk'||ev.t==='brawl')&&B[ev.to]){const [tx,ty]=pos(ev.to);ps.push([tx,ty<90?ty+76:ty-76])}const xs=ps.map(q=>q[0]),ys=ps.map(q=>q[1]);
       const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),bx=document.querySelector('.rp-board'),asp=bx&&bx.clientHeight>40?Math.min(2.2,Math.max(.35,(bx.clientWidth-8)/(bx.clientHeight-8))):1;
       let vh=Math.max(y1-y0+150,(x1-x0+150)/asp,240),vw=vh*asp;if(vw>W){vw=W;vh=vw/asp}if(vh>H&&vh*asp>W){vh=H;vw=vh*asp}
