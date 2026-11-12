@@ -109,11 +109,12 @@ window.LL=(()=>{
     if(navigator.share){try{await navigator.share({title:'Lemon Lyfe',text,url});return}catch(x){if(x&&x.name==='AbortError')return}}
     try{await navigator.clipboard.writeText(url);copied=Date.now();b.textContent='Link copied!';setTimeout(()=>{b.textContent='Invite friends'},2200)}
     catch(x){prompt('Copy this link and send it to your friends:',url)}});
-  const inviteHTML=()=>code?`<div class="panel llinvite"><div><span class="small muted">Game code</span><div class="llbig">${esc(code)}</div></div><div class="llbtns"><button class="linkbtn small" data-ll="switch">Switch game</button></div></div>`:'';
+  const inviteHTML=()=>code?`<div class="llswitch"><button class="linkbtn small" data-ll="switch">Switch game</button></div>`:'';
 
   const css=document.createElement('style');
   css.textContent=`.llinvite{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .llbig{font-family:var(--mono,monospace);font-size:26px;font-weight:600;letter-spacing:.12em}
+  .llswitch{display:flex;justify-content:flex-end;margin:-4px 0 6px}
   .llbtns{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
   .llland h2{font-family:var(--display,inherit);font-size:30px;margin:4px 0 6px}
   .llland .row .btn{flex:1}
