@@ -22,7 +22,7 @@
 html{overflow:hidden;height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
-.top{position:relative;flex:none;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top{position:relative;flex:none;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
 .wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .top .wrap{padding-block:10px;display:flex;flex-direction:column;gap:8px}
 @media (max-width:430px){.brandrow:has(#turnclock) .brand .bt{display:none}.brandrow:has(#turnclock) .brand{padding:4px 6px}}
@@ -49,6 +49,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 [hidden]{display:none!important}
 nav.tabs{display:flex;flex-direction:column;gap:6px;position:absolute;left:0;right:0;top:100%;z-index:25;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 10px 24px rgba(0,0,0,.18);padding:10px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));max-height:calc(100dvh - 70px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}
 .navscrim{position:fixed;inset:0;z-index:4;background:rgba(10,12,16,.25)}
+#menuslot{display:contents}.brandrow .brand{margin-right:auto}
+nav.tabs:not([hidden]){height:calc(100dvh - var(--toph,60px));max-height:none;border-bottom:0;box-shadow:none}
+html.navopen,html.navopen body{overflow:hidden}
 .tabrow{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg);padding:3px;border-radius:10px}
 .navinfo{margin:0;font-size:13px;color:var(--muted)}
 nav.tabs button{font:inherit;font-weight:700;font-size:13px;border:0;background:transparent;color:var(--muted);padding:7px 4px;border-radius:8px;cursor:pointer}
@@ -389,7 +392,8 @@ svg.board{width:100%;max-width:560px;border-radius:14px;display:block;margin:0 a
 .sc-mini{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:color-mix(in srgb,var(--c) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 30%,transparent);text-align:center}
 .sc-mini.me{border:2px solid var(--c)}.sc-mini b{font-size:14px;line-height:1.15}.sc-mini small{font-size:12px;color:var(--muted)}
 .sc-dots{display:flex;gap:5px;justify-content:center;margin-top:12px}.sc-dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}.sc-dots i.on{background:var(--ink)}
-.scorebar{position:relative;flex:none;z-index:6}
+.scorebar{position:relative;flex:none;z-index:9}
+.sb-offers{display:flex;flex-direction:column;gap:6px;margin:10px 0 4px;padding-top:10px;border-top:1px solid var(--line)}.sb-off{display:flex;align-items:center;gap:8px}.sb-off>span:first-of-type{flex:1;font-weight:700}.sb-offbtn{min-height:32px;padding:3px 12px;font-size:13px;display:inline-flex;align-items:center;gap:5px}.sb-offbtn svg,.sb-offnote svg{width:16px;height:16px;vertical-align:-3px}
 .sb-row{display:flex;align-items:center;gap:8px;width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 8px;cursor:pointer;min-height:34px}
 .sb-goal{flex:none;font-size:12px;color:var(--muted)}.sb-goal b{color:var(--ink)}
 .sb-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1}.sb-chips::-webkit-scrollbar{display:none}
@@ -696,7 +700,7 @@ nav.tabs .drawer-me .concede-link{color:var(--bad);padding:2px 0;font-weight:700
 </style>
 
 <header class="top"><div class="wrap">
-  <div class="brandrow"><span class="brand"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#fff6c2" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="6.2" fill="none" stroke="currentColor" stroke-width="1"/><path d="M10 3.8V16.2M3.8 10H16.2M5.6 5.6L14.4 14.4M14.4 5.6L5.6 14.4" stroke="currentColor" stroke-width="1"/></svg><span class="bt">LEMON LYFE</span></span><div class="status" id="status"></div></div>
+  <div class="brandrow"><span id="menuslot"></span><span class="brand"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#fff6c2" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="6.2" fill="none" stroke="currentColor" stroke-width="1"/><path d="M10 3.8V16.2M3.8 10H16.2M5.6 5.6L14.4 14.4M14.4 5.6L5.6 14.4" stroke="currentColor" stroke-width="1"/></svg><span class="bt">LEMON LYFE</span></span><div class="status" id="status"></div></div>
   <nav class="tabs" id="tabs" hidden></nav>
 </div></header>
 <main class="wrap" id="app"><div class="panel"><h2>Loading the block…</h2><p class="muted">Checking who holds which corner.</p></div></main>
@@ -1401,7 +1405,7 @@ function scoutSheet(){const u=scoutOpen;if(!u||!st.players[u])return'';const p=s
     <p class="small muted">Lifetime stats across every game come with player accounts in the app.</p><div class="row"><button class="btn primary" data-act="scout-close">Done</button></div></div>`}
 function renderHeader(){
   const s=document.getElementById('status'),t=document.getElementById('tabs');
-  if(!st||st.status==='lobby'){s.innerHTML=st?`<span class="chip">Lobby</span>`:'';t.hidden=true;return}
+  if(!st||st.status==='lobby'){s.innerHTML=st?`<span class="chip">Lobby</span>`:'';t.hidden=true;{const ms=document.getElementById('menuslot');if(ms)ms.innerHTML=''}document.documentElement.classList.remove('navopen');return}
   const alive=humansAlive(st),inN=alive.filter(hasOrder).length,p=myP();
   let bits=`<span class="chip">${st.status==='setup'?(st.mode==='game'?'Setup':'Setup day'):st.status==='over'?'Final':DW()+' '+st.day+(st.maxDays&&!st.target&&st.mode!=='game'?`<span class="of">/${st.maxDays}</span>`:'')}</span>`;
   if(st.status==='active'&&st.sudden&&!st.target){const n=st.sudden-st.day;if(n<=0)bits+=`<span class="chip sdchip on" title="Sudden Death: every crew loses ${1+Math.floor((st.day-st.sudden)/SD_RAMP)} least-guarded corner${1+Math.floor((st.day-st.sudden)/SD_RAMP)>1?'s':''} tonight">⏳<span class="sdl"> Sudden Death</span></span>`;else if(n<=5)bits+=`<span class="chip sdchip" title="Sudden Death starts on turn ${st.sudden}">⏳<span class="sdl"> in</span> ${n}</span>`}
@@ -1409,11 +1413,11 @@ function renderHeader(){
     if(e)bits+=`<span class="chip mkchip now k-${e.k}" title="Market Day today: ${esc(STREET[e.k].n)}" aria-label="Market Day today: ${esc(STREET[e.k].n)}"><span class="mki">${STREET_ICON[e.k]}</span><span class="mkl">Today</span></span>`;
     else if(nx){const n=nx.day-st.day;bits+=`<span class="chip mkchip ${n<=1?'soon':''}" title="Next Market Day: ${DW().toLowerCase()} ${nx.day}" aria-label="Next Market Day in ${n} turn${n>1?'s':''}">${MK_SVG}<span class="mkl">${n<=1?'Next':'in '+n}</span><span class="mkn">${n}</span></span>`}}
   if(st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000&&!st.paused?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">${st.paused?'⏸':'⏱'} ${clockText()}</span>`}
-  if(st.hostId===realMe&&(st.status==='setup'||st.status==='active'))bits+=`<button class="chip pausebtn ${st.paused?'on':''}" data-act="pause" aria-label="${st.paused?'Resume the turn clock':'Pause the turn clock'}" title="Testing: ${st.paused?'resume':'pause'} the turn clock">${st.paused?'▶':'⏸'}</button>`;
+  if(isTester()&&st.hostId===realMe&&(st.status==='setup'||st.status==='active'))bits+=`<button class="chip pausebtn ${st.paused?'on':''}" data-act="pause" aria-label="${st.paused?'Resume the turn clock':'Pause the turn clock'}" title="Testing: ${st.paused?'resume':'pause'} the turn clock">${st.paused?'▶':'⏸'}</button>`;
   const info=st.status!=='over'?`<p class="navinfo">${inN}/${alive.length} orders in · ${esc(countdown())}</p>`:'';
   if(p)bits+=`${me!==realMe?`<span class="chip">${avatar(charOf(me),p.color,18)}${esc(p.name)}</span>`:st.status==='setup'?`<span class="chip mechip" style="border-color:${esc(p.color)}" title="You're ${esc(p.name)}">${avatar(charOf(me),p.color,18)}</span>`:''}<span class="chip cash">${salesPending()?'$ ?':salesShowing()?`<span data-countup data-from="${p.cash-(lastSales()?.amt||0)}" data-to="${p.cash}">$${p.cash-(lastSales()?.amt||0)}</span>`:'$'+p.cash}</span>${allyOf(st,me)?(()=>{const v=allyOf(st,me),act=activeAlly(st,me)===v,left=p.allyUntil-st.day+1;return `<button class="chip allychip" data-act="tab" data-tab="crews" title="Allied with ${esc(st.players[v].name)}" aria-label="Allied with ${esc(st.players[v].name)}, ${act?left+' turns left':'starts next turn'}">${ALLY_SVG}${avatar(charOf(v),crewColor(v),18)}<b>${act?left:'·'}</b></button>`})():''}${p.loan?(()=>{const m=bankCfg(st).meter,sg=dadStage(p.loan,m);return `<button class="chip dadchip s${sg}" data-act="dad-open" title="Dad Meter ${p.loan.bars}/${m} · you owe $${p.loan.owe}" aria-label="Dad Meter ${p.loan.bars} of ${m}, you owe $${p.loan.owe}">${dadFace(sg,20)}</button>`})():''}`;
-  bits+=`<button class="menubtn" data-act="nav-t" aria-expanded="${navOpen}" aria-controls="tabs">${navOpen?'Close ✕':'Menu ☰'}</button>`;
-  s.innerHTML=bits;t.hidden=!navOpen;{const tp=document.querySelector(".top");if(tp){tp.classList.toggle("hasdad",!!(p&&p.loan));tp.classList.toggle("hasally",!!(p&&allyOf(st,me)))}}
+  {const ms=document.getElementById('menuslot');if(ms)ms.innerHTML=`<button class="menubtn" data-act="nav-t" aria-expanded="${navOpen}" aria-controls="tabs">${navOpen?'Close ✕':'Menu ☰'}</button>`}
+  s.innerHTML=bits;{const tp=document.querySelector('.top');if(tp)document.documentElement.style.setProperty('--toph',tp.offsetHeight+'px');document.documentElement.classList.toggle('navopen',!!navOpen)}t.hidden=!navOpen;{const tp=document.querySelector(".top");if(tp){tp.classList.toggle("hasdad",!!(p&&p.loan));tp.classList.toggle("hasally",!!(p&&allyOf(st,me)))}}
   const tabsHtml=null;
   const tabs=[['board','Board'],['crews','Crews'],['log','Log'],['rules','Rules']];const tipsBtn=`<div class="menurow"><button class="linkbtn tipsbtn" data-act="tips-reset">Show tips again</button><button class="soundbtn ${sndOn?'on':''}" data-act="sound-t" aria-pressed="${sndOn}">${sndOn?'🔊 Sound on':'🔇 Sound off'}</button></div>`;
   t.innerHTML=info+(navOpen?meDrawer()+adminDrawer():'')+(navOpen?tipsBtn:'')+`<div class="tabrow">`+tabs.map(([k,v])=>`<button data-act="tab" data-tab="${k}" aria-current="${tab===k}">${v}${k==='board'&&(morningPending()||(iPlay()&&(!hasOrder(me)||dirty)))?' •':''}</button>`).join('')+`</div>`;
@@ -1661,7 +1665,7 @@ const GUIDE=[
   {id:'news',when:()=>planningNow()&&sel==null&&(!!evToday(st)||(()=>{const nx=nextMarket(st);return !!nx&&nx.day-st.day<=3})()),t:'Market Days',b:'Something’s in the air. Every 5 turns a Market Day shakes up the whole block, like a Heat Wave that boosts sales or a Garage Sale that makes upgrades cheaper. Nobody knows which until it hits. The market stall at the top of the screen counts down to the next one.'},
   {id:'bank',when:()=>planningNow()&&dayPhase==='shop'&&canBorrow(st,me),t:'The Bank is open',b:'Unlucky? You’re in last place, so Mom &amp; Dad will lend you $200, once. Dad wants $250 back. Pay it in $50 chunks from the <b>Bank</b> tab before his meter fills.'},
   {id:'attack',when:()=>planningNow()&&dayPhase==='attack',t:'Roll out',b:'Tap a corner to hit, then one of yours to attack from (either order). Your Rideshare sets how many attacks you get each turn. Dashed corners are empty and free to claim, but each claim still uses an attack. Attacks are optional.'},
-  {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'There’s strength in numbers. When you plan an attack on a rival, tap <b>Rather team up?</b> to offer a 5-turn Alliance. Your corners count together for Full Intersections and Blocks. Breaking it costs Street Cred.'},
+  {id:'ally',when:()=>planningNow()&&dayPhase==='attack'&&aliveUids(st).some(u=>canAlly(st,me,u)),t:'Make a deal',b:'There’s strength in numbers. When you plan an attack on a rival, tap <b>Rather team up?</b> to offer a 5-turn Alliance. You can also offer one from the scores at the top. Your corners count together for Full Intersections and Blocks. Breaking it costs Street Cred.'},
   {id:'move',when:()=>planningNow()&&dayPhase==='move',t:'Shore up your defences',b:'Once a turn, tap one of your corners, then another, to move recruits between them. Moves happen after the fighting.'},
   {id:'send',when:()=>planningNow()&&dayPhase==='review',t:'Send your orders',b:'Check your list and tap ✕ to cancel anything. Then <b>Send</b>. Everyone plans at once, and the day plays out when the timer ends or every crew has sent.'}];
 const guideMem={};
@@ -1877,8 +1881,9 @@ function endgameSheet(){const p=myP();if(!p||st.status!=='active'||morningPendin
 function awayPanel(){const p=myP();if(!p||p.alive===false||!p.cpu||(st.status!=='active'&&st.status!=='setup'))return'';
   return p.cpu==='idle'?`<div class="panel away">${avatar(charOf(me),p.color,40)}<div><strong>The computer ran your crew while you were away.</strong><p class="small muted">You missed ${MISS_LIMIT} turns in a row. Jump back in whenever you're ready.</p></div><button class="btn primary" data-act="reclaim">Take back control</button></div>`
     :`<div class="panel away">${avatar(charOf(me),p.color,40)}<div><strong>You conceded.</strong><p class="small muted">The computer runs ${esc(p.name)} now. You can keep watching.</p></div></div>`}
+const isTester=()=>{if(!window.LL)return true;try{return localStorage.getItem('ll-access')==='DROC_88'}catch(e){return false}};
 function adminDrawer(){
-  if(!st||st.hostId!==realMe||(st.status!=='setup'&&st.status!=='active'))return'';
+  if(!st||!isTester()||st.hostId!==realMe||(st.status!=='setup'&&st.status!=='active'))return'';
   const crews=myCrews(),dn=st.status==='setup'?'setup':DW()+' '+st.day,nx=st.status==='setup'?DW()+' 1':DW()+' '+(st.day+1);
   return `<div class="drawer-admin"><span class="eyebrow">Test controls · host only</span>${crews.length>1?`<div class="field"><label for="actas">Playing as</label><select id="actas">${crews.map(u=>`<option value="${esc(u)}" ${u===me?'selected':''}>${esc(st.players[u].name)}${hasOrder(u)?' · orders in':''}</option>`).join('')}</select></div>`:''}
     <div class="row"><button class="btn primary" data-act="resolve-now" ${canWrite?'':'disabled'}>End ${dn}</button><button class="btn" data-act="news-t" ${canWrite?'':'disabled'}>Market Days: ${st.news!==false?'On':'Off'}</button><button class="btn" data-act="ads-t">Ad breaks: ${adsOn()?'On':'Off'}</button><button class="btn" data-act="undo" ${hasPrev&&canWrite?'':'disabled'}>Undo day</button><button class="btn" data-act="reset">Wipe</button></div>${resetConfirm()}</div>`}
@@ -2323,7 +2328,12 @@ function scoreBar(){if(!st||!st.target||st.status==='over')return'';const P=ptsO
     return `<li>${ALLY_SVG}<span class="sb-dot" style="background:${esc(crewColor(u))}"></span><b>${esc(st.players[u].name)}</b> + <span class="sb-dot" style="background:${esc(crewColor(v))}"></span><b>${esc(st.players[v].name)}</b> · ${on?`${left} turn${left>1?'s':''} left${eb?' · sharing bonuses now':''}`:'starts next turn'}</li>`}).join('');
   const rows=ids.map(u=>{const x=P[u];return `<tr class="${u===me?'me':''}"><td><span class="sb-dot" style="background:${esc(crewColor(u))}"></span>${esc(st.players[u].name)}</td><td>${x.corners}</td><td>${x.inters?'+'+2*x.inters:'–'}</td><td>${x.blocks?'+'+3*x.blocks:'–'}</td><td>${x.big?'+2':'–'}</td><td><b>${x.total}</b></td></tr>`}).join('');
   return `<div class="scorebar"><button class="sb-row" data-act="score-open" aria-expanded="${scoreOpen}" aria-label="Scores: first to ${st.target} points. Tap for the breakdown."><span class="sb-goal">First to <b>${st.target}</b></span><span class="sb-chips">${ids.map(chip).join('')}</span><span class="sb-more" aria-hidden="true">${scoreOpen?'▴':'▾'}</span></button>
-    ${scoreOpen?`<div class="sb-pop"><table><thead><tr><th>Crew</th><th>Corners</th><th>Inter­sections</th><th>Blocks</th><th>Biggest Crew</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table>${allyRows?`<ul class="sb-allies">${allyRows}</ul><p class="small muted">Allies' corners count together for Full Intersections and Blocks, which means fight bonuses (dashed in both colours on the board). They don't add points.</p>`:''}<p class="small muted">1 point per corner, +2 for each Full Intersection, +3 for each Block, +2 for the most kids on the street. Only your own corners count. First to ${st.target} at the end of a night wins.</p></div>`:''}</div>`}
+    ${scoreOpen?`<div class="sb-pop"><table><thead><tr><th>Crew</th><th>Corners</th><th>Inter­sections</th><th>Blocks</th><th>Biggest Crew</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table>${allyRows?`<ul class="sb-allies">${allyRows}</ul><p class="small muted">Allies' corners count together for Full Intersections and Blocks, which means fight bonuses (dashed in both colours on the board). They don't add points.</p>`:''}${sbOffers()}<p class="small muted">1 point per corner, +2 for each Full Intersection, +3 for each Block, +2 for the most kids on the street. Only your own corners count. First to ${st.target} at the end of a night wins.</p></div>`:''}</div>`}
+function sbOffers(){if(!st||st.basic||st.status!=='active'||!iPlay()||allyOf(st,me))return'';
+  const rivals=aliveUids(st).filter(u=>u!==me);
+  if(st.day<ALLY_FROM)return rivals.length?`<p class="small muted sb-offnote">${ALLY_SVG} Alliances open on turn ${ALLY_FROM}.</p>`:'';
+  const ok=rivals.filter(u=>canAlly(st,me,u));if(!ok.length)return'';
+  return `<div class="sb-offers"><span class="small"><b>Offer an Alliance</b></span>${ok.map(u=>`<div class="sb-off" style="--c:${esc(crewColor(u))}">${avatar(charOf(u),crewColor(u),22)}<span>${esc(st.players[u].name)}</span>${offerFrom(st,u,me)?`<span class="small muted">Offer sent</span><button class="linkbtn small" data-act="ally-cancel" data-u="${esc(u)}">Cancel</button>`:`<button class="btn sb-offbtn" data-act="ally-propose" data-u="${esc(u)}">${ALLY_SVG} Propose</button>`}</div>`).join('')}</div>`}
 // One big stamp the first time a crew gets close (per device), then its corners just pulse.
 let nearAt=0,nearKey='';
 function nearStamp(){if(!st||!st.target||!planningNow()||mkStamp()||mkSoon())return'';{const mp=myP();if(mp&&mp.loan&&!dadSeen())return''}
