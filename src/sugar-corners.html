@@ -52,7 +52,11 @@ nav.tabs{display:flex;flex-direction:column;gap:6px;position:absolute;left:0;rig
 #menuslot{display:contents}.brandrow .brand{margin-right:auto}
 nav.tabs:not([hidden]){height:calc(100dvh - var(--toph,60px));max-height:none;border-bottom:0;box-shadow:none}
 html.navopen,html.navopen body{overflow:hidden}
-.tabrow{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg);padding:3px;border-radius:10px}
+.pagepills{position:sticky;top:-10px;z-index:8;flex:none;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 0 8px;margin:-10px 0 -4px;background:var(--bg)}.pagepills::-webkit-scrollbar{display:none}
+.pagepills button{flex:none;font:inherit;font-size:13.5px;font-weight:700;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 14px;cursor:pointer;min-height:34px}
+.pagepills button[aria-current="true"]{background:var(--lemon);color:var(--lemon-ink);border-color:var(--lemon-ink)}
+.pagepills .pp-back{color:var(--ink);margin-right:4px}
+.tabrow{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg);padding:3px;border-radius:10px}
 .navinfo{margin:0;font-size:13px;color:var(--muted)}
 nav.tabs button{font:inherit;font-weight:700;font-size:13px;border:0;background:transparent;color:var(--muted);padding:7px 4px;border-radius:8px;cursor:pointer}
 nav.tabs button[aria-current="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
@@ -1361,7 +1365,7 @@ function render(){
   const recapOn=tab!=='rules'&&tab!=='log'&&tab!=='crews'&&st&&(replay||(st.status==='active'&&nightPending()));
 
   if(tab==='orders')tab='board';
-  if(tab!=='board')html+=`<div class="row"><button class="btn" data-act="tab" data-tab="board">← Back to the board</button></div>`;
+  if(tab!=='board'){const dot=morningPending()||(iPlay()&&(!hasOrder(me)||dirty));html+=`<nav class="pagepills" aria-label="Pages"><button class="pp-back" data-act="tab" data-tab="board">← Board${dot?' •':''}</button>${[['crews','Crews'],['log','Log'],['rules','Rules']].map(([k,v])=>`<button data-act="tab" data-tab="${k}" aria-current="${tab===k}">${v}</button>`).join('')}</nav>`}
   const adHtml=adGate();
   if(adHtml){app.innerHTML=adHtml;app.classList.add('locked');return}
   if(tab==='crews')html+=crewsView();else if(tab==='log')html+=logView();else if(tab==='rules')html+=rulesView();else html+=boardView();
@@ -1419,7 +1423,7 @@ function renderHeader(){
   {const ms=document.getElementById('menuslot');if(ms)ms.innerHTML=`<button class="menubtn" data-act="nav-t" aria-expanded="${navOpen}" aria-controls="tabs">${navOpen?'Close ✕':'Menu ☰'}</button>`}
   s.innerHTML=bits;{const tp=document.querySelector('.top');if(tp)document.documentElement.style.setProperty('--toph',tp.offsetHeight+'px');document.documentElement.classList.toggle('navopen',!!navOpen)}t.hidden=!navOpen;{const tp=document.querySelector(".top");if(tp){tp.classList.toggle("hasdad",!!(p&&p.loan));tp.classList.toggle("hasally",!!(p&&allyOf(st,me)))}}
   const tabsHtml=null;
-  const tabs=[['board','Board'],['crews','Crews'],['log','Log'],['rules','Rules']];const tipsBtn=`<div class="menurow"><button class="linkbtn tipsbtn" data-act="tips-reset">Show tips again</button><button class="soundbtn ${sndOn?'on':''}" data-act="sound-t" aria-pressed="${sndOn}">${sndOn?'🔊 Sound on':'🔇 Sound off'}</button></div>`;
+  const tabs=[['crews','Crews'],['log','Log'],['rules','Rules']];const tipsBtn=`<div class="menurow"><button class="linkbtn tipsbtn" data-act="tips-reset">Show tips again</button><button class="soundbtn ${sndOn?'on':''}" data-act="sound-t" aria-pressed="${sndOn}">${sndOn?'🔊 Sound on':'🔇 Sound off'}</button></div>`;
   t.innerHTML=info+(navOpen?meDrawer()+adminDrawer():'')+(navOpen?tipsBtn:'')+`<div class="tabrow">`+tabs.map(([k,v])=>`<button data-act="tab" data-tab="${k}" aria-current="${tab===k}">${v}${k==='board'&&(morningPending()||(iPlay()&&(!hasOrder(me)||dirty)))?' •':''}</button>`).join('')+`</div>`;
 }
 function crewColor(u){return st.players[u]?.color||'#888'}
@@ -2438,7 +2442,7 @@ function onReacts(q){const now=Date.now();q.docs.forEach(d=>{const r=d.data();if
 function reactToasts(){if(!toasts.length||!st)return'';return `<div class="rtoasts" aria-live="polite">${toasts.slice(-3).map(t=>{const p=st.players[t.u];if(!p)return'';return `<div class="rtoast" style="--c:${esc(crewColor(t.u))}">${avatar(charOf(t.u),crewColor(t.u),26)}<span><b>${t.u===me&&t.to?'You':esc((CHAR_BY[charOf(t.u)]||{}).name||p.name)}${t.to?` → ${t.to===me?'you':esc((CHAR_BY[charOf(t.to)]||{}).name||(st.players[t.to]||{}).name||'')}`:''}:</b> ${esc(REACTS[t.k])}</span></div>`}).join('')}</div>`}
 function reactBtn(){if(!st||st.status!=='active'||!iPlay())return'';return `<button class="reactbtn ${reactOpen?'on':''}" data-act="react-open" aria-label="Send a reaction" aria-expanded="${reactOpen}">💬</button>${reactOpen?`<div class="reactpick" role="menu"><div class="reactto" role="group" aria-label="Send to"><span class="small muted">To</span><button data-act="react-to" data-u="" aria-pressed="${!reactTo}">Everyone</button>${aliveUids(st).filter(u=>u!==me).map(u=>`<button class="rt-crew" data-act="react-to" data-u="${esc(u)}" aria-pressed="${reactTo===u}" aria-label="Only ${esc(st.players[u].name)}" style="--c:${esc(crewColor(u))}">${avatar(charOf(u),crewColor(u),24)}</button>`).join('')}${reactTo&&st.players[reactTo]?`<span class="small rt-only">Only ${esc((CHAR_BY[charOf(reactTo)]||{}).name||st.players[reactTo].name)} sees it</span>`:''}</div>${REACTS.map((t,i)=>`<button role="menuitem" data-act="react" data-k="${i}">${esc(t)}</button>`).join('')}</div>`:''}`}
 let navOpen=false,lastAsp=null,lobbyPick=false;
-function setTab(t){if(t==='rules'&&tab!=='rules'){rMode='quick';rIdx=0}navOpen=false;notice="";if(replay&&t!=='board'){clearT();if(replay.live){replay=null}else replay=null}tab=t;try{localStorage.setItem('sc-tab',t)}catch(e){}render();window.scrollTo(0,0)}
+function setTab(t){if(t==='rules'&&tab!=='rules'){rMode='quick';rIdx=0}navOpen=false;notice="";if(replay&&t!=='board'){clearT();if(replay.live){replay=null}else replay=null}tab=t;try{localStorage.setItem('sc-tab',t)}catch(e){}render();window.scrollTo(0,0);{const a=document.getElementById('app');if(a)a.scrollTop=0}}
 function defaultAttack(target){const mine=cornersOf(st,me).sort((x,y)=>st.corners[y].s-st.corners[x].s);const others=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me);
   const from=mine[0],to=target??others[0];return{from,to,n:Math.max(1,Math.min(capToday(),(st.corners[from]?.s||1)-1)),retreatAt:0}}
 const ptrs=new Map();let pan=null,suppressClick=false;
