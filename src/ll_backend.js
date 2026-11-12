@@ -92,7 +92,7 @@ window.LL=(()=>{
         ${msg?`<p class="llmsg" role="status">${esc(msg)}</p>`:''}</div>`};
       draw();
       const onClick=async e=>{const b=e.target.closest('[data-ll]');if(!b||!app.contains(b))return;const a=b.dataset.ll;
-        if(a==='tut'){try{sessionStorage.setItem('ll-tut','1')}catch(x){}location.reload();return}
+        if(a==='tut'){try{Object.keys(localStorage).filter(k=>k.includes('tutorial-1')).forEach(k=>localStorage.removeItem(k));sessionStorage.setItem('ll-tut','1')}catch(x){}location.reload();return}
         if(a==='new'){app.removeEventListener('click',onClick);go(newCode());resolve()}
         else if(a==='cont'){app.removeEventListener('click',onClick);go(last);resolve()}
         else if(a==='join'){const c=clean(document.getElementById('ll-code').value);if(c.length<4)return draw('Type the code your friend sent you.');
