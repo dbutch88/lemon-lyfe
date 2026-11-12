@@ -109,7 +109,7 @@ window.LL=(()=>{
     if(navigator.share){try{await navigator.share({title:'Lemon Lyfe',text,url});return}catch(x){if(x&&x.name==='AbortError')return}}
     try{await navigator.clipboard.writeText(url);copied=Date.now();b.textContent='Link copied!';setTimeout(()=>{b.textContent='Invite friends'},2200)}
     catch(x){prompt('Copy this link and send it to your friends:',url)}});
-  const inviteHTML=()=>code?`<div class="panel llinvite"><div><span class="small muted">Game code</span><div class="llbig">${esc(code)}</div></div><div class="llbtns"><button class="btn primary" data-ll="share">Invite friends</button><button class="linkbtn small" data-ll="switch">Switch game</button></div></div>`:'';
+  const inviteHTML=()=>code?`<div class="panel llinvite"><div><span class="small muted">Game code</span><div class="llbig">${esc(code)}</div></div><div class="llbtns"><button class="linkbtn small" data-ll="switch">Switch game</button></div></div>`:'';
 
   const css=document.createElement('style');
   css.textContent=`.llinvite{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
