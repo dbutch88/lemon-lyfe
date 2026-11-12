@@ -2583,6 +2583,7 @@ document.addEventListener('click',async e=>{
   if(act==='scout'){const u=el.dataset.u;if(adSeen('scout-'+u)||!adsOn()){scoutOpen=u;return render()}startAd('scout',{u});return render()}
   if(act==='scout-close'){scoutOpen=null;return render()}
   if(act==='ads-t'){try{localStorage.setItem('sc-ads',adsOn()?'0':'1')}catch(x){}adState=null;return render()}
+  if(act==='bot-lvl'){const l=el.dataset.l;return save(()=>stateRef.update({botLevel:l}))}
   if(!st||!draft&&!['from-here','move-here','attack-this','recruit-here'].includes(act))return;
   if(['from-here','move-here','attack-this','recruit-here'].includes(act)){ensureDraft();
     if(act==='from-here'){const a=defaultAttack();a.from=sel;a.n=Math.max(1,Math.min(capToday(),st.corners[sel].s-1));draft.attacks.push(a)}
@@ -2601,7 +2602,6 @@ document.addEventListener('click',async e=>{
   if(act==='trick-pick'){trickPick=el.dataset.k||null;notice='';return render()}
   if(act==='trick-clear'||act==='del-trick'){draft.trick=null;trickPick=null;dirty=true;return render()}
   if(act==='concede'){confirmConcede=true;return render()}
-  if(act==='bot-lvl'){const l=el.dataset.l;return save(()=>stateRef.update({botLevel:l}))}
   if(act==='pause'){if(!st||st.hostId!==realMe)return;return save(()=>st.paused?stateRef.update({paused:false,pauseLeft:null,nextResolveAt:Date.now()+Math.max(5000,st.pauseLeft||st.turnMs||300000)}):stateRef.update({paused:true,pauseLeft:Math.max(0,st.nextResolveAt-Date.now())}))}
   if(act==='show-next'){showOff++;const el=document.getElementById('showcase');if(el){const tmp=document.createElement('div');tmp.innerHTML=showcase();const nw=tmp.firstElementChild;el.replaceWith(nw);const b=nw.querySelector('.showcase');if(b)b.classList.add('in')}return}
   if(act==='score-open'){scoreOpen=!scoreOpen;return render()}
