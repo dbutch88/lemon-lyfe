@@ -79,6 +79,7 @@ window.LL=(()=>{
   const newCode=()=>Array.from({length:5},()=>ALPH[Math.floor(Math.random()*ALPH.length)]).join('');
   const linkFor=c=>location.origin+location.pathname+'?g='+c+(MOCK?'&mock=1':'');
   function go(c){code=c;store.set(LAST,c);const u=new URL(location.href);u.searchParams.set('g',c);history.replaceState(null,'',u)}
+  const tutSeen=()=>store.get('sc-tut-done')==='1';
   function landing(){
     return new Promise(resolve=>{
       const app=document.getElementById('app'),last=clean(store.get(LAST));
@@ -86,10 +87,12 @@ window.LL=(()=>{
         <h2>Lemon Lyfe</h2><p class="muted">Kid crews, lemonade stands and turf wars. Start a game and send your friends the link, or join theirs.</p>
         ${last?`<div class="row"><button class="btn primary" data-ll="cont">Continue game ${esc(last)}</button></div>`:''}
         <div class="row"><button class="btn ${last?'':'primary'}" data-ll="new">Start a new game</button></div>
+        <div class="row"><button class="btn" data-ll="tut">${tutSeen()?'Replay the tutorial':'New here? Take the 5-minute tutorial'}</button></div>
         <div class="field"><label for="ll-code">Join with a game code</label><div class="row" style="flex-wrap:nowrap"><input id="ll-code" class="llcode" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="ABCDE"><button class="btn" data-ll="join">Join</button></div></div>
         ${msg?`<p class="llmsg" role="status">${esc(msg)}</p>`:''}</div>`};
       draw();
       const onClick=async e=>{const b=e.target.closest('[data-ll]');if(!b||!app.contains(b))return;const a=b.dataset.ll;
+        if(a==='tut'){try{sessionStorage.setItem('ll-tut','1')}catch(x){}location.reload();return}
         if(a==='new'){app.removeEventListener('click',onClick);go(newCode());resolve()}
         else if(a==='cont'){app.removeEventListener('click',onClick);go(last);resolve()}
         else if(a==='join'){const c=clean(document.getElementById('ll-code').value);if(c.length<4)return draw('Type the code your friend sent you.');
@@ -219,6 +222,13 @@ nav.tabs{display:flex;flex-direction:column;gap:6px;position:absolute;left:0;rig
 #menuslot{display:contents}.brandrow .brand{margin-right:auto}
 nav.tabs:not([hidden]){height:calc(100dvh - var(--toph,60px));max-height:none;border-bottom:0;box-shadow:none}
 html.navopen,html.navopen body{overflow:hidden}
+.tutcard{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;border:2px solid var(--lemon-ink);background:color-mix(in srgb,var(--lemon) 22%,var(--surface))}.tutcard p{margin:2px 0 0}.tutcard .btn{flex:none}
+#tut .tut-hole{position:fixed;z-index:60;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,12,16,.55);pointer-events:none;outline:3px solid var(--lemon);outline-offset:2px;transition:all .2s ease}
+#tut .tut-hole.round{border-radius:50%}
+@media (prefers-reduced-motion:no-preference){#tut .tut-hole{animation:tutPulse 1.4s ease-in-out infinite}}@keyframes tutPulse{50%{outline-offset:6px}}
+#tut .tut-dim{position:fixed;inset:0;z-index:60;background:rgba(10,12,16,.55);pointer-events:none}
+#tut .tut-card{position:fixed;z-index:61;box-sizing:border-box;background:#fffdf6;color:#141414;border:3px solid #141414;border-radius:14px;box-shadow:4px 4px 0 #141414;padding:10px 12px;font-size:14.5px;line-height:1.4}
+#tut .tut-card p{margin:6px 0 0}#tut .tut-card .row{margin-top:8px}#tut .tut-top{display:flex;align-items:center;gap:8px}#tut .tut-top .linkbtn{margin-left:auto}#tut .tut-prog{flex:1;max-width:120px;height:6px;border-radius:3px;background:#e7e1cf;overflow:hidden}#tut .tut-prog i{display:block;height:100%;background:#e0a800;border-radius:3px}#tut .linkbtn{color:#5a5a5a}
 .pagepills{position:sticky;top:-10px;z-index:8;flex:none;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 0 8px;margin:-10px 0 -4px;background:var(--bg)}.pagepills::-webkit-scrollbar{display:none}
 .pagepills button{flex:none;font:inherit;font-size:13.5px;font-weight:700;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 14px;cursor:pointer;min-height:34px}
 .pagepills button[aria-current="true"]{background:var(--lemon);color:var(--lemon-ink);border-color:var(--lemon-ink)}
@@ -927,6 +937,7 @@ const repStr=b=>b<0?fmtB(b):'+'+b;
 let pickChar='zuri';const formVals={};
 const iPlayLobby=()=>!!(st&&st.players&&st.players[realMe]);
 let db=null,userCap=null,me=null,realMe=null,hasPrev=false,stateRef=null,st=null,loaded=false,orders={};
+const TUT=(()=>{try{return sessionStorage.getItem('ll-tut')==='1'}catch(e){return false}})();
 let tab='board',sel=null,draft=null,draftKey='',dirty=false,canWrite=true,notice='',confirmReset=false;
 let resolving=false,lastAttempt=0,pendingRender=false;
 const tabId=Math.random().toString(36).slice(2);
@@ -1235,6 +1246,7 @@ const BOT_P={brawler:{prio:['weapon','rep','whip','sugar'],reserve:25,save:.25,a
 function botOrders(s,u){
   const rng=rngFrom(hash(s.gameId+':'+s.day+':bot:'+u)),p=s.players[u],style=BOT_P[p.style]?p.style:'hustler',P=BOT_P[style],mine=cornersOf(s,u);
   if(!mine.length)return null;
+  if(s.tut&&s.status!=='setup')return null;
   if(s.status==='setup'){const place={};let left=START_SOLDIERS;
     if(style==='brawler'||style==='hustler'){const best=mine.slice().sort((a,b)=>nbr(s,u,b)-nbr(s,u,a))[0];const n=style==='brawler'?12:8;place[best]=n;left-=n}
     const w=mine.map(i=>1+2*nbr(s,u,i)+(style==='turtle'?1:0));
@@ -1345,7 +1357,7 @@ function battle(s,T,gs,rng,L,E){
     const aBk=bonusParts(s,u,null,false),dBk=bonusParts(s,d,T,true),aB=aBk.total,dB=dBk.total;
     const def0=co.s,rolls=[];let att=g.n,def=co.s,k=0;const ra=g.retreatAt;
     const dTies=dBk.inter>0;
-    while(att>0&&def>0&&att>ra&&k<3000){k++;const x=roll(rng,aDie),y=roll(rng,dDie);rolls.push([x,y]);if(x+aB>y+dB)def--;else if(x+aB<y+dB||dTies)att--}
+    while(att>0&&def>0&&att>ra&&k<3000){k++;const x=s.tut?aDie:roll(rng,aDie),y=s.tut?1:roll(rng,dDie);rolls.push([x,y]);if(x+aB>y+dB)def--;else if(x+aB<y+dB||dTies)att--}
     const vs=`${nm(u)} hit ${nm(d)} at ${lab(T)}: ${g.n} vs ${def0}, 1–${aDie}${fmtB(aB)} vs 1–${dDie}${fmtB(dB)}.`;
     const set=[];let res,tx;
     if(def===0){co.o=u;co.s=att;res='took';tx=`${vs} Took the corner with ${att} left.`}
@@ -1427,7 +1439,7 @@ function resolveDay(s0,ords){
   const income={};
   for(const u of order){const p=s.players[u],c=cornersOf(s,u).length;
     if(c===0){p.alive=false;const tx=`${nm(u)} lost their last corner and is out.`;L.push(tx);E.push({t:'out',u,text:tx});continue}
-    const d=TIERS.sugar[p.sugar].d,r=roll(rng,d),e=marketAt(s,s.day+1),T=s._tricks||[],fx=[];let mult=1,extra=0;  // tonight's sales are the roll players see on the next turn, so they use that turn's market day
+    const d=TIERS.sugar[p.sugar].d,r=s.tut?d:roll(rng,d),e=marketAt(s,s.day+1),T=s._tricks||[],fx=[];let mult=1,extra=0;  // tonight's sales are the roll players see on the next turn, so they use that turn's market day
     const mineAt=it=>[0,1,2,3].filter(q=>s.corners[it*4+q].o===u).length;
     const stinks=new Set(T.filter(t=>t.k==='stink').map(t=>t.it)),parties=new Set(T.filter(t=>t.k==='party'&&t.u===u).map(t=>t.it));
     stinks.forEach(it=>{const m=mineAt(it);if(m){extra-=m;fx.push('stink')}});parties.forEach(it=>{if(stinks.has(it))return;const m=mineAt(it);if(m){extra+=2*m;fx.push('party')}});
@@ -1550,7 +1562,7 @@ const adKey=k=>'sc-ad-'+(st&&st.gameId)+'-'+realMe+'-'+k;
 const adSeen=k=>{try{return localStorage.getItem(adKey(k))==='1'}catch(e){return !!(adState&&adState.mem&&adState.mem[k])}};
 const markAd=k=>{try{localStorage.setItem(adKey(k),'1')}catch(e){}};
 function halfKey(){if(!st||st.status!=='active')return null;if(st.target){const P=ptsOf(st);return Object.values(P).some(x=>x.total>=st.target*.8)?'half':null}if(st.maxDays){const mid=Math.floor(st.maxDays/2);return st.day>mid?'half':null}const b=Math.floor((st.day-1)/15);return b>=1?'half'+b:null}
-function adGate(){if(!st||!adsOn()||!me)return'';
+function adGate(){if(TUT||!st||!adsOn()||!me)return'';
   if(adState)return adScreen();
   if(!st.players[realMe]&&!myCrews().length)return'';
   if(tab!=='board')return'';
@@ -1583,14 +1595,14 @@ function renderHeader(){
   if(st.status==='active'){const e=evToday(st),nx=nextMarket(st);
     if(e)bits+=`<span class="chip mkchip now k-${e.k}" title="Market Day today: ${esc(STREET[e.k].n)}" aria-label="Market Day today: ${esc(STREET[e.k].n)}"><span class="mki">${STREET_ICON[e.k]}</span><span class="mkl">Today</span></span>`;
     else if(nx){const n=nx.day-st.day;bits+=`<span class="chip mkchip ${n<=1?'soon':''}" title="Next Market Day: ${DW().toLowerCase()} ${nx.day}" aria-label="Next Market Day in ${n} turn${n>1?'s':''}">${MK_SVG}<span class="mkl">${n<=1?'Next':'in '+n}</span><span class="mkn">${n}</span></span>`}}
-  if(st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000&&!st.paused?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">${st.paused?'⏸':'⏱'} ${clockText()}</span>`}
+  if(!st.tut&&st.mode==='game'&&(st.status==='setup'||st.status==='active')){const left=st.nextResolveAt-Date.now();bits+=`<span class="chip clock ${left<30000&&!st.paused?'urgent':''}" id="turnclock" role="timer" aria-label="Time left this turn">${st.paused?'⏸':'⏱'} ${clockText()}</span>`}
   if(isTester()&&st.hostId===realMe&&(st.status==='setup'||st.status==='active'))bits+=`<button class="chip pausebtn ${st.paused?'on':''}" data-act="pause" aria-label="${st.paused?'Resume the turn clock':'Pause the turn clock'}" title="Testing: ${st.paused?'resume':'pause'} the turn clock">${st.paused?'▶':'⏸'}</button>`;
   const info=st.status!=='over'?`<p class="navinfo">${inN}/${alive.length} orders in · ${esc(countdown())}</p>`:'';
   if(p)bits+=`${me!==realMe?`<span class="chip">${avatar(charOf(me),p.color,18)}${esc(p.name)}</span>`:st.status==='setup'?`<span class="chip mechip" style="border-color:${esc(p.color)}" title="You're ${esc(p.name)}">${avatar(charOf(me),p.color,18)}</span>`:''}<span class="chip cash">${salesPending()?'$ ?':salesShowing()?`<span data-countup data-from="${p.cash-(lastSales()?.amt||0)}" data-to="${p.cash}">$${p.cash-(lastSales()?.amt||0)}</span>`:'$'+p.cash}</span>${allyOf(st,me)?(()=>{const v=allyOf(st,me),act=activeAlly(st,me)===v,left=p.allyUntil-st.day+1;return `<button class="chip allychip" data-act="tab" data-tab="crews" title="Allied with ${esc(st.players[v].name)}" aria-label="Allied with ${esc(st.players[v].name)}, ${act?left+' turns left':'starts next turn'}">${ALLY_SVG}${avatar(charOf(v),crewColor(v),18)}<b>${act?left:'·'}</b></button>`})():''}${p.loan?(()=>{const m=bankCfg(st).meter,sg=dadStage(p.loan,m);return `<button class="chip dadchip s${sg}" data-act="dad-open" title="Dad Meter ${p.loan.bars}/${m} · you owe $${p.loan.owe}" aria-label="Dad Meter ${p.loan.bars} of ${m}, you owe $${p.loan.owe}">${dadFace(sg,20)}</button>`})():''}`;
   {const ms=document.getElementById('menuslot');if(ms)ms.innerHTML=`<button class="menubtn" data-act="nav-t" aria-expanded="${navOpen}" aria-controls="tabs">${navOpen?'Close ✕':'Menu ☰'}</button>`}
   s.innerHTML=bits;{const tp=document.querySelector('.top');if(tp)document.documentElement.style.setProperty('--toph',tp.offsetHeight+'px');document.documentElement.classList.toggle('navopen',!!navOpen)}t.hidden=!navOpen;{const tp=document.querySelector(".top");if(tp){tp.classList.toggle("hasdad",!!(p&&p.loan));tp.classList.toggle("hasally",!!(p&&allyOf(st,me)))}}
   const tabsHtml=null;
-  const tabs=[['crews','Crews'],['log','Log'],['rules','Rules']];const tipsBtn=`<div class="menurow"><button class="linkbtn tipsbtn" data-act="tips-reset">Show tips again</button><button class="soundbtn ${sndOn?'on':''}" data-act="sound-t" aria-pressed="${sndOn}">${sndOn?'🔊 Sound on':'🔇 Sound off'}</button></div>`;
+  const tabs=[['crews','Crews'],['log','Log'],['rules','Rules']];const tipsBtn=`<div class="menurow"><span><button class="linkbtn tipsbtn" data-act="tips-reset">Show tips again</button>${TUT?'':' · <button class="linkbtn tipsbtn" data-act="tut-go">Tutorial</button>'}</span><button class="soundbtn ${sndOn?'on':''}" data-act="sound-t" aria-pressed="${sndOn}">${sndOn?'🔊 Sound on':'🔇 Sound off'}</button></div>`;
   t.innerHTML=info+(navOpen?meDrawer()+adminDrawer():'')+(navOpen?tipsBtn:'')+`<div class="tabrow">`+tabs.map(([k,v])=>`<button data-act="tab" data-tab="${k}" aria-current="${tab===k}">${v}${k==='board'&&(morningPending()||(iPlay()&&(!hasOrder(me)||dirty)))?' •':''}</button>`).join('')+`</div>`;
 }
 function crewColor(u){return st.players[u]?.color||'#888'}
@@ -1845,7 +1857,7 @@ const GUIDE=[
 const guideMem={};
 function guideGet(k){try{return localStorage.getItem(k)}catch(e){return guideMem[k]??null}}
 function guideSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}if(v==null)delete guideMem[k];else guideMem[k]=v}
-const guideOff=()=>guideGet('sc-guide-off')==='1';
+const guideOff=()=>TUT||guideGet('sc-guide-off')==='1';
 const guideSeen=id=>guideGet('sc-guide-'+id)==='1';
 const planningNow=()=>{try{return isPlanning()&&!salesShowing()}catch(e){return false}};
 let tipShown=null;
@@ -1995,7 +2007,7 @@ function lobbyView(){
     const mb=(m,t)=>`<button role="tab" data-act="lmode" data-m="${m}" aria-pressed="${lm===m}" aria-selected="${lm===m}">${t}</button>`;
     const lenSeg=`<div class="field lenfield"><label>Length</label><div class="seg lens" role="group" aria-label="Game length">${['std','long','xl'].map(l=>`<button data-act="llen" data-l="${l}" aria-pressed="${lobbyLen===l}">${LEN_NAME[l]}</button>`).join('')}</div><span class="small muted lenhint">First to <b>${LEN_PTS[lobbyLen][1]}</b> points (${LEN_PTS[lobbyLen][0]} with 3 crews)</span></div>`;
     const slider=`<div class="field lenfield"><label for="f-len">${lm==='campaign'?'Days':'Turns'} <span class="small muted">${LEN_MIN}–${lmax}</span> <output id="f-len-out" class="lenout">${len}</output></label><input id="f-len" type="range" min="${LEN_MIN}" max="${lmax}" step="5" value="${len}" aria-valuetext="${len} ${lm==='campaign'?'days':'turns'}"></div>`;
-    return `<div class="panel"><div class="seg modes" role="tablist" aria-label="Type">${mb('game','Game')}${mb('lcs','Last Crew Standing')}</div>
+    return tutCard()+`<div class="panel"><div class="seg modes" role="tablist" aria-label="Type">${mb('game','Game')}${mb('lcs','Last Crew Standing')}</div>
       <div class="field">${charSelect(pickChar,{},'pick-char')}</div>
       ${gm?`<div class="row"><div class="field"><label for="f-turn">Time per turn</label><select id="f-turn">${TURN_OPTS.filter(m=>lm==='lcs'||m<1440).map(m=>`<option value="${m}" ${m===tsel?'selected':''}>${fmtTurn(m)}</option>`).join('')}</select></div>${lm==='lcs'?'<p class="small muted lcsnote">No turn limit.<br>Last crew left wins.</p>':lm==='game'?lenSeg:''}</div>${lm==='lcs'?`<div class="field sdfield"><label>Sudden Death starts on turn</label><div class="seg sds" role="group" aria-label="Sudden Death starts">${SUDDEN_OPTS.map(v=>`<button data-act="lsd" data-v="${v}" aria-pressed="${lobbySudden===v}">${v||'Off'}</button>`).join('')}</div><span class="small muted">${lobbySudden?`From turn ${lobbySudden}, every crew loses its least-guarded corner each night, and one more every ${SD_RAMP} nights.`:'No Sudden Death. The game runs until one crew is left.'}</span></div>`:''}`
       :`<div class="row"><div class="field"><label for="f-time">Days end at</label><input id="f-time" type="time" value="${esc(formVals['f-time']||'20:00')}"></div>${slider}</div>`}
@@ -2355,7 +2367,7 @@ function rollSales(){
     if(n>=ticks){clearInterval(t);sfx('cash');markSalesSeen(x);rollAnim=null;salesLandAt=Date.now();salesShowUntil=salesLandAt+3200;setTimeout(()=>{if(Date.now()>=salesShowUntil)render()},3250);render();const die=document.getElementById('sales-die');if(die)die.classList.add('landed')}},70)}
 let salesShowUntil=0,salesLandAt=0;
 const salesShowing=()=>Date.now()<salesShowUntil;
-let introSeen=false;try{introSeen=localStorage.getItem('sc-intro')==='1'}catch(e){}
+let introSeen=TUT;try{if(!TUT)introSeen=localStorage.getItem('sc-intro')==='1'}catch(e){}
 function introCard(always){
   if(introSeen&&!always)return'';
   return `<div class="panel intro"><span class="eyebrow">New to the neighbourhood?</span><h2>Run the most corners in town.</h2>
@@ -2648,6 +2660,7 @@ document.addEventListener('click',async e=>{
   if(sndOn&&!actx)audio();
   const el=e.target.closest('[data-act]');if(!el)return;const act=el.dataset.act;
   if(act==='tab')return setTab(el.dataset.tab);
+  if(act==='tut-go')return tutLaunch();
   if(act==='nav-t'){navOpen=!navOpen;return render()}
   if(act==='nav-close'){navOpen=false;return render()}
   if(act==='rstep'){rDir=+el.dataset.d;rIdx+=rDir;rAt=Date.now();return render()}
@@ -2733,11 +2746,7 @@ document.addEventListener('click',async e=>{
     const who=st&&st.status==='lobby'?realMe:me;return save(()=>stateRef.update({players:{[who]:{char:c,name:CHAR_BY[c].name+"'s Crew"}}}))}
   if(act==='set-char'){const c=el.dataset.c,who=st&&st.status==='lobby'?realMe:me;return save(()=>stateRef.update({players:{[who]:{char:c,name:CHAR_BY[c].name+"'s Crew"}}}))}
   if(act==='crew-pick'){crewPickOpen=!crewPickOpen;csIdx=null;csAt=0;return render()}
-  if(act==='start'){const ids=seatOrder(st).slice(0,6),{rows,cols}=layoutFor(ids.length),total=rows*cols*4,rng=rngFrom(hash(st.gameId+':deal'));
-    const corners=dealCorners(ids,total,rng);
-    const cmap=charMapFor(st.players);const players={};ids.forEach((u,n)=>players[u]={name:st.players[u].name,char:cmap[u]||null,ctrl:st.players[u].ctrl||null,bot:!!st.players[u].bot,style:st.players[u].style||null,seat:n,color:(CHAR_BY[cmap[u]]||{}).color||CREW_COLORS[n],cash:100,weapon:0,sugar:0,whip:0,rep:0,alive:true});
-    const ns=Object.assign({},st,{status:'setup',day:0,rows,cols,corners,players,log:[],target:st.lenSet?targetFor(st.lenSet,ids.length):null,nextResolveAt:st.mode==='game'?Date.now()+(st.turnMs||300000):firstDeadline(st.resolveMin??1200)});
-    return save(()=>stateRef.set(ns))}
+  if(act==='start'){const ns=startFrom(st);return save(()=>stateRef.set(ns))}
   if(act==='reset'){confirmReset=true;return render()}
   if(act==='intro-done'){introSeen=true;try{localStorage.setItem('sc-intro','1')}catch(e){}return render()}
   if(act==='add-bot'){const used=Object.values(st.players).map(p=>p.name),name=BOT_NAMES.find(n=>!used.includes(n))||'Computer crew',
@@ -2858,11 +2867,100 @@ async function maybeResolve(){
 }
 
 window.addEventListener('resize',()=>{lastAsp=null;render()});
+function startFrom(st){const ids=seatOrder(st).slice(0,6),{rows,cols}=layoutFor(ids.length),total=rows*cols*4,rng=rngFrom(hash(st.gameId+':deal'));
+    const corners=dealCorners(ids,total,rng);
+    const cmap=charMapFor(st.players);const players={};ids.forEach((u,n)=>players[u]={name:st.players[u].name,char:cmap[u]||null,ctrl:st.players[u].ctrl||null,bot:!!st.players[u].bot,style:st.players[u].style||null,seat:n,color:(CHAR_BY[cmap[u]]||{}).color||CREW_COLORS[n],cash:100,weapon:0,sugar:0,whip:0,rep:0,alive:true});
+    const ns=Object.assign({},st,{status:'setup',day:0,rows,cols,corners,players,log:[],target:st.lenSet?targetFor(st.lenSet,ids.length):null,nextResolveAt:st.mode==='game'?Date.now()+(st.turnMs||300000):firstDeadline(st.resolveMin??1200)});
+  return ns}
+/* ---------- interactive tutorial: a guided practice game on this device only ---------- */
+function memDb(){const S={},subs=[],cl=o=>o==null?o:JSON.parse(JSON.stringify(o)),isO=o=>o&&typeof o==='object'&&!Array.isArray(o);
+  const merge=(a,b)=>{const r=isO(a)?{...a}:{};for(const k of Object.keys(b))r[k]=isO(b[k])&&isO(r[k])?merge(r[k],b[k]):cl(b[k]);return r};
+  const fire=()=>setTimeout(()=>subs.slice().forEach(f=>f()),0),snap=o=>({exists:o!=null,data:()=>cl(o)});
+  const kids=p=>Object.keys(S).filter(k=>k.startsWith(p+'/')&&!k.slice(p.length+1).includes('/')).sort().map(k=>({id:k.slice(p.length+1),data:()=>cl(S[k])}));
+  return{doc:p=>({get:async()=>snap(S[p]),set:async o=>{S[p]=cl(o);fire()},update:async o=>{S[p]=merge(S[p]||{},o);fire()},delete:async()=>{delete S[p];fire()},
+      onSnapshot:cb=>{let last;const f=()=>{const v=JSON.stringify(S[p]??null);if(v!==last){last=v;cb(snap(S[p]))}};subs.push(f);setTimeout(f,0);return()=>{}},
+      acquire:async()=>({acquired:true})}),
+    collection:p=>{const q=fl=>({where:(k,op,v)=>q([...fl,[k,v]]),get:async()=>({docs:kids(p).filter(d=>fl.every(([k,v])=>(d.data()||{})[k]===v))}),
+      onSnapshot:cb=>{let last;const f=()=>{const l=kids(p),v=JSON.stringify(l.map(d=>[d.id,d.data()]));if(v!==last){last=v;cb({docs:l})}};subs.push(f);setTimeout(f,0);return()=>{}}});return q([])}}}
+const tutDone=()=>{try{return localStorage.getItem('sc-tut-done')==='1'}catch(e){return false}};
+function tutLaunch(){try{sessionStorage.setItem('ll-tut','1')}catch(e){notice='The tutorial needs browser storage, which is blocked here.';return render()}location.reload()}
+function tutExit(){try{sessionStorage.removeItem('ll-tut');localStorage.setItem('sc-tut-done','1');['place','sales','shop','recruits','attack','move','send','recap'].forEach(k=>localStorage.setItem('sc-guide-'+k,'1'))}catch(e){}location.reload()}
+function tutCard(){if(TUT)return'';return tutDone()?`<div class="row" style="justify-content:center"><button class="linkbtn small" data-act="tut-go">Replay the tutorial</button></div>`
+  :`<div class="panel tutcard"><div><b>New to Lemon Lyfe?</b><p class="small muted">Learn the basics in a 5-minute practice game against the computer.</p></div><button class="btn primary" data-act="tut-go">Start the tutorial</button></div>`}
+function tutState(){
+  const lob={gameId:'tutorial-1',status:'lobby',hostId:me,mode:'game',lcs:false,basic:true,sudden:0,lenSet:'std',news:false,turnMs:864e5,resolveMin:1200,maxDays:LEN_BACKSTOP.std,createdAt:Date.now(),tut:true,botLevel:'easy',
+    players:{[me]:{name:"Zuri's Crew",seat:1,char:'zuri'},tbot:{name:"Mateo's Crew",seat:2,bot:true,style:'turtle',char:'mateo'}}};
+  return Object.assign(startFrom(lob),{paused:true})}
+let tutI=0;const tutM={};
+const tq=s=>document.querySelector(s),tqLast=s=>{const l=document.querySelectorAll(s);return l[l.length-1]||null};
+const tCorner=i=>i==null?null:document.querySelector(`.rp-board [data-act="corner"][data-i="${i}"]`);
+const tXY=i=>{const it=i>>2,q=i&3,c=st.cols||4;return[(it%c)*3+(q&1?.6:-.6),Math.floor(it/c)*3+(q&2?.6:-.6)]},tDist=(a,b)=>{const p=tXY(a),q=tXY(b);return Math.hypot(p[0]-q[0],p[1]-q[1])};
+function tutPicks(){if(tutM.A!=null||!st||!st.corners)return tutM;const mine=cornersOf(st,me),it=i=>Math.floor(i/4);
+  const score=i=>{const g=[0,1,2,3].map(k=>st.corners[it(i)*4+k]);return (g.some(c=>!c.o)?2:0)+(g.some(c=>c.o&&c.o!==me)?1:0)};
+  tutM.B=mine.slice().sort((a,b)=>score(b)-score(a)||a-b)[0];
+  tutM.A=mine.filter(i=>it(i)!==it(tutM.B)).sort((a,b)=>tDist(a,tutM.B)-tDist(b,tutM.B))[0]??mine.find(i=>i!==tutM.B);return tutM}
+const tDraft=()=>draft||{place:{},buy:{},attacks:[],recruits:{}};
+const TSTEPS=[
+  {id:'hi',t:'<b>Welcome to Lemon Lyfe!</b> Your crew of kids sells lemonade on street corners. Grab corners, earn cash, and outscore the other crews. Let’s play a practice turn against the computer.',next:'Let’s go'},
+  {id:'board',el:()=>tq('.rp-board'),t:'This is the block. <b>Your corners are red</b>, with a dark outline. Mateo’s Crew is teal. The dashed white circles are empty corners anyone can claim.',next:'Got it'},
+  {id:'pa',el:()=>tCorner(tutPicks().A),done:()=>(tDraft().place[tutM.A]|0)>=3,t:'Time to place your recruits! You have 20 kids to put on your corners. <b>Tap this corner 3 times</b> to add 3.'},
+  {id:'pb',el:()=>tCorner(tutM.B),done:()=>(tDraft().place[tutM.B]|0)>=4,t:'Nice. Now <b>add 4 here</b>.'},
+  {id:'ps',el:()=>tq('[data-act="submit"]'),done:()=>st.status!=='setup'||hasOrder(me),t:'Whatever you don’t place gets spread across your other corners. <b>Tap Send placement.</b> Everyone places at the same time.'},
+  {id:'w1',done:()=>st.status==='active'&&!!tq('[data-act="roll-sales"]'),t:'Mateo’s Crew is setting up too…'},
+  {id:'roll',el:()=>tq('[data-act="roll-sales"]'),done:()=>!tq('[data-act="roll-sales"]'),t:'<b>Payday!</b> Every turn starts by rolling for sales. You earn your roll × the corners you hold. <b>Tap Roll for sales.</b>'},
+  {id:'sold',el:()=>tq('[data-act="sales-done"]'),done:()=>!tq('[data-act="sales-done"]')&&!rollAnim,t:'A 6! That’s 6 × 10 corners = $60, on top of the $100 you started with. <b>Tap Start planning.</b>'},
+  {id:'buy',el:()=>tq('[data-act="buy"][data-cat="weapon"][data-d="1"]'),done:()=>(tDraft().buy.weapon|0)>0,t:'This is the <b>Shop</b>. Upgrades last all game. <b>Buy a Slingshot</b>: in fights you’ll roll 1–8 instead of 1–6.'},
+  {id:'rtab',el:()=>tq('[data-act="shoptab"][data-t="recruits"]'),done:()=>shopTab==='recruits',t:'You have $10 left, enough for one more kid. <b>Tap Recruits.</b>'},
+  {id:'rec',el:()=>tCorner(tutM.B),done:()=>(tDraft().buy.soldiers|0)>=1,t:'Recruits cost $10 each and arrive before any fighting. <b>Tap this corner</b> to hire one there.'},
+  {id:'toatk',el:()=>tqLast('[data-act="phase"][data-p="attack"]'),done:()=>dayPhase==='attack',t:'<b>Tap Next: Attack.</b>'},
+  {id:'ce',el:()=>tCorner(tutE()),done:()=>pick.to===tutM.E||!!atkPop,t:'Dashed corners are empty and free to claim. <b>Tap this one.</b>'},
+  {id:'cb',el:()=>tCorner(tutM.B),done:()=>!!atkPop,t:'Now <b>tap your corner</b> to send kids from.'},
+  {id:'cok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=1,t:'Claiming an empty corner always works. <b>Tap Set attack.</b>'},
+  {id:'hx',el:()=>tCorner(tutX()),done:()=>pick.to===tutM.X||!!atkPop,t:'Now take a corner from Mateo. <b>Tap his corner.</b>'},
+  {id:'ha',el:()=>tCorner(tutM.A),done:()=>!!atkPop,t:'<b>Attack from this corner</b> of yours.'},
+  {id:'hok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=2,t:'Fights are dice roll-offs, one kid at a time. The higher roll wins and ties go to the defender. Your Slingshot gives you the edge. <b>Tap Set attack.</b>'},
+  {id:'tomv',el:()=>tqLast('[data-act="phase"][data-p="move"]'),done:()=>dayPhase==='move',t:'Your Rideshare fits 2 attacks a turn, and you’ve used both. Upgrade it later for more. <b>Tap Next: Move.</b>'},
+  {id:'mf',el:()=>tCorner(tutC()),done:()=>movePick===tutM.C||!!movePop,t:'Once a turn you can move kids between your corners. <b>Tap this corner…</b>'},
+  {id:'mt',el:()=>tCorner(tutD()),done:()=>!!movePop,t:'<b>…then this one.</b>'},
+  {id:'mok',el:()=>tq('[data-act="mvp-ok"]'),done:()=>!movePop&&!!tDraft().move,t:'Moves happen after the fighting, so they’re good for shoring up your defences. <b>Tap to confirm.</b>'},
+  {id:'torv',el:()=>tqLast('[data-act="phase"][data-p="review"]'),done:()=>dayPhase==='review',t:'<b>Tap Next: Send.</b>'},
+  {id:'send',el:()=>tqLast('[data-act="submit"]'),done:()=>hasOrder(me)||!!replay||st.day>=2,t:'Here’s your plan for the night. <b>Tap Send.</b> Everyone plans at once, then the night plays out.'},
+  {id:'w2',done:()=>!!replay,t:'Night falls on the block…'},
+  {id:'rp0',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||replay.i>=0,t:'Each turn starts with a recap of the night before. <b>Tap Start the recap.</b>'},
+  {id:'rp',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay,t:'<b>Keep tapping</b> to watch each event play out. Look for your crew taking Mateo’s corner!'},
+  {id:'sc',el:()=>tq('[data-act="score-open"]'),done:()=>scoreOpen,t:'You took two corners! So how do you win? <b>Points.</b> <b>Tap the scores.</b>'},
+  {id:'sci',el:()=>tq('.sb-pop')||tq('.scorebar'),t:'You score 1 point per corner, +2 for each <b>Full Intersection</b> (all 4 corners of a crossing), +3 for each <b>Block</b>, and +2 for the <b>Biggest Crew</b>. The first crew to the target at the end of a night wins.',next:'Got it'},
+  {id:'end',t:'<b>You’re ready!</b> Real games add Market Days, Dirty Tricks, Alliances and the Bank of Mom &amp; Dad. Tips explain each one the first time it shows up.',fin:true}];
+function tutE(){if(tutM.E==null&&st){const em=st.corners.map((c,i)=>i).filter(i=>!st.corners[i].o);tutM.E=em.sort((a,b)=>tDist(a,tutM.B)-tDist(b,tutM.B))[0]}return tutM.E}
+function tutX(){if(tutM.X==null&&st){const en=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o&&st.corners[i].o!==me);tutM.X=en.sort((a,b)=>st.corners[a].s-st.corners[b].s||tDist(a,tutM.A)-tDist(b,tutM.A))[0]}return tutM.X}
+function tutC(){if(tutM.C==null&&st){const mine=cornersOf(st,me).filter(i=>i!==tutM.A&&i!==tutM.B);tutM.C=mine.sort((a,b)=>moveMax(b)-moveMax(a)||a-b)[0]}return tutM.C}
+function tutD(){if(tutM.D==null&&st){const mine=cornersOf(st,me).filter(i=>i!==tutM.C);tutM.D=mine.sort((a,b)=>st.corners[a].s-st.corners[b].s||tDist(a,tutM.C)-tDist(b,tutM.C))[0]}return tutM.D}
+const tutStep=()=>TSTEPS[tutI]||null;
+function tutAllowed(){const s=tutStep();if(!s||!s.el||s.next||s.fin)return[];const e=s.el();return e?[e]:[]}
+function tutTick(){if(!TUT||!st)return;let g=0;while(g++<40){const s=tutStep();if(!s||!s.done)break;let ok=false;try{ok=s.done()}catch(e){}if(!ok)break;tutI++}tutDraw()}
+function tutDraw(){let root=document.getElementById('tut');if(!root){root=document.createElement('div');root.id='tut';document.body.appendChild(root)}
+  const s=tutStep();if(!s||!st){root.innerHTML='';return}
+  let el=null;try{el=s.el?s.el():null}catch(e){}const r=el&&el.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
+  const ok=r&&r.width>0&&r.bottom>0&&r.top<vh;const round=el&&el.matches&&el.matches('[data-act="corner"]');
+  const pad=round?4:6,hole=ok?`<div class="tut-hole ${round?'round':''}" style="left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px"></div>`:'<div class="tut-dim"></div>';
+  const n=TSTEPS.indexOf(s)+1,low=ok&&r.top+r.height/2<vh*.5,cw=Math.min(380,vw-24),tp=document.querySelector('.top'),th=tp?tp.getBoundingClientRect().bottom:0;
+  const cpos=!ok?`left:${(vw-cw)/2}px;top:50%;transform:translateY(-50%)`:low?`left:${(vw-cw)/2}px;bottom:calc(12px + env(safe-area-inset-bottom,0px))`:`left:${(vw-cw)/2}px;top:${th+8}px`;
+  const html=`${hole}<div id="tut-card" class="tut-card" style="${cpos};width:${cw}px" role="dialog" aria-live="polite"><div class="tut-top"><span class="coach-n">Tutorial</span><span class="tut-prog" aria-hidden="true"><i style="width:${Math.round(n/TSTEPS.length*100)}%"></i></span><button class="linkbtn small" data-tut="skip">${s.fin?'':'Skip tutorial'}</button></div><p>${s.t}</p>${s.next?`<div class="row"><button class="btn primary" data-tut="next">${s.next}</button></div>`:s.fin?`<div class="row"><button class="btn primary" data-tut="finish">Play a real game</button></div>`:''}</div>`;
+  if(root._h!==html){root._h=html;root.innerHTML=html}}
+if(TUT){
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tut]');if(b){e.stopImmediatePropagation();e.preventDefault();const a=b.dataset.tut;
+      if(a==='next'){tutI++;tutTick()}else if(a==='skip'||a==='finish')tutExit();return}
+    const s=tutStep();if(!s)return;if(tutAllowed().some(x=>x&&x.contains(e.target)))return;e.stopImmediatePropagation();e.preventDefault()},true);
+  setInterval(tutTick,200);
+}
 /* ---------- boot ---------- */
 (async function boot(){
+  if(TUT){db=memDb();me=realMe='you';tab='board'}else{
   try{const be=await LL.connect();db=be.db;me=realMe=be.uid}catch(e){console.warn(e);LL.fail(e);return}
+  }
   if(!db){loaded=true;render();return}
   stateRef=db.doc('game/state');
+  if(TUT)await stateRef.set(tutState());
   stateRef.onSnapshot(s=>{st=s.exists?normalizeNames(JSON.parse(JSON.stringify(s.data()))):null;loaded=true;if(st&&sel!=null&&(!st.corners||sel>=st.corners.length))sel=null;if(!st||!st.players||!st.players[me]||(me!==realMe&&st.players[me].ctrl!==realMe))me=realMe;render();maybeResolve()},
     e=>{loaded=true;notice="Lost the connection to the board. Reload the page.";render()});
   db.doc('game/prev').onSnapshot(s=>{hasPrev=!!(s.exists&&s.data().state);render()},e=>{});

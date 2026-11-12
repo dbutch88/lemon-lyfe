@@ -79,6 +79,7 @@ window.LL=(()=>{
   const newCode=()=>Array.from({length:5},()=>ALPH[Math.floor(Math.random()*ALPH.length)]).join('');
   const linkFor=c=>location.origin+location.pathname+'?g='+c+(MOCK?'&mock=1':'');
   function go(c){code=c;store.set(LAST,c);const u=new URL(location.href);u.searchParams.set('g',c);history.replaceState(null,'',u)}
+  const tutSeen=()=>store.get('sc-tut-done')==='1';
   function landing(){
     return new Promise(resolve=>{
       const app=document.getElementById('app'),last=clean(store.get(LAST));
@@ -86,10 +87,12 @@ window.LL=(()=>{
         <h2>Lemon Lyfe</h2><p class="muted">Kid crews, lemonade stands and turf wars. Start a game and send your friends the link, or join theirs.</p>
         ${last?`<div class="row"><button class="btn primary" data-ll="cont">Continue game ${esc(last)}</button></div>`:''}
         <div class="row"><button class="btn ${last?'':'primary'}" data-ll="new">Start a new game</button></div>
+        <div class="row"><button class="btn" data-ll="tut">${tutSeen()?'Replay the tutorial':'New here? Take the 5-minute tutorial'}</button></div>
         <div class="field"><label for="ll-code">Join with a game code</label><div class="row" style="flex-wrap:nowrap"><input id="ll-code" class="llcode" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="ABCDE"><button class="btn" data-ll="join">Join</button></div></div>
         ${msg?`<p class="llmsg" role="status">${esc(msg)}</p>`:''}</div>`};
       draw();
       const onClick=async e=>{const b=e.target.closest('[data-ll]');if(!b||!app.contains(b))return;const a=b.dataset.ll;
+        if(a==='tut'){try{sessionStorage.setItem('ll-tut','1')}catch(x){}location.reload();return}
         if(a==='new'){app.removeEventListener('click',onClick);go(newCode());resolve()}
         else if(a==='cont'){app.removeEventListener('click',onClick);go(last);resolve()}
         else if(a==='join'){const c=clean(document.getElementById('ll-code').value);if(c.length<4)return draw('Type the code your friend sent you.');
