@@ -64,6 +64,11 @@ html.navopen,html.navopen body{overflow:hidden}
 @keyframes tfxUp{0%{opacity:0;transform:translate(-50%,-60%)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-280%)}}
 .tfx.flip{width:var(--d);height:var(--d);box-sizing:border-box;border-radius:50%;background:var(--c);border:2.5px solid #141414;animation:tfxFlip 2.4s ease forwards}
 @keyframes tfxFlip{0%{transform:translate(-50%,-50%) scale(0)}18%{transform:translate(-50%,-50%) scale(1.3)}30%,78%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.tfx.flip.hold{animation-duration:var(--t,2.4s)}
+.tfx.fibox{border:3px dashed #ffd84d;border-radius:14px;box-shadow:0 0 14px rgba(255,216,77,.7);animation:tfxFade 2.4s ease forwards}
+.tfx.big{font:900 15px/1.1 system-ui,sans-serif;white-space:nowrap;color:#141414;background:#ffd84d;border:2.5px solid #141414;border-radius:10px;padding:5px 9px;box-shadow:3px 3px 0 #141414;animation:tfxBig 2.4s ease forwards}
+@keyframes tfxFade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
+@keyframes tfxBig{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}24%,80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
 @media (prefers-reduced-motion:reduce){#tutfx{display:none}}
 #tut .tut-dim{position:fixed;inset:0;z-index:60;background:rgba(10,12,16,.55);pointer-events:none}
 #tut .tut-card{position:fixed;z-index:61;box-sizing:border-box;background:#fffdf6;color:#141414;border:3px solid #141414;border-radius:14px;box-shadow:4px 4px 0 #141414;padding:10px 12px;font-size:14.5px;line-height:1.4}
@@ -2728,7 +2733,7 @@ function tutCard(){if(TUT)return'';return tutDone()?`<div class="row" style="jus
   :`<div class="panel tutcard"><div><b>New to Lemon Lyfe?</b><p class="small muted">Learn the basics in a 5-minute practice game against the computer.</p></div><button class="btn primary" data-act="tut-go">Start the tutorial</button></div>`}
 function tutState(){
   const lob={gameId:'tutorial-1',status:'lobby',hostId:me,mode:'game',lcs:false,basic:true,sudden:0,lenSet:'std',news:false,turnMs:864e5,resolveMin:1200,maxDays:LEN_BACKSTOP.std,createdAt:Date.now(),tut:true,botLevel:'easy',
-    players:{[me]:{name:"Zuri's Crew",seat:1,char:'zuri'},tbot:{name:"Mateo's Crew",seat:2,bot:true,style:'turtle',char:'mateo'}}};
+    players:{[me]:{name:"Zuri's Crew",seat:1,char:'zuri'},tbot:{name:"Mateo's Crew",seat:2,bot:true,style:'turtle',char:'mateo'},pbot:{name:"Priya's Crew",seat:3,bot:true,style:'turtle',char:'priya'},kbot:{name:"Kenji's Crew",seat:4,bot:true,style:'turtle',char:'kenji'}}};
   return Object.assign(startFrom(lob),{paused:true})}
 let tutI=0,tutAt=0,tutSeenI=-1;const tutM={};
 const tq=s=>document.querySelector(s),tqLast=s=>{const l=document.querySelectorAll(s);return l[l.length-1]||null};
@@ -2744,13 +2749,13 @@ const TSTEPS=[
   {id:'hi2',fx:'stands',el:()=>tq('.rp-board'),t:'Each corner you claim in the neighbourhood lets you run another stand. Station kids from your crew to sell product and defend your territory.',next:'Next'},
   {id:'hi3',fx:'take',el:()=>tq('.rp-board'),t:'Grab corners, take out the other crews, and earn cash.',next:'Next'},
   {id:'hi4',fx:'points',el:()=>tq('.rp-board'),t:'Each corner you claim scores you points, bringing you one step closer to total lemonade domination.</p><p>Let’s play some turns against the computer.',next:'Let’s go'},
-  {id:'board',el:()=>tq('.rp-board'),t:'This is the block. You’re playing as Zuri, so <b>your corners are red</b>, with a dark outline. Mateo’s Crew is teal. The dashed white circles are empty corners anyone can claim.',next:'Got it'},
+  {id:'board',el:()=>tq('.rp-board'),t:'This is the block. You’re playing as Zuri, so <b>your corners are red</b>, with a dark outline. Mateo’s Crew is teal, Priya’s is gold and Kenji’s is purple. The dashed white circles are empty corners anyone can claim.',next:'Got it'},
   {id:'pa',el:()=>tCorner(tutPicks().A),done:()=>(tDraft().place[tutM.A]|0)>=3,t:'Time to place your recruits! You have 20 kids to put on your corners. <b>Tap this corner 3 times</b> to add 3.'},
   {id:'pb',el:()=>tCorner(tutM.B),done:()=>(tDraft().place[tutM.B]|0)>=4,t:'Nice. Now <b>add 4 here</b>.'},
   {id:'ps',el:()=>tq('[data-act="submit"]'),done:()=>st.status!=='setup'||hasOrder(me),t:'Whatever you don’t place gets spread across your other corners. <b>Tap Send Placement to finish.</b> Everyone places at the same time.'},
   {id:'w1',done:()=>st.status==='active'&&!!tq('[data-act="roll-sales"]'),t:'Mateo’s Crew is setting up too…'},
   {id:'roll',el:()=>tq('[data-act="roll-sales"]'),done:()=>!tq('[data-act="roll-sales"]'),t:'<b>Payday!</b> Every turn starts by rolling for sales. You earn your roll × the corners you hold. <b>Tap Roll for sales.</b>'},
-  {id:'sold',el:()=>tq('[data-act="sales-done"]'),done:()=>!tq('[data-act="sales-done"]')&&!rollAnim,t:'A 6! That’s 6 × 10 corners = $60, plus the $100 you started with. <b>Tap Start planning.</b>'},
+  {id:'sold',el:()=>tq('[data-act="sales-done"]'),done:()=>!tq('[data-act="sales-done"]')&&!rollAnim,t:()=>{const n=cornersOf(st,me).length;return `A 6! That’s 6 × ${n} corners = $${6*n}, plus the $100 you started with. <b>Tap Start planning.</b>`}},
   {id:'buy',el:()=>tq('[data-act="buy"][data-cat="weapon"][data-d="1"]'),done:()=>(tDraft().buy.weapon|0)>0,t:'This is the <b>Shop</b>. Upgrades last all game. <b>Buy a Slingshot</b>: in fights you’ll roll 1–8 instead of 1–6.'},
   {id:'wh',el:()=>tq('[data-act="buy"][data-cat="whip"][data-d="1"]')?.closest('.tile, .upg, li, .row')||tq('[data-act="buy"][data-cat="whip"][data-d="1"]'),t:'There’s more in the Shop. <b>Sugar</b> grows your sales rolls, your <b>Rideshare</b> sets how many attacks you can launch and how many kids fit in each, and <b>Street Cred</b> adds a bonus to your fight rolls. We’ll come back to those.',next:'Okay'},
   {id:'rtab',el:()=>tq('[data-act="shoptab"][data-t="recruits"]'),done:()=>shopTab==='recruits',t:'You have $10 left, enough for one more kid. <b>Tap Recruits.</b>'},
@@ -2780,7 +2785,7 @@ const TSTEPS=[
   {id:'rpc',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay,t:'<b>Keep tapping</b> to the end of the recap.'},
   {id:'sc',el:()=>tq('[data-act="score-open"]'),done:()=>scoreOpen,t:'Two new corners! So how do you win? <b>Points.</b> <b>Tap the scores.</b>'},
   {id:'sci',el:()=>tq('.sb-pop')||tq('.scorebar'),t:'You score 1 point per corner, +2 for each <b>Full Intersection</b> (all 4 corners of a crossing), +3 for each <b>Block</b>, and +2 for the <b>Biggest Crew</b>. The first crew to the target at the end of a night wins.',next:'Got it'},
-  {id:'ff1',enter:()=>tutJump(tutCh2),t:'<b>⏩ Fast forward to Turn 6.</b> It’s been rough. Mateo’s Crew has taken over the north side, Priya and Kenji moved in, and you’re down to 6 corners and $20. Time for a comeback.',next:'Let’s turn it around'},
+  {id:'ff1',enter:()=>tutJump(tutCh2),t:'<b>⏩ Fast forward to Turn 6.</b> It’s been rough. Mateo’s Crew has taken over the north side, and you’re down to 6 corners and $20. Time for a comeback.',next:'Let’s turn it around'},
   {id:'bk',el:()=>tq('[data-act="shoptab"][data-t="bank"]'),done:()=>shopTab==='bank',t:'When you’re in last place, the <b>Bank of Mom &amp; Dad</b> will lend you money. <b>Tap Bank.</b>'},
   {id:'ln',el:()=>tq('[data-act="loan"]'),done:()=>!!tDraft().loan,t:'Borrow $200 and pay back $250. Dad’s Meter fills a bar every turn you owe. Pay it off before it fills, or Mom &amp; Dad come to collect your cash and corners. <b>Tap Borrow $200.</b>'},
   {id:'tt',el:()=>tq('[data-act="shoptab"][data-t="tricks"]'),done:()=>shopTab==='tricks',t:'Now put that money to work. <b>Tap Tricks.</b>'},
@@ -2797,7 +2802,7 @@ const TSTEPS=[
   {id:'w3',done:()=>!!replay,t:'Night falls on the block…'},
   {id:'r0b',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||replay.i>=0,t:'<b>Tap Start the recap</b> to see how it went.'},
   {id:'rpb',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay,t:'<b>Keep tapping.</b> Watch for the loan, the salt and Priya’s answer.'},
-  {id:'ab',el:()=>tq('.rp-board'),t:'Priya said yes! See the two-colour dashed intersections? You and Priya hold all four corners of each between you, so each one is an <b>Ally Intersection: +1 point</b> for both of you. Share a whole Block and it’s +3.',next:'Nice'},
+  {id:'ab',el:()=>tq('.rp-board'),t:'Priya said yes! See the two-colour dashed intersections? Between you, you and Priya hold all four corners of each, so they count as <b>Ally Intersections</b>: +1 on every fight roll at those corners, for both of you. Share a whole Block and it’s +3. Points still only count your own corners.',next:'Nice'},
   {id:'ff2',enter:()=>tutJump(tutCh3),t:'<b>⏩ Fast forward to Turn 10.</b> You paid Mom &amp; Dad back before Dad’s Meter filled. The salt slowed Mateo down, Priya kept your flank safe, and you’ve clawed your way to the top. One more push wins it.',next:'Let’s finish this'},
   {id:'wh3',el:()=>tq('[data-act="buy"][data-cat="whip"][data-d="1"]'),done:()=>(tDraft().buy.whip|0)>0,t:'You’ve saved up $300 for the final push. Remember the Rideshare? Yours is still a Sedan: 2 attacks a turn, up to 4 kids each. <b>Upgrade to an SUV</b> for 3 attacks of up to 6.'},
   {id:'rep3',el:()=>tq('[data-act="buy"][data-cat="rep"][data-d="1"]'),done:()=>(tDraft().buy.rep|0)>0,t:'Last one: <b>Street Cred</b> adds a bonus to every fight roll your crew makes. <b>Buy Charity Case</b> for +1.'},
@@ -2815,7 +2820,7 @@ function tutA2(){if(tutM.A2==null&&st){const mine=cornersOf(st,me).filter(i=>i!=
 function tutKeyEv(){if(!replay||replay.i<0)return null;const e=replay.events[replay.i];if(!e||e.t!=='atk'||e.u!==me)return null;if(e.to===tutM.X&&e.res==='took')return'x';if(e.to===tutM.E&&e.res==='claim')return'e';return null}
 function tutKeyText(){const k=tutKeyEv()||tutM.k1;if(!tutM.k1)tutM.k1=k;return k==='x'?'<b>Nice! That corner is ours.</b> Good thing we upgraded to that Slingshot.':'<b>Snipe.</b> Mateo didn’t go for that free corner. More sales for us.'}
 function tutE(){if(tutM.E==null&&st){const em=st.corners.map((c,i)=>i).filter(i=>!st.corners[i].o);tutM.E=em.sort((a,b)=>tDist(a,tutM.B)-tDist(b,tutM.B))[0]}return tutM.E}
-function tutX(){if(tutM.X==null&&st){const en=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o&&st.corners[i].o!==me);tutM.X=en.sort((a,b)=>st.corners[a].s-st.corners[b].s||tDist(a,tutM.A)-tDist(b,tutM.A))[0]}return tutM.X}
+function tutX(){if(tutM.X==null&&st){const en=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o==='tbot');tutM.X=en.sort((a,b)=>st.corners[a].s-st.corners[b].s||tDist(a,tutM.A)-tDist(b,tutM.A))[0]}return tutM.X}
 function tutC(){if(tutM.C==null&&st){const mine=cornersOf(st,me).filter(i=>i!==tutM.A&&i!==tutM.B);tutM.C=mine.sort((a,b)=>moveMax(b)-moveMax(a)||a-b)[0]}return tutM.C}
 function tutD(){if(tutM.D==null&&st){const mine=cornersOf(st,me).filter(i=>i!==tutM.C);tutM.D=mine.sort((a,b)=>st.corners[a].s-st.corners[b].s||tDist(a,tutM.C)-tDist(b,tutM.C))[0]}return tutM.D}
 const tutStep=()=>TSTEPS[tutI]||null;
@@ -2823,7 +2828,7 @@ const TUT_NEW={pbot:{name:"Priya's Crew",char:'priya',color:'#d29a06'},kbot:{nam
 function tutOwn(s,map){s.corners.forEach(c=>{c.o=null;c.s=0});for(const [u,list] of Object.entries(map))for(const [i,n] of list)s.corners[i]={...s.corners[i],o:u,s:n}}
 const tC=(it,q)=>it*4+q;
 function tutCh2(s){
-  Object.entries(TUT_NEW).forEach(([u,d],k)=>{s.players[u]={name:d.name,char:d.char,ctrl:null,bot:true,style:'turtle',seat:2+k,color:d.color,cash:120,weapon:1,sugar:0,whip:0,rep:1,alive:true}});
+  Object.entries(TUT_NEW).forEach(([u,d],k)=>{s.players[u]=Object.assign({name:d.name,char:d.char,ctrl:null,bot:true,style:'turtle',seat:3+k,color:d.color},s.players[u]||{},{cash:120,weapon:1,sugar:0,whip:0,rep:1,alive:true})});
   Object.assign(s,{basic:false,day:6,target:targetFor(s.lenSet,4),maxDays:LEN_BACKSTOP.std});
   Object.assign(s.players[me],{cash:20,weapon:1,sugar:0,whip:0,rep:0,loan:null,loanUsed:false,ally:null,offers:{}});
   Object.assign(s.players.tbot,{cash:260,weapon:2,sugar:1,whip:1,rep:2});
@@ -2831,6 +2836,8 @@ function tutCh2(s){
     kbot:[[tC(3,0),3],[tC(3,1),3],[tC(3,2),3],[tC(3,3),3],[tC(2,1),2],[tC(2,3),2],[tC(7,1),2]],
     pbot:[[tC(5,2),3],[tC(5,3),3],[tC(6,1),2],[tC(6,3),2],[tC(7,0),3],[tC(7,2),3],[tC(7,3),2]],
     [me]:[[tC(5,0),2],[tC(5,1),2],[tC(4,1),2],[tC(4,3),1],[tC(6,0),2],[tC(6,2),1]]});
+  const extra={tbot:[[tC(8,2),3],[tC(9,1),3],[tC(11,0),3],[tC(11,3),2]],kbot:[[tC(8,0),2],[tC(8,1),2],[tC(9,3),2],[tC(10,2),2],[tC(11,1),2]],pbot:[[tC(9,0),2],[tC(10,0),2],[tC(10,1),2]]};
+  for(const [u,l] of Object.entries(extra))for(const [i,n] of l)if(i<s.corners.length)s.corners[i]={...s.corners[i],o:u,s:n};
   s.nextResolveAt=Date.now()+864e5;return s}
 function tutCh3(s){
   Object.assign(s,{day:10});
@@ -2839,13 +2846,16 @@ function tutCh3(s){
   const flex=[tC(2,2),tC(2,0),tC(1,2),tC(1,3),tC(2,3),tC(2,1),tC(1,0),tC(1,1),tC(3,2),tC(3,0)];
   const rest={tbot:[[tC(0,0),4],[tC(0,1),3],[tC(0,2),3],[tC(0,3),4],[tC(1,0),3],[tC(1,1),3],[tC(1,2),2],[tC(1,3),2],[tC(2,0),2],[tC(2,2),2],[T,1]],
     kbot:[[tC(3,0),2],[tC(3,1),2],[tC(3,2),2],[tC(3,3),2],[tC(2,1),2],[tC(2,3),2],[tC(7,1),2]],
-    pbot:[[tC(5,2),3],[tC(5,3),3],[tC(7,0),2],[tC(7,2),2],[tC(7,3),2]]};
+    pbot:[[tC(5,2),3],[tC(5,3),3],[tC(7,0),2],[tC(7,2),2],[tC(7,3),2],[tC(10,0),2],[tC(10,1),2]]};
+  rest.tbot.push([tC(8,2),2],[tC(9,1),2],[tC(11,0),2],[tC(11,3),2]);rest.kbot.push([tC(8,0),2],[tC(8,1),2],[tC(9,3),2],[tC(10,2),2],[tC(11,1),2]);
+  for(const u of Object.keys(rest))rest[u]=rest[u].filter(([i])=>i<s.corners.length);
   let k=0,cfg;
   const build=n=>{const m={tbot:[],kbot:[],pbot:[],[me]:mine.slice()};const take=new Set(flex.slice(0,n));
     for(const [u,l] of Object.entries(rest))for(const [i,c] of l){if(take.has(i))m[me].push([i,3]);else m[u].push([i,c])}tutOwn(s,m)};
   const pts=()=>ptsOf(s)[me].total;
   for(k=0;k<=flex.length;k++){build(k);const pre=pts();s.corners[T]={...s.corners[T],o:me,s:1};const post=pts();s.corners[T]={...s.corners[T],o:'tbot',s:1};
-    if(pre<s.target&&post>=s.target&&pre>=s.target-4){cfg=k;break}}
+    const top=Math.max(...Object.entries(ptsOf(s)).filter(([u])=>u!==me).map(([,v])=>v.total));
+    if(pre<s.target&&post>=s.target&&pre>=s.target-4&&top<s.target-2){cfg=k;break}}
   if(cfg==null)build(4);
   tutM.T=T;tutM.F=tC(6,3);s.nextResolveAt=Date.now()+864e5;return s}
 async function tutJump(fn){const ns=fn(JSON.parse(JSON.stringify(st)));ns.log=[];draft=null;dirty=false;phaseKey='';dayPhase='shop';shopTab='upgrades';scoreOpen=false;pick={from:null,to:null};atkPop=null;movePick=null;movePop=null;trickPick=null;replay=null;await stateRef.set(ns)}
@@ -2855,11 +2865,16 @@ function tutTick(){if(!TUT||!st||tutBusy)return;let g=0;while(g++<40){const s=tu
 let tfxT=null,tfxId=null;
 function tutFx(id){if(id===tfxId)return;tfxId=id;clearInterval(tfxT);let L=document.getElementById('tutfx');if(!L){L=document.createElement('div');L.id='tutfx';L.setAttribute('aria-hidden','true');document.body.appendChild(L)}L.innerHTML='';if(!id||!st)return;
   const rect=i=>{const e=tCorner(i);return e&&e.getBoundingClientRect()},col=crewColor(me);
-  const put=(r,cls,txt='',ms=2200)=>{if(!r||!r.width)return;const d=document.createElement('div');d.className='tfx '+cls;d.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;--d:${Math.max(r.width,r.height)}px;--c:${col}`;d.textContent=txt;L.appendChild(d);setTimeout(()=>d.remove(),ms)};
+  const put=(r,cls,txt='',ms=2200,css='')=>{if(!r||!r.width)return;const d=document.createElement('div');d.className='tfx '+cls;d.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;--d:${Math.max(r.width,r.height)}px;--c:${col};${css}`;d.textContent=txt;L.appendChild(d);setTimeout(()=>d.remove(),ms)};
   const mine=cornersOf(st,me),near=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me).map(i=>[i,Math.min(...mine.map(m=>tDist(i,m)))]).sort((a,b)=>a[1]-b[1]).slice(0,7).map(x=>x[0]);
   let k=0;const tick=()=>{k++;
     if(id==='stands'){mine.forEach((i,j)=>{if((j+k)%3===0)put(rect(i),'ring','',1500)});put(rect(mine[(k*3)%mine.length]),'cash','$')}
-    else if(id==='take'||id==='points'){if(k%2)return;const i=near[(k/2)%near.length];put(rect(i),'flip','',2400);setTimeout(()=>put(rect(i),'cash',id==='take'?'$':'+1'),350)}};
+    else if(id==='points'){if((k-1)%8)return;const ms=new Set(mine);let best=0,bi=0;for(let it=0;it<st.corners.length/4;it++){const c=[0,1,2,3].filter(q=>ms.has(it*4+q)).length;if(c>best&&c<4){best=c;bi=it}}
+      const four=[0,1,2,3].map(q=>bi*4+q),todo=four.filter(i=>!ms.has(i)),hold=todo.length*600+2600;
+      todo.forEach((i,j)=>setTimeout(()=>{put(rect(i),'flip hold','',hold-j*600,`--t:${(hold-j*600)/1000}s`);put(rect(i),'cash','+1')},j*600));
+      setTimeout(()=>{const rs=four.map(rect).filter(Boolean);if(rs.length<4)return;const l=Math.min(...rs.map(r=>r.left)),t=Math.min(...rs.map(r=>r.top)),r2=Math.max(...rs.map(r=>r.right)),b=Math.max(...rs.map(r=>r.bottom)),bx={left:l-6,top:t-6,width:r2-l+12,height:b-t+12,right:r2+6,bottom:b+6};
+        put(bx,'fibox','',2400,`width:${bx.width}px;height:${bx.height}px`);const cx=Math.min(Math.max(bx.left+bx.width/2,110),innerWidth-110),ty=bx.top>40?bx.top-16:bx.bottom+16;put({left:cx-1,top:ty-1,width:2,height:2},'big','+2 Full Intersection!',2400)},todo.length*600+150)}
+    else if(id==='take'){if(k%2)return;const i=near[(k/2)%near.length];put(rect(i),'flip','',2400);setTimeout(()=>put(rect(i),'cash',id==='take'?'$':'+1'),350)}};
   tick();tfxT=setInterval(tick,650)}
 function tutDraw(){let root=document.getElementById('tut');if(!root){root=document.createElement('div');root.id='tut';document.body.appendChild(root)}
   const s=tutStep();if(!s||!st){root.innerHTML='';tutFx(null);return}
