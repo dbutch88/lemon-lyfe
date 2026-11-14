@@ -226,6 +226,15 @@ html.navopen,html.navopen body{overflow:hidden}
 #tut .tut-hole{position:fixed;z-index:60;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,12,16,.55);pointer-events:none;outline:3px solid var(--lemon);outline-offset:2px;transition:all .2s ease}
 #tut .tut-hole.round{border-radius:50%}
 @media (prefers-reduced-motion:no-preference){#tut .tut-hole{animation:tutPulse 1.4s ease-in-out infinite}}@keyframes tutPulse{50%{outline-offset:6px}}
+#tutfx{position:fixed;inset:0;pointer-events:none;z-index:62}
+.tfx{position:fixed;transform:translate(-50%,-50%);pointer-events:none}
+.tfx.ring{width:var(--d);height:var(--d);border-radius:50%;box-shadow:0 0 0 3px #ffd84d,0 0 10px 2px rgba(255,216,77,.8);animation:tfxRing 1.4s ease-out forwards}
+@keyframes tfxRing{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(2.1)}}
+.tfx.cash{font:800 14px/1 system-ui,sans-serif;color:#1f7a3a;background:#fff;border:2px solid #141414;border-radius:999px;padding:3px 7px;animation:tfxUp 1.8s ease-out forwards}
+@keyframes tfxUp{0%{opacity:0;transform:translate(-50%,-60%)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-280%)}}
+.tfx.flip{width:var(--d);height:var(--d);box-sizing:border-box;border-radius:50%;background:var(--c);border:2.5px solid #141414;animation:tfxFlip 2.4s ease forwards}
+@keyframes tfxFlip{0%{transform:translate(-50%,-50%) scale(0)}18%{transform:translate(-50%,-50%) scale(1.3)}30%,78%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+@media (prefers-reduced-motion:reduce){#tutfx{display:none}}
 #tut .tut-dim{position:fixed;inset:0;z-index:60;background:rgba(10,12,16,.55);pointer-events:none}
 #tut .tut-card{position:fixed;z-index:61;box-sizing:border-box;background:#fffdf6;color:#141414;border:3px solid #141414;border-radius:14px;box-shadow:4px 4px 0 #141414;padding:10px 12px;font-size:14.5px;line-height:1.4}
 #tut .tut-card p{margin:6px 0 0}#tut .tut-card .row{margin-top:8px}#tut .tut-top{display:flex;align-items:center;gap:8px}#tut .tut-top .linkbtn{margin-left:auto}#tut .tut-prog{flex:1;max-width:120px;height:6px;border-radius:3px;background:#e7e1cf;overflow:hidden}#tut .tut-prog i{display:block;height:100%;background:#e0a800;border-radius:3px}#tut .linkbtn{color:#5a5a5a}
@@ -2901,7 +2910,10 @@ function tutPicks(){if(tutM.A!=null||!st||!st.corners)return tutM;const mine=cor
   tutM.A=mine.filter(i=>it(i)!==it(tutM.B)).sort((a,b)=>tDist(a,tutM.B)-tDist(b,tutM.B))[0]??mine.find(i=>i!==tutM.B);return tutM}
 const tDraft=()=>draft||{place:{},buy:{},attacks:[],recruits:{}};
 const TSTEPS=[
-  {id:'hi',t:'<b>Welcome to Lemon Lyfe!</b> Think you’ve got what it takes to run the streets and build a lemonade empire?</p><p>Each corner you claim in the neighbourhood lets you run another stand. Station kids from your crew to sell product and defend your territory. Grab corners, take out the other crews, and earn cash. Each corner you claim scores you points, bringing you one step closer to total lemonade domination.</p><p>Let’s play some turns against the computer.',next:'Let’s go'},
+  {id:'hi',el:()=>tq('.rp-board'),t:'<b>Welcome to Lemon Lyfe!</b> Think you’ve got what it takes to run the streets and build a lemonade empire?',next:'Next'},
+  {id:'hi2',fx:'stands',el:()=>tq('.rp-board'),t:'Each corner you claim in the neighbourhood lets you run another stand. Station kids from your crew to sell product and defend your territory.',next:'Next'},
+  {id:'hi3',fx:'take',el:()=>tq('.rp-board'),t:'Grab corners, take out the other crews, and earn cash.',next:'Next'},
+  {id:'hi4',fx:'points',el:()=>tq('.rp-board'),t:'Each corner you claim scores you points, bringing you one step closer to total lemonade domination.</p><p>Let’s play some turns against the computer.',next:'Let’s go'},
   {id:'board',el:()=>tq('.rp-board'),t:'This is the block. You’re playing as Zuri, so <b>your corners are red</b>, with a dark outline. Mateo’s Crew is teal. The dashed white circles are empty corners anyone can claim.',next:'Got it'},
   {id:'pa',el:()=>tCorner(tutPicks().A),done:()=>(tDraft().place[tutM.A]|0)>=3,t:'Time to place your recruits! You have 20 kids to put on your corners. <b>Tap this corner 3 times</b> to add 3.'},
   {id:'pb',el:()=>tCorner(tutM.B),done:()=>(tDraft().place[tutM.B]|0)>=4,t:'Nice. Now <b>add 4 here</b>.'},
@@ -3010,10 +3022,20 @@ async function tutJump(fn){const ns=fn(JSON.parse(JSON.stringify(st)));ns.log=[]
 function tutAllowed(){const s=tutStep();if(!s||!s.el||s.next||s.fin)return[];const e=s.el();return e?[e]:[]}
 let tutBusy=false;
 function tutTick(){if(!TUT||!st||tutBusy)return;let g=0;while(g++<40){const s=tutStep();if(s&&s.skipIf&&s.skipIf()){tutI++;continue}if(s&&s.enter&&!s._in){s._in=1;tutBusy=true;Promise.resolve(s.enter()).finally(()=>{setTimeout(()=>{tutBusy=false;tutTick()},250)});return}if(!s||!s.done)break;let ok=false;try{ok=s.done()}catch(e){}if(!ok)break;tutI++;if(s.after)try{s.after()}catch(e){}}tutDraw()}
+let tfxT=null,tfxId=null;
+function tutFx(id){if(id===tfxId)return;tfxId=id;clearInterval(tfxT);let L=document.getElementById('tutfx');if(!L){L=document.createElement('div');L.id='tutfx';L.setAttribute('aria-hidden','true');document.body.appendChild(L)}L.innerHTML='';if(!id||!st)return;
+  const rect=i=>{const e=tCorner(i);return e&&e.getBoundingClientRect()},col=crewColor(me);
+  const put=(r,cls,txt='',ms=2200)=>{if(!r||!r.width)return;const d=document.createElement('div');d.className='tfx '+cls;d.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;--d:${Math.max(r.width,r.height)}px;--c:${col}`;d.textContent=txt;L.appendChild(d);setTimeout(()=>d.remove(),ms)};
+  const mine=cornersOf(st,me),near=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me).map(i=>[i,Math.min(...mine.map(m=>tDist(i,m)))]).sort((a,b)=>a[1]-b[1]).slice(0,7).map(x=>x[0]);
+  let k=0;const tick=()=>{k++;
+    if(id==='stands'){mine.forEach((i,j)=>{if((j+k)%3===0)put(rect(i),'ring','',1500)});put(rect(mine[(k*3)%mine.length]),'cash','$')}
+    else if(id==='take'||id==='points'){if(k%2)return;const i=near[(k/2)%near.length];put(rect(i),'flip','',2400);setTimeout(()=>put(rect(i),'cash',id==='take'?'$':'+1'),350)}};
+  tick();tfxT=setInterval(tick,650)}
 function tutDraw(){let root=document.getElementById('tut');if(!root){root=document.createElement('div');root.id='tut';document.body.appendChild(root)}
-  const s=tutStep();if(!s||!st){root.innerHTML='';return}
+  const s=tutStep();if(!s||!st){root.innerHTML='';tutFx(null);return}
   if(tutSeenI!==tutI){tutSeenI=tutI;tutAt=Date.now()}
-  if(s.delay&&Date.now()-tutAt<s.delay){if(root._h!=='wait'){root._h='wait';root.innerHTML=''}return}
+  if(s.delay&&Date.now()-tutAt<s.delay){tutFx(null);if(root._h!=='wait'){root._h='wait';root.innerHTML=''}return}
+  tutFx(s.fx||null);
   let el=null;try{el=s.el?s.el():null}catch(e){}const r=el&&el.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
   const ok=r&&r.width>0&&r.bottom>0&&r.top<vh;const round=el&&el.matches&&el.matches('[data-act="corner"]');
   const pad=round?4:6,hole=ok?`<div class="tut-hole ${round?'round':''}" style="left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px"></div>`:'<div class="tut-dim"></div>';
