@@ -2916,9 +2916,9 @@ function tutPicks(){if(tutM.A!=null||!st||!st.corners)return tutM;const mine=cor
 const tDraft=()=>draft||{place:{},buy:{},attacks:[],recruits:{}};
 const TSTEPS=[
   {id:'hi',el:()=>tq('.rp-board'),t:'<b>Welcome to Lemon Lyfe!</b> Think you’ve got what it takes to run the streets and build a lemonade empire?',next:'Next'},
-  {id:'hi2',fx:'stands',el:()=>tq('.rp-board'),t:'Each corner you claim in the neighbourhood lets you run another stand. Station kids from your crew to sell product and defend your territory.',next:'Next'},
+  {id:'hi2',fx:'stands',el:()=>tq('.rp-board'),t:'Each corner you hold in the neighbourhood lets you run another stand. Station kids from your crew to sell product and defend your territory.',next:'Next'},
   {id:'hi3',fx:'take',el:()=>tq('.rp-board'),t:'Grab corners, take out the other crews, and earn cash.',next:'Next'},
-  {id:'hi4',fx:'points',el:()=>tq('.rp-board'),t:'Each corner you claim scores you points, bringing you one step closer to total lemonade domination.</p><p>Let’s play some turns against the computer.',next:'Let’s go'},
+  {id:'hi4',fx:'points',el:()=>tq('.rp-board'),t:'Each corner you hold scores you points, bringing you one step closer to total lemonade domination.</p><p>Let’s play some turns against the computer.',next:'Let’s go'},
   {id:'board',el:()=>tq('.rp-board'),t:'This is the block. You’re playing as Zuri, so <b>your corners are red</b>, with a dark outline. Mateo’s Crew is teal, Priya’s is gold and Kenji’s is purple. The dashed white circles are empty corners anyone can claim.',next:'Got it'},
   {id:'pa',el:()=>tCorner(tutPicks().A),done:()=>(tDraft().place[tutM.A]|0)>=3,t:'Time to place your recruits! You have 20 kids to put on your corners. <b>Tap this corner 3 times</b> to add 3.'},
   {id:'pb',el:()=>tCorner(tutM.B),done:()=>(tDraft().place[tutM.B]|0)>=4,t:'Nice. Now <b>add 4 here</b>.'},
