@@ -228,7 +228,7 @@ html.navopen,html.navopen body{overflow:hidden}
 @media (prefers-reduced-motion:no-preference){#tut .tut-hole{animation:tutPulse 1.4s ease-in-out infinite}}@keyframes tutPulse{50%{outline-offset:6px}}
 #tutfx{position:fixed;inset:0;pointer-events:none;z-index:62}
 .tfx{position:fixed;transform:translate(-50%,-50%);pointer-events:none}
-.tfx.ring{width:var(--d);height:var(--d);border-radius:50%;box-shadow:0 0 0 3px #ffd84d,0 0 10px 2px rgba(255,216,77,.8);animation:tfxRing 1.4s ease-out forwards}
+.tfx.ring{width:var(--d);height:var(--d);border-radius:50%;box-shadow:0 0 0 3px var(--rc,#ffd84d),0 0 10px 2px color-mix(in srgb,var(--rc,#ffd84d) 80%,transparent);animation:tfxRing 1.4s ease-out forwards}
 @keyframes tfxRing{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(2.1)}}
 .tfx.cash{font:800 14px/1 system-ui,sans-serif;color:#1f7a3a;background:#fff;border:2px solid #141414;border-radius:999px;padding:3px 7px;animation:tfxUp 1.8s ease-out forwards}
 @keyframes tfxUp{0%{opacity:0;transform:translate(-50%,-60%)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-280%)}}
@@ -239,7 +239,12 @@ html.navopen,html.navopen body{overflow:hidden}
 .tfx.big{font:900 15px/1.1 system-ui,sans-serif;white-space:nowrap;color:#141414;background:#ffd84d;border:2.5px solid #141414;border-radius:10px;padding:5px 9px;box-shadow:3px 3px 0 #141414;animation:tfxBig 2.4s ease forwards}
 @keyframes tfxFade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
 @keyframes tfxBig{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}24%,80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
-@media (prefers-reduced-motion:reduce){#tutfx{display:none}}
+.tfx.boss{width:68px;height:68px;border-radius:50%;background:#fff;border:3px solid var(--rc);box-shadow:3px 3px 0 #141414;display:grid;place-items:center;overflow:hidden;animation:tfxBoss 1.9s ease forwards}.tfx.boss svg,.tfx.boss img{width:64px;height:64px}
+@keyframes tfxBoss{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}25%,75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+#tut .tc{font-weight:800;color:color-mix(in srgb,var(--tc) 82%,#000);border-radius:4px;padding:0 2px;margin:0 -2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:background-color .2s}
+#tut .tc.on{background:color-mix(in srgb,var(--tc) 18%,transparent);animation:tcPulse .65s ease-in-out infinite alternate}
+@keyframes tcPulse{from{background:color-mix(in srgb,var(--tc) 10%,transparent)}to{background:color-mix(in srgb,var(--tc) 32%,transparent)}}
+@media (prefers-reduced-motion:reduce){#tutfx{display:none}#tut .tc.on{animation:none}}
 #tut .tut-dim{position:fixed;inset:0;z-index:60;background:rgba(10,12,16,.55);pointer-events:none}
 #tut .tut-card{position:fixed;z-index:61;box-sizing:border-box;background:#fffdf6;color:#141414;border:3px solid #141414;border-radius:14px;box-shadow:4px 4px 0 #141414;padding:10px 12px;font-size:14.5px;line-height:1.4}
 #tut .tut-card p{margin:6px 0 0}#tut .tut-card .row{margin-top:8px}#tut .tut-top{display:flex;align-items:center;gap:8px}#tut .tut-top .linkbtn{margin-left:auto}#tut .tut-prog{flex:1;max-width:120px;height:6px;border-radius:3px;background:#e7e1cf;overflow:hidden}#tut .tut-prog i{display:block;height:100%;background:#e0a800;border-radius:3px}#tut .linkbtn{color:#5a5a5a}
@@ -2919,7 +2924,7 @@ const TSTEPS=[
   {id:'hi2',fx:'stands',el:()=>tq('.rp-board'),t:'Each corner you hold in the neighbourhood lets you run another stand. Station kids from your crew to sell product and defend your territory.',next:'Next'},
   {id:'hi3',fx:'take',el:()=>tq('.rp-board'),t:'Grab corners, take out the other crews, and earn cash.',next:'Next'},
   {id:'hi4',fx:'points',el:()=>tq('.rp-board'),t:'Each corner you hold scores you points, bringing you one step closer to total lemonade domination.</p><p>Let’s play some turns against the computer.',next:'Let’s go'},
-  {id:'board',el:()=>tq('.rp-board'),t:'This is the Board. You’re playing as Zuri, so <b>your corners are red</b>, with a dark outline. Mateo’s Crew is teal, Priya’s is gold and Kenji’s is purple. The dashed white circles are empty corners anyone can claim.',next:'Got it'},
+  {id:'board',fx:'crews',el:()=>tq('.rp-board'),t:()=>{const c=u=>`style="--tc:${esc(crewColor(u))}"`;return `This is the Board. You’re playing as <span class="tc" data-tc="you" ${c(me)}>Zuri, so your corners are red</span>, with a dark outline. <span class="tc" data-tc="tbot" ${c('tbot')}>Mateo’s Crew is teal</span>, <span class="tc" data-tc="pbot" ${c('pbot')}>Priya’s is gold</span> and <span class="tc" data-tc="kbot" ${c('kbot')}>Kenji’s is purple</span>. <span class="tc" data-tc="empty" style="--tc:#6b6b6b">The dashed white circles are empty corners</span> anyone can claim.`},next:'Got it'},
   {id:'pa',el:()=>tCorner(tutPicks().A),done:()=>(tDraft().place[tutM.A]|0)>=3,t:'Time to place your recruits! You have 20 kids to put on your corners. <b>Tap this corner 3 times</b> to add 3.'},
   {id:'pb',el:()=>tCorner(tutM.B),done:()=>(tDraft().place[tutM.B]|0)>=4,t:'Nice. Now <b>add 4 here</b>.'},
   {id:'ps',el:()=>tq('[data-act="submit"]'),done:()=>st.status!=='setup'||hasOrder(me),t:'Whatever you don’t place gets spread across your other corners. <b>Tap Send Placement to finish.</b> Everyone places at the same time.'},
@@ -3032,13 +3037,19 @@ async function tutJump(fn){const ns=fn(JSON.parse(JSON.stringify(st)));ns.log=[]
 function tutAllowed(){const s=tutStep();if(!s||!s.el||s.next||s.fin)return[];const e=s.el();return e?[e]:[]}
 let tutBusy=false;
 function tutTick(){if(!TUT||!st||tutBusy)return;let g=0;while(g++<40){const s=tutStep();if(s&&s.skipIf&&s.skipIf()){tutI++;continue}if(s&&s.enter&&!s._in){s._in=1;tutBusy=true;Promise.resolve(s.enter()).finally(()=>{setTimeout(()=>{tutBusy=false;tutTick()},250)});return}if(!s||!s.done)break;let ok=false;try{ok=s.done()}catch(e){}if(!ok)break;tutI++;if(s.after)try{s.after()}catch(e){}}tutDraw()}
-let tfxT=null,tfxId=null;
-function tutFx(id){if(id===tfxId)return;tfxId=id;clearInterval(tfxT);let L=document.getElementById('tutfx');if(!L){L=document.createElement('div');L.id='tutfx';L.setAttribute('aria-hidden','true');document.body.appendChild(L)}L.innerHTML='';if(!id||!st)return;
+let tfxT=null,tfxId=null,tfxGen=0;
+function tutFx(id){if(id===tfxId)return;tfxId=id;clearInterval(tfxT);const gen=++tfxGen;let L=document.getElementById('tutfx');if(!L){L=document.createElement('div');L.id='tutfx';L.setAttribute('aria-hidden','true');document.body.appendChild(L)}L.innerHTML='';if(!id||!st)return;
   const rect=i=>{const e=tCorner(i);return e&&e.getBoundingClientRect()},col=crewColor(me);
-  const put=(r,cls,txt='',ms=2200,css='')=>{if(!r||!r.width)return;const d=document.createElement('div');d.className='tfx '+cls;d.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;--d:${Math.max(r.width,r.height)}px;--c:${col};${css}`;d.textContent=txt;L.appendChild(d);setTimeout(()=>d.remove(),ms)};
+  const put=(r,cls,txt='',ms=2200,css='')=>{if(gen!==tfxGen||!r||!r.width)return;const d=document.createElement('div');d.className='tfx '+cls;d.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;--d:${Math.max(r.width,r.height)}px;--c:${col};${css}`;d.textContent=txt;L.appendChild(d);setTimeout(()=>d.remove(),ms)};
   const mine=cornersOf(st,me),near=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o!==me).map(i=>[i,Math.min(...mine.map(m=>tDist(i,m)))]).sort((a,b)=>a[1]-b[1]).slice(0,7).map(x=>x[0]);
   let k=0;const tick=()=>{k++;
-    if(id==='stands'){mine.forEach((i,j)=>{if((j+k)%3===0)put(rect(i),'ring','',1500)});put(rect(mine[(k*3)%mine.length]),'cash','$')}
+    if(id==='crews'){const order=[me,'tbot','pbot','kbot',null],ph=Math.floor((k-1)/3)%order.length,u=order[ph],first=(k-1)%3===0;
+      const key=u===me?'you':u||'empty';document.querySelectorAll('#tut .tc').forEach(e=>e.classList.toggle('on',e.dataset.tc===key));
+      const list=u?cornersOf(st,u):st.corners.map((c,i)=>i).filter(i=>!st.corners[i].o),rc=u?crewColor(u):'#ffffff';
+      list.forEach(i=>put(rect(i),'ring','',1500,`--rc:${rc}`));
+      if(first&&u&&list.length&&gen===tfxGen){const rs=list.map(rect).filter(Boolean),cx=rs.reduce((a,r)=>a+r.left+r.width/2,0)/rs.length,cy=rs.reduce((a,r)=>a+r.top+r.height/2,0)/rs.length;
+        const d=document.createElement('div');d.className='tfx boss';d.style.cssText=`left:${cx}px;top:${cy}px;--rc:${rc}`;d.innerHTML=avatar(charOf(u),crewColor(u),64);L.appendChild(d);setTimeout(()=>d.remove(),1900)}}
+    else if(id==='stands'){mine.forEach((i,j)=>{if((j+k)%3===0)put(rect(i),'ring','',1500)});put(rect(mine[(k*3)%mine.length]),'cash','$')}
     else if(id==='points'){if((k-1)%8)return;const ms=new Set(mine);let best=0,bi=0;for(let it=0;it<st.corners.length/4;it++){const c=[0,1,2,3].filter(q=>ms.has(it*4+q)).length;if(c>best&&c<4){best=c;bi=it}}
       const four=[0,1,2,3].map(q=>bi*4+q),todo=four.filter(i=>!ms.has(i)),hold=todo.length*600+2600;
       todo.forEach((i,j)=>setTimeout(()=>{put(rect(i),'flip hold','',hold-j*600,`--t:${(hold-j*600)/1000}s`);put(rect(i),'cash','+1')},j*600));
