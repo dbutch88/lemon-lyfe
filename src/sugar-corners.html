@@ -2770,7 +2770,7 @@ const TSTEPS=[
   {id:'toatk',el:()=>tqLast('[data-act="phase"][data-p="attack"]'),done:()=>dayPhase==='attack',t:'Alright, we’re geared up and our corners are locked down. Let’s move on to the Attack Phase. Tap <b>Next: Attack</b>.'},
   {id:'ce',el:()=>tCorner(tutE()),done:()=>pick.to===tutM.E||!!atkPop,t:'Looks like we’ve got an empty corner nearby, ripe for the taking. Tap it.'},
   {id:'cb',el:()=>tCorner(tutM.B),done:()=>!!atkPop,t:'Now tap your corner to send kids from.'},
-  {id:'cok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=1,t:'Mateo might go for the same corner. Let’s send 3 kids to claim it. Tap <b>Set Attack</b> when you’re ready.'},
+  {id:'cok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=1,t:'Another crew might go for the same corner. Let’s send 3 kids to claim it. Tap <b>Set Attack</b> when you’re ready.'},
   {id:'hx',el:()=>tCorner(tutX()),done:()=>pick.to===tutM.X||!!atkPop,t:'Now take a corner from Mateo. Tap his corner.'},
   {id:'ha',el:()=>tCorner(tutA2()),done:()=>!!atkPop,t:'Attack from this corner of yours. It has the most kids.'},
   {id:'hm',el:()=>tq('.sheet .matchup'),t:'Here’s the matchup. On the left, your kids at this corner and your Slingshot (1–8). On the right, Mateo’s defenders with Fists (1–6). The chips show any bonuses.',next:'Next'},
