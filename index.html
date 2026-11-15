@@ -2947,7 +2947,7 @@ const TSTEPS=[
   {id:'hm',el:()=>tq('.sheet .matchup'),t:'Here’s the matchup. On the left, your kids at this corner and your Slingshot (1–8). On the right, Mateo’s defenders with Fists (1–6). The chips show any bonuses.',next:'Next'},
   {id:'hd',el:()=>tq('.sheet .odds'),t:'Fights are dice roll-offs, one kid at a time. The higher roll wins and ties go to the defender. This shows how often you win a single roll.',next:'Next'},
   {id:'hn',enter:()=>{tutM.n0=atkPop?atkPop.n:0},el:()=>tq('.sheet .stepline .stepper'),done:()=>!!atkPop&&atkPop.n!==tutM.n0,t:()=>{const up=!tq('[data-act="pop-n"][data-d="1"]:disabled');return 'This is how many kids you’re sending. At least one stays behind to hold your corner, and your Rideshare caps each attack. '+(up?'Odds look good, but let’s make sure. Tap <b>+</b> to send one more.':'You don’t need everyone to win this. Tap <b>−</b> to keep one more at home.')}},
-  {id:'hok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=2,t:()=>(atkPop&&atkPop.n>tutM.n0?'See how your chance to take the corner went up?':'Your chance to take the corner barely moved, and that kid stays home to defend.')+' Tap <b>Set Attack</b>.'},
+  {id:'hok',fx:'odds',area:()=>[tq('.sheet .takeodds')],el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=2,t:()=>(atkPop&&atkPop.n>tutM.n0?`See how your chance to take the corner went up to <b>${(tq('.sheet .takeodds strong')||{}).textContent||''}</b>?`:'Your chance to take the corner barely moved, and that kid stays home to defend.')+' Tap <b>Set Attack</b>.'},
   {id:'tomv',el:()=>tqLast('[data-act="phase"][data-p="move"]'),done:()=>dayPhase==='move',t:'Your Rideshare fits 2 attacks a turn, and you’ve used both. Upgrade it later in The Shop to send more kids and launch more attacks. Tap <b>Next: Move</b>.'},
   {id:'mf',el:()=>tCorner(tutC()),done:()=>movePick===tutM.C||!!movePop,t:'Once a turn you can move kids between your corners. Tap this corner…'},
   {id:'mt',el:()=>tCorner(tutD()),done:()=>!!movePop,t:'…then this one.'},
@@ -3054,6 +3054,7 @@ function tutFx(id){if(id===tfxId)return;tfxId=id;clearInterval(tfxT);const gen=+
         const d=document.createElement('div');d.className='tfx boss';d.style.cssText=`left:${cx}px;top:${cy}px;--rc:${rc}`;d.innerHTML=avatar(charOf(u),crewColor(u),64);L.appendChild(d);setTimeout(()=>d.remove(),1900)}}
     else if(id==='shop'){const order=['sugar','whip','rep'],key=order[Math.floor((k-1)/6)%3];document.querySelectorAll('#tut .tc').forEach(e=>e.classList.toggle('on',e.dataset.tc===key));
       if((k-1)%6===0){const b=tq(`.tiles [data-act="buy"][data-cat="${key}"]`),tile=b&&b.closest('.tile');const r=tile&&tile.getBoundingClientRect();if(r){const bx={left:r.left-4,top:r.top-4,width:r.width+8,height:r.height+8};put(bx,'tilebox','',2950,`width:${bx.width}px;height:${bx.height}px`)}}}
+    else if(id==='odds'){if((k-1)%3)return;const e=tq('.sheet .takeodds strong'),r=e&&e.getBoundingClientRect();if(r){const bx={left:r.left-6,top:r.top-4,width:r.width+12,height:r.height+8};put(bx,'tilebox','',1950,`width:${bx.width}px;height:${bx.height}px;border-radius:8px`)}}
     else if(id==='stands'){mine.forEach((i,j)=>{if((j+k)%3===0)put(rect(i),'ring','',1500)});put(rect(mine[(k*3)%mine.length]),'cash','$')}
     else if(id==='points'){if((k-1)%8)return;const ms=new Set(mine);let best=0,bi=0;for(let it=0;it<st.corners.length/4;it++){const c=[0,1,2,3].filter(q=>ms.has(it*4+q)).length;if(c>best&&c<4){best=c;bi=it}}
       const four=[0,1,2,3].map(q=>bi*4+q),todo=four.filter(i=>!ms.has(i)),hold=todo.length*600+2600;
@@ -3068,7 +3069,8 @@ function tutDraw(){let root=document.getElementById('tut');if(!root){root=docume
   if(s.hold&&s.hold()){tutAt=Date.now()-(s.delay||0);tutFx(null);if(root._h!=='wait'){root._h='wait';root.innerHTML=''}return}
   if(s.delay&&Date.now()-tutAt<s.delay){tutFx(null);if(root._h!=='wait'){root._h='wait';root.innerHTML=''}return}
   tutFx(s.fx||null);
-  let el=null;try{el=s.el?s.el():null}catch(e){}const r=el&&el.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
+  let el=null;try{el=s.el?s.el():null}catch(e){}let r=el&&el.getBoundingClientRect();const vw=innerWidth,vh=innerHeight;
+  if(r&&s.area){const xs=[r,...s.area().filter(Boolean).map(e=>e.getBoundingClientRect())];const l=Math.min(...xs.map(q=>q.left)),t=Math.min(...xs.map(q=>q.top)),rr=Math.max(...xs.map(q=>q.right)),b=Math.max(...xs.map(q=>q.bottom));r={left:l,top:t,right:rr,bottom:b,width:rr-l,height:b-t}}
   const ok=r&&r.width>0&&r.bottom>0&&r.top<vh;const round=el&&el.matches&&el.matches('[data-act="corner"]');
   const pad=round?4:6,hole=ok?`<div class="tut-hole ${round?'round':''}" style="left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px"></div>`:'<div class="tut-dim"></div>';
   const n=TSTEPS.indexOf(s)+1,low=ok&&r.top+r.height/2<vh*.5,cw=Math.min(380,vw-24),tp=document.querySelector('.top'),th=tp?tp.getBoundingClientRect().bottom:0;
