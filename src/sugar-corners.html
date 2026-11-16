@@ -2783,7 +2783,7 @@ const TSTEPS=[
   {id:'mt',el:()=>tCorner(tutD()),done:()=>!!movePop,t:'…then this one.'},
   {id:'mok',el:()=>tq('[data-act="mvp-ok"]'),done:()=>!movePop&&!!tDraft().move,t:'Moves happen after the fighting is done. Tap <b>Set Move</b> to confirm.'},
   {id:'torv',el:()=>tqLast('[data-act="phase"][data-p="review"]'),done:()=>dayPhase==='review',t:'Tap <b>Next: Review</b>.'},
-  {id:'send',el:()=>tqLast('[data-act="submit"]'),done:()=>hasOrder(me)||!!replay||st.day>=2,t:'Here’s your plan for the night. Tap <b>Send Orders</b>. Everyone plans at once, then the night plays out.'},
+  {id:'send',el:()=>tqLast('[data-act="submit"]'),done:()=>hasOrder(me)||!!replay||st.day>=2,t:'Here’s your plan for the night. Tap <b>Send Orders</b>. Every Crew Boss plans at the same time, then the night plays out.'},
   {id:'w2',done:()=>!!replay,t:'Night falls on the block…'},
   {id:'rp0',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||replay.i>=0,t:'Each turn starts with a recap of the night before. Tap <b>Start the Recap</b>.'},
   {id:'rpa',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||!!tutKeyEv(),area:()=>[tq('[data-act="rp-mine"]')?.parentElement],also:()=>[...document.querySelectorAll('[data-act="rp-mine"]')],t:'Keep tapping <b>Next</b> to watch each event play out.</p><p>You can select <b>Just Me</b> if you only want to see events related to your crew.'},
