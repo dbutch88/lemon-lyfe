@@ -2942,26 +2942,26 @@ const TSTEPS=[
   {id:'ce',el:()=>tCorner(tutE()),done:()=>pick.to===tutM.E||!!atkPop,t:'Looks like we’ve got an empty corner nearby, ripe for the taking. Tap it.'},
   {id:'cb',el:()=>tCorner(tutM.B),done:()=>!!atkPop,t:'Now tap your corner to send kids from.'},
   {id:'cok',el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=1,t:'Another crew might go for the same corner. Let’s send 3 kids to claim it. Tap <b>Set Attack</b> when you’re ready.'},
-  {id:'hx',el:()=>tCorner(tutX()),done:()=>pick.to===tutM.X||!!atkPop,t:'Now take a corner from Mateo. Tap his corner.'},
+  {id:'hx',el:()=>tCorner(tutX()),done:()=>pick.to===tutM.X||!!atkPop,t:'Now let’s take a corner from Mateo. Tap his corner.'},
   {id:'ha',el:()=>tCorner(tutA2()),done:()=>!!atkPop,t:()=>{const c=st.corners[tutA2()].s,r=cornersOf(st,me).filter(i=>st.corners[i].s>c).length;return `This corner has ${r===0?'the most':r===1?'the second most':'plenty of'} kids. We can afford to send some out. Tap it.`}},
   {id:'hm',el:()=>tq('.sheet .matchup'),t:'Here’s the matchup. On the left, your kids at this corner and your Slingshot (1–8). On the right, Mateo’s defenders with Fists (1–6). The chips show any bonuses.',next:'Next'},
   {id:'hd',el:()=>tq('.sheet .odds'),t:'Fights are dice roll-offs, one kid at a time. The higher roll wins and ties go to the defender. This shows how often you win a single roll.',next:'Next'},
-  {id:'hn',enter:()=>{tutM.n0=atkPop?atkPop.n:0},el:()=>tq('.sheet .stepline .stepper'),done:()=>!!atkPop&&atkPop.n!==tutM.n0,t:()=>{const up=!tq('[data-act="pop-n"][data-d="1"]:disabled');return 'This is how many kids you’re sending. At least one stays behind to hold your corner, and your Rideshare caps each attack. '+(up?'Odds look good, but let’s make sure. Tap <b>+</b> to send one more.':'You don’t need everyone to win this. Tap <b>−</b> to keep one more at home.')}},
+  {id:'hn',enter:()=>{tutM.n0=atkPop?atkPop.n:0},el:()=>tq('.sheet .stepline .stepper'),done:()=>!!atkPop&&atkPop.n!==tutM.n0,t:()=>{const up=!tq('[data-act="pop-n"][data-d="1"]:disabled');return 'This is how many kids you’re sending. At least one stays behind to hold your corner, and your Rideshare caps each attack'+(up?'. ':' at a max of four kids right now. ')+(up?'Odds look good, but let’s make sure. Tap <b>+</b> to send one more kid.':'You probably don’t need everyone to win this. Tap <b>−</b> to keep one more at home.')}},
   {id:'hok',fx:'odds',area:()=>[tq('.sheet .takeodds')],el:()=>tq('[data-act="pop-ok"]'),done:()=>!atkPop&&tDraft().attacks.length>=2,t:()=>(atkPop&&atkPop.n>tutM.n0?`See how your chance to take the corner went up to <b>${(tq('.sheet .takeodds strong')||{}).textContent||''}</b>?`:'Your chance to take the corner barely moved, and that kid stays home to defend.')+' Tap <b>Set Attack</b>.'},
-  {id:'tomv',el:()=>tqLast('[data-act="phase"][data-p="move"]'),done:()=>dayPhase==='move',t:'Your Rideshare fits 2 attacks a turn, and you’ve used both. Upgrade it later in The Shop to send more kids and launch more attacks. Tap <b>Next: Move</b>.'},
-  {id:'mf',el:()=>tCorner(tutC()),done:()=>movePick===tutM.C||!!movePop,t:'Once a turn you can move kids between your corners. Tap this corner…'},
+  {id:'tomv',el:()=>tqLast('[data-act="phase"][data-p="move"]'),done:()=>dayPhase==='move',t:'Your Rideshare level determines <b>how many kids you can send</b> in a single attack and <b>how many attacks you can send</b> in a single turn.</p><p>Right now, it fits two attacks a turn, and you’ve used both. Upgrade it later in The Shop.</p><p>Tap <b>Next: Move</b>.'},
+  {id:'mf',el:()=>tCorner(tutC()),done:()=>movePick===tutM.C||!!movePop,t:'Once a turn you can move kids between your corners. It’s a good way to shore up any vulnerable spots on the board. Tap this corner…'},
   {id:'mt',el:()=>tCorner(tutD()),done:()=>!!movePop,t:'…then this one.'},
-  {id:'mok',el:()=>tq('[data-act="mvp-ok"]'),done:()=>!movePop&&!!tDraft().move,t:'Moves happen after the fighting, so they’re good for shoring up your defences. Tap <b>Set Move</b> to confirm.'},
+  {id:'mok',el:()=>tq('[data-act="mvp-ok"]'),done:()=>!movePop&&!!tDraft().move,t:'Moves happen after the fighting is done. Tap <b>Set Move</b> to confirm.'},
   {id:'torv',el:()=>tqLast('[data-act="phase"][data-p="review"]'),done:()=>dayPhase==='review',t:'Tap <b>Next: Review</b>.'},
   {id:'send',el:()=>tqLast('[data-act="submit"]'),done:()=>hasOrder(me)||!!replay||st.day>=2,t:'Here’s your plan for the night. Tap <b>Send Orders</b>. Everyone plans at once, then the night plays out.'},
   {id:'w2',done:()=>!!replay,t:'Night falls on the block…'},
   {id:'rp0',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||replay.i>=0,t:'Each turn starts with a recap of the night before. Tap <b>Start the Recap</b>.'},
-  {id:'rpa',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||!!tutKeyEv(),t:'Keep tapping <b>Next</b> to watch each event play out.'},
+  {id:'rpa',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||!!tutKeyEv(),area:()=>[tq('[data-act="rp-mine"]')?.parentElement],also:()=>[...document.querySelectorAll('[data-act="rp-mine"]')],t:'Keep tapping <b>Next</b> to watch each event play out.</p><p>You can select <b>Just Me</b> if you only want to see events related to your crew.'},
   {id:'pz1',delay:3200,el:()=>tq('.rp-sheet')||tq('.rp-board'),t:()=>tutKeyText(),next:'Next',skipIf:()=>!replay},
   {id:'rpm',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay||(!!tutKeyEv()&&tutKeyEv()!==tutM.k1),t:'Keep tapping <b>Next</b>.'},
   {id:'pz2',delay:3200,el:()=>tq('.rp-sheet')||tq('.rp-board'),t:()=>tutKeyText(),next:'Next',skipIf:()=>!replay},
   {id:'rpc',el:()=>tq('[data-act="rp-next"]'),done:()=>!replay,t:'Keep tapping <b>Next</b> to the end of the recap.'},
-  {id:'sc',el:()=>tq('[data-act="score-open"]'),done:()=>scoreOpen,t:'Two new corners! So how do you win? <b>Points.</b> Tap the <b>Scores</b>.'},
+  {id:'sc',el:()=>tq('[data-act="score-open"]'),done:()=>scoreOpen,t:'Two new corners!</p><p>So, how do you win? <b>Points.</b> Tap the <b>Scores</b>.'},
   {id:'sci',el:()=>tq('.sb-pop')||tq('.scorebar'),t:'You score 1 point per corner, +2 for each <b>Full Intersection</b> (all 4 corners of a crossing), +3 for each <b>Block</b>, and +2 for the <b>Biggest Crew</b>. The first crew to the target at the end of a night wins.',next:'Got it'},
   {id:'ff1',enter:()=>tutJump(tutCh2),t:'<b>⏩ Fast forward to Turn 6.</b> It’s been rough. Mateo’s Crew has taken over the north side, and you’re down to 6 corners and $20. Time for a comeback.',next:'Let’s turn it around'},
   {id:'bk',el:()=>tq('[data-act="shoptab"][data-t="bank"]'),done:()=>shopTab==='bank',t:'When you’re in last place, the <b>Bank of Mom &amp; Dad</b> will lend you money. Tap <b>Bank</b>.'},
@@ -2996,7 +2996,7 @@ const TSTEPS=[
   {id:'end',t:'<b>You won!</b> A loan when you were down, a Dirty Trick on the leader, an ally, and a Full Intersection to finish. You’re ready for a real game. Market Days and more get explained as they come up.',fin:true}];
 function tutA2(){if(tutM.A2==null&&st){const mine=cornersOf(st,me).filter(i=>i!==tutM.B);tutM.A2=mine.sort((a,b)=>st.corners[b].s-st.corners[a].s||tDist(a,tutX())-tDist(b,tutX()))[0]}return tutM.A2}
 function tutKeyEv(){if(!replay||replay.i<0)return null;const e=replay.events[replay.i];if(!e||e.t!=='atk'||e.u!==me)return null;if(e.to===tutM.X&&e.res==='took')return'x';if(e.to===tutM.E&&e.res==='claim')return'e';return null}
-function tutKeyText(){const k=tutKeyEv()||tutM.k1;if(!tutM.k1)tutM.k1=k;return k==='x'?'<b>Nice! That corner is ours.</b> Good thing we upgraded to that Slingshot.':'<b>Snipe.</b> Mateo didn’t go for that free corner. More sales for us.'}
+function tutKeyText(){const k=tutKeyEv()||tutM.k1;if(!tutM.k1)tutM.k1=k;return k==='x'?'<b>Nice! That corner is ours.</b> Good thing we upgraded to that <b>Slingshot</b>.':'<b>Snipe.</b> No one went for that free corner. More sales for us.'}
 function tutE(){if(tutM.E==null&&st){const em=st.corners.map((c,i)=>i).filter(i=>!st.corners[i].o);tutM.E=em.sort((a,b)=>tDist(a,tutM.B)-tDist(b,tutM.B))[0]}return tutM.E}
 function tutX(){if(tutM.X==null&&st){const en=st.corners.map((c,i)=>i).filter(i=>st.corners[i].o==='tbot');tutM.X=en.sort((a,b)=>st.corners[a].s-st.corners[b].s||tDist(a,tutM.A)-tDist(b,tutM.A))[0]}return tutM.X}
 function tutC(){if(tutM.C==null&&st){const mine=cornersOf(st,me).filter(i=>i!==tutM.A&&i!==tutM.B);tutM.C=mine.sort((a,b)=>moveMax(b)-moveMax(a)||a-b)[0]}return tutM.C}
@@ -3037,7 +3037,7 @@ function tutCh3(s){
   if(cfg==null)build(4);
   tutM.T=T;tutM.F=tC(6,3);s.nextResolveAt=Date.now()+864e5;return s}
 async function tutJump(fn){const ns=fn(JSON.parse(JSON.stringify(st)));ns.log=[];draft=null;dirty=false;phaseKey='';dayPhase='shop';shopTab='upgrades';scoreOpen=false;pick={from:null,to:null};atkPop=null;movePick=null;movePop=null;trickPick=null;replay=null;await stateRef.set(ns)}
-function tutAllowed(){const s=tutStep();if(!s||!s.el||s.next||s.fin)return[];const e=s.el();return e?[e]:[]}
+function tutAllowed(){const s=tutStep();if(!s||!s.el||s.next||s.fin)return[];const e=s.el();return [e,...(s.also?s.also():[])].filter(Boolean)}
 let tutBusy=false;
 function tutTick(){if(!TUT||!st||tutBusy)return;let g=0;while(g++<40){const s=tutStep();if(s&&s.skipIf&&s.skipIf()){tutI++;continue}if(s&&s.enter&&!s._in){s._in=1;tutBusy=true;Promise.resolve(s.enter()).finally(()=>{setTimeout(()=>{tutBusy=false;tutTick()},250)});return}if(!s||!s.done)break;let ok=false;try{ok=s.done()}catch(e){}if(!ok)break;tutI++;if(s.after)try{s.after()}catch(e){}}tutDraw()}
 let tfxT=null,tfxId=null,tfxGen=0;
